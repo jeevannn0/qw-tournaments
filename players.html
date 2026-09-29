@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Check the public confirmed-player and squad rosters for QW Free Fire tournaments.">
+  <meta name="color-scheme" content="light dark">
+  <title>Confirmed Players — QW Tournaments</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Teko:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="gaming.css">
+  <script src="js/theme-init.js"></script>
+</head>
+<body data-page="players">
+  <a class="skip-link" href="#rosterContent">Skip to confirmed players</a>
+  <div id="siteHeader" class="site-header-mount"></div>
+  <noscript><div class="noscript-bar">JavaScript is required to load public rosters. <a href="https://wa.me/919449449382">Contact QW on WhatsApp</a>.</div></noscript>
+
+  <main id="mainContent">
+    <section class="page-intro page-intro--players">
+      <div class="page-intro__mesh" aria-hidden="true"></div>
+      <div class="shell page-intro__layout">
+        <div data-reveal><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Players</span></nav><p class="kicker">Public confirmation</p><h1>Know who made the lobby.</h1><p>Search published in-game names, UIDs, teams, and registration references—without exposing ages or payment data.</p></div>
+        <div class="roster-orbit" aria-hidden="true" data-reveal><span></span><span></span><strong>4</strong><small>players per squad</small></div>
+      </div>
+    </section>
+
+    <section class="section roster-section">
+      <div class="shell">
+        <div class="roster-controls" data-reveal>
+          <div class="field"><label for="rosterEvent">Tournament</label><select id="rosterEvent"></select></div>
+          <div class="field search-field"><label for="rosterSearch">Search roster</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="rosterSearch" type="search" placeholder="Team, player, UID, or reference" autocomplete="off"></div></div>
+        </div>
+        <div class="roster-meta" id="rosterMeta" aria-live="polite"></div>
+        <div class="roster-content" id="rosterContent" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section section--surface">
+      <div class="shell privacy-explainer">
+        <div data-reveal><p class="kicker">What appears here</p><h2>Public game details only.</h2><p>Roster publication is a manual organizer action, usually about two hours before the scheduled match.</p></div>
+        <div class="privacy-columns">
+          <article data-reveal><span class="privacy-icon privacy-icon--yes">✓</span><h3>Can be published</h3><ul><li>In-game display name</li><li>Free Fire UID</li><li>Team and slot</li><li>Confirmation status</li></ul></article>
+          <article data-reveal><span class="privacy-icon privacy-icon--no">×</span><h3>Stays private</h3><ul><li>Age and phone number</li><li>Payment screenshot</li><li>Payment address</li><li>Room ID and password</li></ul></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+  <script src="data/config.js"></script>
+  <script src="data/tournaments.js"></script>
+  <script src="data/players.js"></script>
+  <script type="module" src="js/pages/players-page.js"></script>
+</body>
+</html>

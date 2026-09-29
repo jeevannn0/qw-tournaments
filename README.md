@@ -1,17 +1,30 @@
 # QW Tournaments
 
-A static, mobile-first Free Fire tournament website for solo Battle Royale, four-player squad Battle Royale, and squad Clash Squad/TDM events. Registration details are prepared in the browser and sent directly to the organizer through WhatsApp. There is no application server and no participant information is stored by the website.
+A dependency-free, multi-page Free Fire tournament website for solo Battle Royale, four-player squad Battle Royale, and squad Clash Squad/TDM events. It runs on static hosting such as GitHub Pages—no application server or database is required.
+
+Registration details are prepared only in the player's browser and handed to the organizer through WhatsApp. The organizer verifies payments and confirmations manually.
+
+## Pages
+
+| Page | Purpose |
+|---|---|
+| `index.html` | Focused homepage, featured event, upcoming-event preview, and joining flow |
+| `tournaments.html` | Searchable/filterable tournament board |
+| `tournament.html?tournament=<id>` | Dedicated schedule, prize, format, availability, and ruleset view |
+| `register.html?tournament=<id>` | Three-step solo or exactly-four-player registration builder |
+| `players.html?tournament=<id>` | Searchable public confirmed-player roster |
+| `rules.html` | Eligibility, fair play, check-in, scoring, dispute, payment, and privacy rules |
 
 ## Important before launch
 
-The repository starts in **demo mode**. Sample dates, fees, prizes, and one sample roster are visibly marked as demonstrations.
+The repository starts in **demo mode**. Sample dates, entry fees, prizes, and one sample roster are clearly marked.
 
-1. Edit `data/config.js` and review the WhatsApp number.
-2. Edit every value in `data/tournaments.js`.
+1. Review the WhatsApp number in `data/config.js`.
+2. Replace every sample event value in `data/tournaments.js`.
 3. Remove the sample entries from `data/players.js`.
-4. Set `demoMode: false` in `data/config.js` only when the events are real.
-5. Test one solo and one squad WhatsApp message before sharing the site.
-6. Publish exact cancellation, refund, prize, and eligibility terms before accepting payment.
+4. Test both solo and squad registration journeys.
+5. Set `demoMode: false` in `data/config.js` only when the events are real.
+6. Publish exact prize, cancellation, refund, eligibility, and check-in terms before accepting payment.
 
 ## Project structure
 
@@ -20,38 +33,72 @@ The repository starts in **demo mode**. Sample dates, fees, prizes, and one samp
 ├── assets/
 │   └── favicon.svg
 ├── data/
-│   ├── config.js          # Brand, WhatsApp number, timezone, demo switch
-│   ├── players.js         # Public confirmed-player roster
-│   └── tournaments.js     # Event schedule, fees, prizes, and capacity
-├── app.js                 # Rendering, form validation, WhatsApp messages
-├── index.html             # Page structure and content
-├── styles.css             # Responsive light/dark visual system
-└── README.md
+│   ├── config.js                  # Brand, WhatsApp, timezone, and demo switch
+│   ├── players.js                 # Manually maintained public rosters
+│   └── tournaments.js             # Event details, schedules, prizes, and slots
+├── docs/
+│   └── ui-references.md            # Product and accessibility research applied
+├── js/
+│   ├── pages/
+│   │   ├── home.js
+│   │   ├── players-page.js
+│   │   ├── register-page.js
+│   │   ├── rules-page.js
+│   │   ├── tournament-page.js
+│   │   └── tournaments-page.js
+│   ├── shared/
+│   │   ├── data.js                 # Data adapter and formatting helpers
+│   │   ├── event-card.js           # Reusable tournament-card component
+│   │   ├── motion.js               # Safe reveals and View Transition handling
+│   │   ├── registration.js         # Validation and WhatsApp message builder
+│   │   └── shell.js                # Shared header, drawer, footer, theme, and toast
+│   └── theme-init.js
+├── index.html
+├── players.html
+├── register.html
+├── rules.html
+├── tournament.html
+├── tournaments.html
+└── styles.css
 ```
 
 ## Registration and confirmation flow
 
-1. A player selects an event and completes the website form.
-2. **Join through WhatsApp** opens a prepared private message to `+91 94494 49382`.
-3. The player sends the message and then attaches the payment screenshot in WhatsApp after receiving the organizer's verified payment details.
-4. The organizer checks the incoming transaction in the organizer-controlled account. A screenshot alone is not treated as payment confirmation.
-5. The organizer replies with the registration ID and confirmation state.
-6. About two hours before the match, the organizer adds only approved public roster details to `data/players.js`, sets `published: true`, and pushes the update.
-7. Room ID and password are sent privately to confirmed players or captains. They are never committed to this repository.
+1. The player chooses an open tournament.
+2. The three-step registration builder collects one solo player or exactly four squad players.
+3. The player reviews names, numeric Free Fire UIDs, ages, event fee, and eligibility confirmations.
+4. **Open WhatsApp** prepares a private message to `+91 94494 49382`.
+5. The player sends that message, receives verified payment instructions, and manually attaches payment proof in WhatsApp.
+6. The organizer verifies the incoming transaction in the organizer-controlled account. A screenshot alone is not confirmation.
+7. The organizer replies with the final registration state and assigned slot.
+8. About two hours before the match, the organizer publishes only approved public game details in `data/players.js`.
+9. Room ID and password are sent privately to confirmed players or captains and are never committed here.
 
-## Update a tournament
+The generated browser reference helps identify a conversation; it is not a reservation, receipt, or payment confirmation.
 
-Edit an object in `data/tournaments.js`. Dates use ISO 8601 with the India offset:
+## Edit tournaments
+
+Events live in `data/tournaments.js`. Keep each `id` unique and stable because event links and roster records use it.
+
+Dates use ISO 8601 with the India offset:
 
 ```js
 matchAt: "2026-10-10T19:00:00+05:30"
 ```
 
-Use `type: "solo"` for one-player registration or `type: "squad"` for exactly four players. Set `registrationOpen: false` to close the form for an event.
+Use:
+
+- `type: "solo"` for one-player registration.
+- `type: "squad"` for exactly four players.
+- A `mode` containing `TDM` or `Clash` for the TDM category.
+- `registrationOpen: false` to close an event manually.
+- `spotsLeft: 0` to show that capacity is full.
+
+The effective state also changes when the registration deadline or match time passes.
 
 ## Publish confirmed players
 
-Edit the event with the same ID in `data/players.js`:
+Add approved entries under the matching event ID in `data/players.js`, update `updatedAt`, and set `published: true`.
 
 ```js
 "squad-last-circle-01": {
@@ -74,32 +121,52 @@ Edit the event with the same ID in `data/players.js`:
 }
 ```
 
-Only publish in-game names and UIDs that players agreed to display. Never publish ages, phone numbers, payment proof, payment addresses, legal identity documents, or room credentials.
+Only publish in-game names and UIDs players agreed to display. Never publish ages, phone numbers, payment proof, payment addresses, identity documents, or room credentials.
 
 ## Local preview
 
-From this folder, run:
+ES modules require an HTTP preview instead of double-clicking the HTML files:
 
 ```powershell
+Set-Location "C:\Users\jeevanzn\Downloads\tournamte site"
 python -m http.server 4173
 ```
 
-Then open `http://localhost:4173`.
+Open `http://localhost:4173`.
+
+## UI and accessibility behavior
+
+- Shared desktop navigation and a native modal mobile drawer
+- Light and dark themes saved locally without storing player information
+- Same-origin page transitions where supported, with ordinary navigation as fallback
+- One-time Intersection Observer reveals; content remains visible without enhancement
+- Reduced-motion support that removes spatial animation
+- Native disclosures for rules and native radio controls for tournament filters
+- Visible keyboard focus, touch-sized controls, semantic headings, and mobile table-to-card conversion
+- No autoplay carousel, endless ticker, or decorative video
+
+The product and component references applied during the redesign are documented in [`docs/ui-references.md`](docs/ui-references.md).
 
 ## GitHub Pages
 
-1. Create a GitHub repository and push these files to its default branch.
+1. Push this folder to a public GitHub repository.
 2. Open **Settings → Pages**.
-3. Under **Build and deployment**, choose **Deploy from a branch**.
-4. Select the default branch and `/ (root)`, then save.
+3. Under **Build and deployment**, select **Deploy from a branch**.
+4. Select `main` and `/ (root)`, then save.
 
-Every push to the selected branch updates the public site. GitHub Pages is public, so keep private registration and payment records outside this folder.
+All page and asset links are relative, so project-subpath URLs such as `https://USERNAME.github.io/qw-tournaments/` work without a build step.
 
-## Safety and fair-play notes
+## Safety notes
 
-- Never ask for an OTP, UPI PIN, card PIN, game password, or account password.
-- Confirm transactions from the organizer-controlled payment account rather than from screenshots alone.
-- Send lobby credentials privately and rotate them for every event.
-- Require guardian approval for under-18 entrants and check applicable local rules before running paid events.
-- Keep evidence-based dispute deadlines and publish results consistently.
+- Never request an OTP, UPI PIN, card PIN, game password, or account password.
+- Verify money in the organizer-controlled payment account instead of trusting screenshots.
+- Rotate room credentials for every event and send them privately.
+- Require appropriate guardian approval for under-18 entrants and review applicable local requirements before operating paid events.
+- Keep evidence-based dispute deadlines and publish corrections consistently.
 - This is an independent community tournament site. It is not affiliated with, endorsed, sponsored, or administered by Garena. Free Fire and related marks belong to their respective owners.
+
+## Gaming artwork
+
+The combat skin is isolated in `gaming.css`, layered after the structural `styles.css`. The Home route uses original `assets/battle-arena.svg` artwork; tournament cards, event detail, registration match cards, route headers, and the combat gallery use eight optimized official Free Fire wallpapers. All source URLs and ownership notes are recorded in [`docs/image-credits.md`](docs/image-credits.md). Visible image credits also link to Garena’s official wallpaper library.
+
+Phone-specific behavior keeps the Home hero inside one viewport, turns the registration battle picker into a swipeable poster rail, centers a deep-linked selection, removes redundant copy, and starts the registration panel near the top of the first screen.

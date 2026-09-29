@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title description">
+  <title id="title">Original QW battle arena poster</title>
+  <desc id="description">Four stylized competitors stand in a dark battle arena against an orange final-zone glow and tactical interface markings.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#111923"/>
+      <stop offset="0.55" stop-color="#090d13"/>
+      <stop offset="1" stop-color="#030507"/>
+    </linearGradient>
+    <radialGradient id="zone" cx="50%" cy="48%" r="54%">
+      <stop offset="0" stop-color="#ffe178"/>
+      <stop offset="0.42" stop-color="#ff9d00"/>
+      <stop offset="0.78" stop-color="#e74800"/>
+      <stop offset="1" stop-color="#e74800" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#343e4b"/>
+      <stop offset="0.5" stop-color="#141a21"/>
+      <stop offset="1" stop-color="#070a0e"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffb000"/>
+      <stop offset="0.2" stop-color="#272f39"/>
+      <stop offset="1" stop-color="#080b10"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111820"/>
+      <stop offset="1" stop-color="#020304"/>
+    </linearGradient>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0v64" fill="none" stroke="#ffb000" stroke-opacity="0.09" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="24" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="20" stdDeviation="18" flood-color="#000000" flood-opacity="0.72"/>
+    </filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="7" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="faded"><feFuncA type="table" tableValues="0 0.11"/></feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="faded" mode="screen"/>
+    </filter>
+    <clipPath id="frame"><path d="M42 0h1516l42 42v1116l-42 42H42L0 1158V42Z"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1600" height="1200" fill="url(#sky)"/>
+    <rect width="1600" height="1200" fill="url(#grid)"/>
+
+    <path d="M0 610 170 474l138 61 178-210 174 146 183-244 178 211 139-101 210 193 230-101 120 81v690H0Z" fill="#111821" opacity="0.9"/>
+    <path d="M0 661 184 519l130 53 174-187 168 133 177-221 187 207 144-106 200 177 236-91v716H0Z" fill="#080c11"/>
+
+    <circle cx="1110" cy="425" r="340" fill="url(#zone)" opacity="0.94" filter="url(#glow)"/>
+    <circle cx="1110" cy="425" r="252" fill="none" stroke="#ffd263" stroke-opacity="0.55" stroke-width="3" stroke-dasharray="18 24"/>
+    <circle cx="1110" cy="425" r="174" fill="none" stroke="#1a1510" stroke-opacity="0.55" stroke-width="2"/>
+    <path d="M1110 102v646M788 425h644" fill="none" stroke="#ffdb79" stroke-opacity="0.22" stroke-width="2"/>
+
+    <g fill="none" stroke="#ffb000" stroke-opacity="0.13" stroke-width="3">
+      <path d="M68 246c155-82 269-20 373-75 104-55 131-161 296-111"/>
+      <path d="M25 301c181-90 314-14 425-75 111-61 150-170 329-115"/>
+      <path d="M1301 195c89 13 164 55 252 26"/>
+      <path d="M1269 246c115 6 195 66 306 31"/>
+      <path d="M71 887c189-96 291-37 408-90 117-53 212-170 381-97"/>
+    </g>
+
+    <g opacity="0.56">
+      <path d="M83 715h246v-181h-67v-94h-49v94H83Z" fill="#0f151c"/>
+      <path d="M1390 708h210V410h-72v-92h-58v92h-80Z" fill="#0d1218"/>
+      <path d="M0 772h1600" stroke="#ffb000" stroke-opacity="0.24" stroke-width="2"/>
+      <path d="M90 700h171v-88h-171M1430 626h133v-118h-133" fill="none" stroke="#637080" stroke-opacity="0.18" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(410 705) scale(.72)" filter="url(#shadow)">
+      <ellipse cx="0" cy="-254" rx="48" ry="55" fill="#080b10" stroke="#ffae00" stroke-opacity="0.55" stroke-width="5"/>
+      <path d="m-54-227-84 71-32 214 80 12 24-149 25 177-44 254h84l24-176 29 176h85L85 83 92-82l72 97 55-38-103-191-91-37Z" fill="url(#armor)" stroke="#050709" stroke-width="11"/>
+      <path d="M-53-202 35-223 59-74 2-41l-63-39Z" fill="#232c36"/>
+      <path d="M-41-180 28-196 37-156-31-139Z" fill="#ff9e00" opacity="0.66"/>
+      <path d="m-113-129 259 39 16 31-269 4Z" fill="#080b10" stroke="#4b5866" stroke-width="6"/>
+      <path d="m114-94 108 17 46-17 14 22-55 38-124 5Z" fill="#181f27"/>
+    </g>
+
+    <g transform="translate(705 690) scale(.92)" filter="url(#shadow)">
+      <ellipse cx="0" cy="-280" rx="52" ry="59" fill="#090c11" stroke="#ffb000" stroke-opacity="0.72" stroke-width="5"/>
+      <path d="m-44-328 25-19 48 7 24 29-8 28-82 2Z" fill="#242d37"/>
+      <path d="m-67-245-101 74-48 226 85 24 42-162 2 210-66 277h94L4 192l48 212h98L79 118l-6-199 75 127 70-38-99-217-82-51Z" fill="url(#rim)" stroke="#05070a" stroke-width="13"/>
+      <path d="m-61-220 92-34 65 154-60 58-98-42Z" fill="#1d252e"/>
+      <path d="M-35-201 43-225 58-176-24-153Z" fill="#ffad00" opacity="0.77"/>
+      <path d="m-157-132 325 44 20 38-338 2Z" fill="#070a0e" stroke="#566474" stroke-width="7"/>
+      <path d="m140-92 119 12 57-27 21 27-62 51-139 4Z" fill="#1a222b"/>
+      <path d="M-67-95 60-76 35-43-76-61Z" fill="#394552" opacity="0.65"/>
+    </g>
+
+    <g transform="translate(1080 650) scale(1.16)" filter="url(#shadow)">
+      <ellipse cx="0" cy="-293" rx="54" ry="63" fill="#080b0f" stroke="#ffd05a" stroke-opacity="0.82" stroke-width="5"/>
+      <path d="m-49-339 33-22 57 11 25 34-13 26-96-3Z" fill="#202832"/>
+      <path d="m-73-255-112 91-35 247 93 14 33-172 17 218-75 297h104L8 215l57 225h105L91 135 94-79l78 127 77-48-116-225-87-49Z" fill="url(#armor)" stroke="#040608" stroke-width="14"/>
+      <path d="m-66-230 107-39 70 166-69 65-111-48Z" fill="#202a34"/>
+      <path d="M-40-211 50-240 68-185-27-157Z" fill="#ffb300" opacity="0.88"/>
+      <path d="M-30-136 63-108 39-67-53-92Z" fill="#647486" opacity="0.36"/>
+      <path d="m-169-133 366 37 22 41-383 15Z" fill="#06090c" stroke="#657586" stroke-width="7"/>
+      <path d="m163-99 138 7 65-34 24 31-69 59-160 9Z" fill="#19212a"/>
+      <path d="m71-85 46-132 53 15-33 152Z" fill="#11171d"/>
+    </g>
+
+    <g transform="translate(1375 725) scale(.78)" filter="url(#shadow)">
+      <ellipse cx="0" cy="-252" rx="47" ry="54" fill="#080b10" stroke="#ffae00" stroke-opacity="0.52" stroke-width="5"/>
+      <path d="m-52-224-79 75-28 205 78 13 23-145 22 176-41 250H4l21-172 32 172h83L86 79 91-70l69 92 56-40-104-190-85-37Z" fill="url(#armor)" stroke="#050709" stroke-width="11"/>
+      <path d="m-45-201 86-27 58 147-56 44-91-47Z" fill="#242d37"/>
+      <path d="M-22-181 48-202 62-159-13-136Z" fill="#ff9f00" opacity="0.66"/>
+      <path d="m-111-119 259 31 17 31-270 13Z" fill="#080b10" stroke="#4b5866" stroke-width="6"/>
+      <path d="m122-92 103 11 50-26 17 24-55 45-120 5Z" fill="#181f27"/>
+    </g>
+
+    <path d="M0 916c181-58 277 25 454-42 178-67 335-29 481 7 146 37 273-10 414-43 102-24 174-8 251 23v339H0Z" fill="url(#ground)"/>
+    <path d="M0 1098 465 957l299 68 401-137 435 94v218H0Z" fill="#030506"/>
+    <path d="m0 1137 690-97 244 46 666-143v257H0Z" fill="#080b0e"/>
+    <path d="m0 1182 543-44 207 30 517-80 333 40v72H0Z" fill="#ff9f00" opacity="0.88"/>
+    <path d="m0 1191 807-38 333 39 460-20v28H0Z" fill="#050709"/>
+
+    <g fill="#ffb000">
+      <path d="m65 980 18-72 10 64 22-112 5 116Z"/>
+      <path d="m1510 1001 17-93 12 75 21-128 8 139Z"/>
+      <path d="m263 1064 15-70 13 57 14-99 10 105Z"/>
+    </g>
+
+    <g font-family="Arial, sans-serif" font-weight="700" letter-spacing="4" fill="#dce3ea">
+      <text x="70" y="80" font-size="18" opacity="0.72">QW // BATTLE ZONE</text>
+      <text x="70" y="112" font-size="12" opacity="0.42">INDIA SERVER · COMMUNITY MATCH</text>
+      <text x="1270" y="82" font-size="13" text-anchor="end" opacity="0.58">GRID 19.0760° N</text>
+      <text x="1530" y="1110" font-size="12" text-anchor="end" opacity="0.62">SQUAD LINK // READY</text>
+    </g>
+
+    <g fill="none" stroke="#ffb000" stroke-width="4" opacity="0.8">
+      <path d="M30 120V30h90M1480 30h90v90M30 1080v90h90M1480 1170h90v-90"/>
+    </g>
+
+    <rect width="1600" height="1200" filter="url(#grain)" opacity="0.28"/>
+  </g>
+</svg>

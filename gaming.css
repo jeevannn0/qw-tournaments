@@ -1,0 +1,2017 @@
+/* QW combat skin — loaded after the structural stylesheet */
+:root {
+  --radius: 0.18rem;
+  --font-sans: "Rajdhani", "Segoe UI", sans-serif;
+  --font-display: "Teko", "Arial Narrow", sans-serif;
+  --header-height: 4.25rem;
+}
+
+:root[data-theme="dark"] {
+  --background: oklch(0.09 0.015 252);
+  --foreground: oklch(0.96 0.018 87);
+  --card: oklch(0.135 0.02 250);
+  --card-foreground: oklch(0.96 0.018 87);
+  --popover: oklch(0.15 0.02 250);
+  --popover-foreground: oklch(0.96 0.018 87);
+  --primary: oklch(0.79 0.2 73);
+  --primary-foreground: oklch(0.09 0.018 255);
+  --secondary: oklch(0.19 0.023 250);
+  --secondary-foreground: oklch(0.93 0.018 86);
+  --muted: oklch(0.16 0.019 250);
+  --muted-foreground: oklch(0.69 0.028 84);
+  --accent: oklch(0.25 0.07 66);
+  --accent-foreground: oklch(0.98 0.018 88);
+  --border: oklch(0.3 0.028 246);
+  --input: oklch(0.38 0.034 244);
+  --ring: oklch(0.79 0.2 73);
+  --chart-1: oklch(0.79 0.2 73);
+  --chart-2: oklch(0.74 0.18 148);
+  --chart-3: oklch(0.66 0.17 245);
+  --chart-4: oklch(0.79 0.18 87);
+  --chart-5: oklch(0.67 0.22 30);
+}
+
+:root[data-theme="light"] {
+  --background: oklch(0.93 0.018 84);
+  --foreground: oklch(0.12 0.02 250);
+  --card: oklch(0.97 0.013 85);
+  --card-foreground: oklch(0.12 0.02 250);
+  --popover: oklch(0.98 0.01 85);
+  --popover-foreground: oklch(0.12 0.02 250);
+  --primary: oklch(0.72 0.19 67);
+  --primary-foreground: oklch(0.1 0.018 252);
+  --secondary: oklch(0.86 0.024 82);
+  --secondary-foreground: oklch(0.16 0.02 250);
+  --muted: oklch(0.89 0.019 84);
+  --muted-foreground: oklch(0.42 0.03 246);
+  --accent: oklch(0.85 0.08 72);
+  --accent-foreground: oklch(0.13 0.02 250);
+  --border: oklch(0.71 0.032 80);
+  --input: oklch(0.62 0.038 78);
+  --ring: oklch(0.67 0.18 65);
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 12%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 24rem),
+    var(--background);
+  font-weight: 500;
+  letter-spacing: 0.012em;
+}
+
+body::before {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  opacity: 0.055;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, var(--foreground) 4px);
+  pointer-events: none;
+  content: "";
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(4.6rem, 10vw, 9.7rem);
+  font-style: italic;
+}
+
+h2 {
+  font-size: clamp(3.1rem, 6vw, 5.7rem);
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+.kicker,
+.eyebrow-label,
+.hero-label {
+  color: var(--primary);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.19em;
+}
+
+.section {
+  position: relative;
+}
+
+.section::after {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 0.8rem;
+  color: color-mix(in oklab, var(--foreground) 17%, transparent);
+  font-family: ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  content: "QW // COMBAT NETWORK";
+}
+
+.section--surface {
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 4%, transparent), transparent 45%),
+    var(--muted);
+}
+
+.button,
+.icon-button,
+input,
+select,
+.catalog-controls,
+.wizard-card,
+.player-entry,
+.selection-card,
+.event-status-panel,
+.roster-card,
+.privacy-columns article,
+.rule-chip-grid article,
+.prize-place,
+.empty-state,
+.trust-cta__panel,
+.feature-event,
+.event-card {
+  border-radius: 0;
+}
+
+.button {
+  position: relative;
+  min-height: 3rem;
+  border-width: 1px;
+  overflow: hidden;
+  font-size: 0.83rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.button::before {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: -2.2rem;
+  width: 1.5rem;
+  transform: skewX(-22deg);
+  background: color-mix(in oklab, var(--foreground) 25%, transparent);
+  content: "";
+  transition: left 320ms ease;
+}
+
+.button:hover::before {
+  left: calc(100% + 1rem);
+}
+
+.button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.button--primary {
+  border-color: var(--primary);
+  background:
+    linear-gradient(115deg, var(--primary) 0 82%, color-mix(in oklab, var(--primary) 72%, var(--foreground)) 82% 100%);
+  box-shadow: 5px 5px 0 color-mix(in oklab, var(--primary) 23%, transparent);
+}
+
+.button--primary:hover {
+  box-shadow: 8px 8px 0 color-mix(in oklab, var(--primary) 19%, transparent);
+}
+
+.button--quiet {
+  background: color-mix(in oklab, var(--card) 91%, transparent);
+}
+
+.button--text {
+  letter-spacing: 0.04em;
+}
+
+.icon-button {
+  border-radius: 0;
+}
+
+.demo-ribbon {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
+  background:
+    repeating-linear-gradient(125deg, color-mix(in oklab, var(--primary) 19%, var(--background)) 0 13px, var(--background) 13px 26px);
+  color: var(--foreground);
+}
+
+.demo-ribbon .shell {
+  position: relative;
+  z-index: 1;
+  min-height: 2rem;
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.demo-ribbon .status-dot {
+  background: var(--primary);
+  box-shadow: 0 0 0 0.2rem color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+.demo-ribbon strong {
+  color: var(--primary);
+}
+
+.app-header {
+  border-bottom-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+  background: color-mix(in oklab, var(--background) 93%, transparent);
+}
+
+.app-header::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  width: 24%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary));
+  content: "";
+}
+
+.wordmark__symbol {
+  width: 3.05rem;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 72%, 57% 100%, 0 100%);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-style: italic;
+}
+
+.wordmark__text strong {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.wordmark__text small {
+  margin-top: -0.05rem;
+  color: var(--primary);
+  font-family: var(--font-sans);
+}
+
+.desktop-nav__link {
+  border-radius: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.desktop-nav__link[aria-current="page"] {
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+
+.desktop-nav__link[aria-current="page"]::after {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+}
+
+.nav-drawer__panel {
+  background:
+    linear-gradient(145deg, color-mix(in oklab, var(--primary) 7%, transparent), transparent 50%),
+    var(--background);
+}
+
+.drawer-nav__link {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.home-hero--battle {
+  min-height: calc(100svh - var(--header-height) - 2rem);
+  background:
+    radial-gradient(circle at 72% 44%, color-mix(in oklab, var(--primary) 17%, transparent), transparent 30rem),
+    linear-gradient(105deg, var(--background) 0 44%, color-mix(in oklab, var(--background) 77%, transparent) 67%, var(--background) 100%);
+}
+
+.home-hero--battle::after {
+  position: absolute;
+  z-index: -2;
+  right: -8vw;
+  bottom: -20%;
+  width: 70vw;
+  height: 44%;
+  transform: skewY(-7deg);
+  background: color-mix(in oklab, var(--primary) 7%, transparent);
+  content: "";
+}
+
+.battle-stripes {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  width: 45%;
+  height: 100%;
+  opacity: 0.08;
+  background: repeating-linear-gradient(125deg, var(--primary) 0 2px, transparent 2px 20px);
+}
+
+.home-hero__layout {
+  min-height: calc(100svh - var(--header-height) - 2rem);
+  grid-template-columns: minmax(0, 0.88fr) minmax(30rem, 1.12fr);
+  gap: clamp(1rem, 3vw, 3rem);
+  padding-block: 2.5rem 4rem;
+}
+
+.home-hero__copy {
+  z-index: 5;
+}
+
+.home-hero h1 {
+  margin-bottom: 1rem;
+  font-size: clamp(5.2rem, 9.2vw, 9rem);
+  line-height: 0.76;
+}
+
+.home-hero h1 > span {
+  color: var(--foreground);
+}
+
+.home-hero h1 em {
+  display: inline-block;
+  color: var(--primary);
+  text-shadow: 6px 6px 0 color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+.glitch-word {
+  position: relative;
+}
+
+.glitch-word::before,
+.glitch-word::after {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: var(--primary);
+  content: attr(data-text);
+  pointer-events: none;
+}
+
+.glitch-word::before {
+  transform: translate(3px, -1px);
+  clip-path: inset(8% 0 67% 0);
+  color: var(--chart-3);
+}
+
+.glitch-word::after {
+  transform: translate(-3px, 1px);
+  clip-path: inset(63% 0 10% 0);
+  color: var(--chart-5);
+}
+
+.home-hero__copy > p {
+  max-width: 35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.battle-poster {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 51rem);
+  aspect-ratio: 4 / 3;
+  justify-self: end;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--primary) 55%, var(--border));
+  background: var(--card);
+  clip-path: polygon(5% 0, 100% 0, 100% 93%, 95% 100%, 0 100%, 0 7%);
+  box-shadow: 20px 24px 0 color-mix(in oklab, var(--primary) 9%, transparent), var(--shadow-lg);
+}
+
+.battle-poster__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.015);
+}
+
+.battle-poster::before {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--background) 25%, transparent), transparent 30% 80%, color-mix(in oklab, var(--primary) 11%, transparent));
+  pointer-events: none;
+  content: "";
+}
+
+.battle-poster__scan,
+.event-poster__scan {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  left: 0;
+  height: 2px;
+  top: 20%;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  box-shadow: 0 0 16px var(--primary);
+  opacity: 0.65;
+}
+
+.battle-poster__glitch {
+  position: absolute;
+  z-index: 4;
+  top: 38%;
+  right: 2%;
+  width: 23%;
+  height: 3px;
+  background: var(--primary);
+  box-shadow: -38px 11px 0 color-mix(in oklab, var(--chart-3) 70%, transparent), 20px 22px 0 color-mix(in oklab, var(--chart-5) 70%, transparent);
+}
+
+.battle-poster__corner {
+  position: absolute;
+  z-index: 5;
+  width: 4rem;
+  height: 4rem;
+  border-color: var(--primary);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.battle-poster__corner--one {
+  top: 1rem;
+  left: 1rem;
+  border-width: 2px 0 0 2px;
+}
+
+.battle-poster__corner--two {
+  right: 1rem;
+  bottom: 1rem;
+  border-width: 0 2px 2px 0;
+}
+
+.battle-poster figcaption {
+  position: absolute;
+  z-index: 6;
+  right: 1.25rem;
+  bottom: 1rem;
+  left: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 0.1rem 1rem;
+  color: var(--foreground);
+  text-shadow: 0 2px 12px var(--background);
+}
+
+.battle-poster figcaption span {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.battle-poster figcaption span i {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--chart-2);
+}
+
+.battle-poster figcaption strong {
+  grid-row: span 2;
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+}
+
+.battle-poster figcaption small {
+  color: var(--muted-foreground);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-hero__noise {
+  opacity: 0.2;
+  background-size: 3rem 3rem;
+}
+
+.hero-proof {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.signal-strip {
+  border-color: color-mix(in oklab, var(--primary) 28%, var(--border));
+  background: var(--card);
+}
+
+.signal-strip__grid > div {
+  min-height: 6.6rem;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 4%, transparent), transparent 45%);
+}
+
+.signal-strip__grid strong {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 0.9;
+}
+
+.feature-event {
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  clip-path: polygon(0 0, calc(100% - 2rem) 0, 100% 2rem, 100% 100%, 2rem 100%, 0 calc(100% - 2rem));
+}
+
+.feature-event__content {
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 7%, transparent), transparent 46%),
+    var(--card);
+}
+
+.feature-event__content h2 {
+  font-size: clamp(3.7rem, 6vw, 6.7rem);
+  font-style: italic;
+}
+
+.feature-event__visual {
+  isolation: isolate;
+  background: var(--card);
+}
+
+.feature-event__visual > img {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: translate3d(var(--parallax-x, 0), var(--parallax-y, 0), 0) scale(1.08);
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.feature-event__shade {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--background) 60%, transparent), transparent 55%), linear-gradient(0deg, var(--background), transparent 55%);
+}
+
+.feature-event__mark {
+  z-index: 2;
+  color: color-mix(in oklab, var(--foreground) 15%, transparent);
+  mix-blend-mode: screen;
+}
+
+.feature-event__hit {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+}
+
+.feature-event__caption,
+.feature-event__crosshair,
+.feature-event__grid {
+  z-index: 2;
+}
+
+.media-credit {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  width: fit-content;
+  color: var(--muted-foreground);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-underline-offset: 0.2rem;
+}
+
+.media-credit--image {
+  position: absolute;
+  z-index: 5;
+  top: 1rem;
+  right: 1rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 25%, transparent);
+  background: color-mix(in oklab, var(--background) 65%, transparent);
+  color: var(--foreground);
+  padding: 0.35rem 0.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.event-card {
+  border-color: color-mix(in oklab, var(--foreground) 16%, var(--border));
+  background: linear-gradient(145deg, color-mix(in oklab, var(--primary) 4%, transparent), transparent 35%), var(--card);
+  clip-path: polygon(0 0, calc(100% - 1.2rem) 0, 100% 1.2rem, 100% 100%, 0 100%);
+}
+
+.event-card--featured {
+  border-color: var(--primary);
+  box-shadow: 7px 7px 0 color-mix(in oklab, var(--primary) 15%, transparent);
+}
+
+.event-card__art {
+  min-height: 14rem;
+  isolation: isolate;
+  background: var(--card);
+}
+
+.event-card__image {
+  position: absolute;
+  z-index: -3;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.12) contrast(1.06);
+  transform: scale(1.02);
+  transition: transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 250ms ease;
+}
+
+.event-card:hover .event-card__image {
+  filter: saturate(1.3) contrast(1.08);
+  transform: scale(1.095);
+}
+
+.event-card__shade {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: linear-gradient(0deg, var(--background) 0, color-mix(in oklab, var(--background) 35%, transparent) 45%, transparent 78%), linear-gradient(90deg, color-mix(in oklab, var(--background) 35%, transparent), transparent);
+}
+
+.event-card__grid {
+  z-index: -1;
+  opacity: 0.2;
+}
+
+.event-card__mark {
+  z-index: 1;
+  color: color-mix(in oklab, var(--foreground) 38%, transparent);
+  font-size: clamp(4.4rem, 8vw, 6.4rem);
+  font-style: italic;
+  mix-blend-mode: screen;
+  text-shadow: 5px 5px 0 color-mix(in oklab, var(--primary) 22%, transparent);
+}
+
+.event-card__body {
+  border-top: 2px solid color-mix(in oklab, var(--primary) 55%, var(--border));
+}
+
+.event-card__body > .media-credit {
+  margin: -0.55rem 0 0.75rem;
+}
+
+.event-card h3 {
+  font-size: 2.25rem;
+  font-style: italic;
+}
+
+.event-card__format {
+  color: var(--primary);
+}
+
+.capacity-meter {
+  height: 0.22rem;
+  background: color-mix(in oklab, var(--foreground) 11%, transparent);
+}
+
+.combat-reel {
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid var(--border);
+  background: var(--foreground);
+  color: var(--background);
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+.combat-reel::before {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background: repeating-linear-gradient(120deg, transparent 0 24px, var(--primary) 24px 26px);
+  content: "";
+}
+
+.combat-reel__heading {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.combat-reel h2 {
+  margin: 0;
+  color: var(--background);
+  font-style: italic;
+}
+
+.combat-reel__heading > p {
+  max-width: 30rem;
+  margin: 0;
+  color: color-mix(in oklab, var(--background) 65%, transparent);
+}
+
+.combat-gallery {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(calc(100% - 2rem), 96rem);
+  height: min(68vw, 44rem);
+  min-height: 32rem;
+  grid-template-columns: 1.25fr 0.75fr 0.95fr;
+  grid-template-rows: 1fr 0.85fr;
+  gap: 0.55rem;
+  margin-inline: auto;
+}
+
+.combat-shot {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  background: var(--background);
+  clip-path: polygon(0 0, calc(100% - 1.2rem) 0, 100% 1.2rem, 100% 100%, 0 100%);
+}
+
+.combat-shot--1 {
+  grid-row: 1 / -1;
+}
+
+.combat-shot--4 {
+  grid-column: 2 / 3;
+}
+
+.combat-shot--5 {
+  grid-column: 3 / 4;
+}
+
+.combat-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.82) contrast(1.08);
+  transform: translate3d(var(--parallax-x, 0), var(--parallax-y, 0), 0) scale(1.07);
+  transition: filter 300ms ease, transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.combat-shot:hover img {
+  filter: saturate(1.18) contrast(1.1);
+  transform: translate3d(var(--parallax-x, 0), var(--parallax-y, 0), 0) scale(1.13);
+}
+
+.combat-shot__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, color-mix(in oklab, var(--foreground) 92%, transparent), transparent 55%);
+}
+
+.combat-shot figcaption {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.8rem;
+  left: 0.9rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--background);
+}
+
+.combat-shot figcaption > span {
+  color: var(--primary);
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+}
+
+.combat-shot figcaption strong {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.combat-shot figcaption a {
+  color: color-mix(in oklab, var(--background) 70%, transparent);
+  font-size: 0.52rem;
+  text-transform: uppercase;
+}
+
+.process-steps li > span {
+  font-size: 1rem;
+}
+
+.process-steps h3 {
+  font-size: 2.8rem;
+  font-style: italic;
+}
+
+.trust-cta__panel {
+  clip-path: polygon(1.5rem 0, 100% 0, 100% calc(100% - 1.5rem), calc(100% - 1.5rem) 100%, 0 100%, 0 1.5rem);
+  background:
+    linear-gradient(105deg, color-mix(in oklab, var(--primary) 16%, transparent), transparent 42%),
+    var(--foreground);
+}
+
+.page-intro {
+  min-height: 25rem;
+  background: var(--background);
+  color: oklch(0.97 0.01 90);
+}
+
+.page-intro::before {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-position: center 28%;
+  background-size: cover;
+  filter: saturate(1.15) contrast(1.1);
+  content: "";
+}
+
+.page-intro::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, oklch(0.07 0.015 250 / 95%) 0 42%, oklch(0.07 0.015 250 / 48%) 73%, oklch(0.07 0.015 250 / 72%));
+  content: "";
+}
+
+.page-intro--tournaments::before {
+  background-image: url("assets/ff-arena-02.jpg");
+}
+
+.page-intro--players::before {
+  background-image: url("assets/ff-arena-06.jpg");
+}
+
+.page-intro--rules::before {
+  background-image: url("assets/ff-arena-08.jpg");
+}
+
+.page-intro__layout {
+  min-height: 25rem;
+  padding-block: 3.5rem;
+}
+
+.page-intro h1,
+.page-intro h2,
+.page-intro .breadcrumb,
+.page-intro__layout > div:first-child > p:last-child {
+  color: oklch(0.97 0.01 90);
+}
+
+.page-intro h1 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(4.4rem, 8vw, 7.7rem);
+  font-style: italic;
+  text-shadow: 8px 8px 0 oklch(0.05 0.01 250 / 42%);
+}
+
+.page-intro__index strong {
+  color: var(--primary);
+  font-size: 9rem;
+  font-style: italic;
+}
+
+.catalog-controls,
+.wizard-card,
+.event-status-panel,
+.roster-card {
+  border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+  background: linear-gradient(145deg, color-mix(in oklab, var(--primary) 4%, transparent), transparent 40%), var(--card);
+}
+
+.catalog-controls::before,
+.wizard-card::before {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 3rem;
+  height: 3px;
+  background: var(--primary);
+  content: "";
+}
+
+.catalog-controls {
+  overflow: hidden;
+}
+
+.segments label {
+  border-radius: 0;
+  text-transform: uppercase;
+}
+
+.event-hero--combat {
+  min-height: 39rem;
+  background:
+    linear-gradient(110deg, color-mix(in oklab, var(--primary) 7%, transparent), transparent 35%),
+    var(--background);
+}
+
+.event-hero__copy h1 {
+  font-size: clamp(4.7rem, 8vw, 8.4rem);
+  font-style: italic;
+}
+
+.event-poster {
+  position: relative;
+  width: min(100%, 31rem);
+  aspect-ratio: 4 / 5;
+  justify-self: end;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--primary);
+  background: var(--card);
+  clip-path: polygon(0 0, calc(100% - 2rem) 0, 100% 2rem, 100% 100%, 2rem 100%, 0 calc(100% - 2rem));
+  box-shadow: 16px 18px 0 color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+.event-poster > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: translate3d(var(--parallax-x, 0), var(--parallax-y, 0), 0) scale(1.07);
+  transition: transform 600ms ease;
+}
+
+.event-poster__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, var(--background), transparent 53%), linear-gradient(90deg, color-mix(in oklab, var(--background) 30%, transparent), transparent);
+}
+
+.event-poster__code {
+  position: absolute;
+  right: 1rem;
+  bottom: 3rem;
+  color: color-mix(in oklab, var(--foreground) 22%, transparent);
+  font-family: var(--font-display);
+  font-size: 6rem;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1;
+  mix-blend-mode: screen;
+}
+
+.event-poster figcaption {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.8rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--foreground);
+}
+
+.event-poster figcaption > span {
+  color: var(--primary);
+  font-family: ui-monospace, monospace;
+  font-size: 0.62rem;
+}
+
+.event-poster figcaption > strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+.event-poster figcaption > a {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font-size: 0.55rem;
+}
+
+.event-fact-bar {
+  border-radius: 0;
+  border-color: color-mix(in oklab, var(--primary) 33%, var(--border));
+}
+
+.event-fact-bar > div {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 5%, transparent), transparent 50%);
+}
+
+.event-local-nav {
+  border-bottom-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+}
+
+.event-local-nav a {
+  border-radius: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-status-panel,
+.prize-place,
+.rule-chip-grid article,
+.player-entry,
+.roster-card {
+  clip-path: polygon(0 0, calc(100% - 0.8rem) 0, 100% 0.8rem, 100% 100%, 0 100%);
+}
+
+.prize-place--1 {
+  background:
+    linear-gradient(155deg, color-mix(in oklab, var(--primary) 18%, transparent), transparent 47%),
+    var(--card);
+}
+
+.prize-place strong {
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 600;
+}
+
+.timeline li > span,
+.info-icon,
+.registration-success__icon,
+.privacy-icon {
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+.timeline li > span,
+.info-icon > *,
+.registration-success__icon > * {
+  transform: rotate(-45deg);
+}
+
+.registration-page {
+  background:
+    linear-gradient(90deg, color-mix(in oklab, var(--background) 98%, transparent), color-mix(in oklab, var(--background) 88%, transparent)),
+    url("assets/ff-arena-03.jpg") center / cover fixed;
+}
+
+.wizard-sidebar h1 {
+  color: var(--primary);
+  font-size: clamp(4rem, 6vw, 6.4rem);
+  font-style: italic;
+}
+
+.wizard-card {
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 1.4rem) 0, 100% 1.4rem, 100% 100%, 0 100%);
+}
+
+.wizard-card__progress {
+  background: color-mix(in oklab, var(--background) 60%, var(--card));
+}
+
+.wizard-panel__heading h2,
+.lineup-heading h2,
+.review-event h2,
+.registration-success h2 {
+  font-style: italic;
+}
+
+.wizard-progress {
+  background: color-mix(in oklab, var(--foreground) 12%, transparent);
+}
+
+.wizard-progress span {
+  box-shadow: 0 0 14px var(--primary);
+}
+
+.wizard-steps li > span {
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+.wizard-steps li > span::first-letter {
+  transform: rotate(-45deg);
+}
+
+.match-picker-fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.match-picker-fieldset > legend {
+  margin-bottom: 0.6rem;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.match-picker-fieldset > legend span {
+  color: var(--primary);
+}
+
+.match-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.match-pick {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--muted);
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 0.85rem) 0, 100% 0.85rem, 100% 100%, 0 100%);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.match-pick:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+}
+
+.match-pick__image {
+  position: relative;
+  display: block;
+  height: 8rem;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.match-pick__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.7) contrast(1.1);
+  transition: filter 180ms ease, transform 300ms ease;
+}
+
+.match-pick__image > i {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, var(--background), transparent 65%);
+}
+
+.match-pick__image > b {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.05rem;
+  color: color-mix(in oklab, var(--foreground) 45%, transparent);
+  font-family: var(--font-display);
+  font-size: 2.7rem;
+  font-style: italic;
+  line-height: 1;
+}
+
+.match-pick__body {
+  display: grid;
+  padding: 0.7rem;
+}
+
+.match-pick__body > small {
+  color: var(--primary);
+  font-size: 0.53rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.match-pick__body > strong {
+  margin: 0.2rem 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.match-pick__body > em {
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  font-style: normal;
+}
+
+.match-pick__body > span {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.match-pick__body > span b {
+  color: var(--foreground);
+  font-size: 0.82rem;
+}
+
+.match-pick__body > span i {
+  color: var(--muted-foreground);
+  font-size: 0.55rem;
+  font-style: normal;
+}
+
+.match-pick__check {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  transform: scale(0.65);
+  border: 1px solid var(--foreground);
+  background: var(--background);
+  color: var(--foreground);
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.match-pick__check .icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.match-picker__input:focus-visible + .match-pick {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.match-picker__input:checked + .match-pick {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 6px 6px 0 color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+.match-picker__input:checked + .match-pick .match-pick__image img {
+  filter: saturate(1.18) contrast(1.08);
+  transform: scale(1.05);
+}
+
+.match-picker__input:checked + .match-pick .match-pick__check {
+  transform: scale(1);
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  opacity: 1;
+}
+
+.match-pick--disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.picker-confirmation {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  border-left: 3px solid var(--chart-2);
+  background: color-mix(in oklab, var(--chart-2) 7%, var(--card));
+  padding: 0.55rem 0.75rem;
+}
+
+.picker-confirmation > span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--chart-2);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.picker-confirmation > strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  text-transform: uppercase;
+}
+
+.picker-confirmation > small {
+  color: var(--muted-foreground);
+  font-size: 0.62rem;
+}
+
+.roster-card h2,
+.rules-content h2,
+.rule-disclosure summary strong {
+  font-family: var(--font-display);
+}
+
+.roster-card h2 {
+  font-size: 2.2rem;
+  font-style: italic;
+}
+
+.rules-seal,
+.roster-orbit,
+.page-intro__index {
+  border-color: var(--primary);
+  color: oklch(0.97 0.01 90);
+}
+
+.rules-seal span,
+.roster-orbit strong {
+  color: var(--primary);
+  font-family: var(--font-display);
+}
+
+.rule-disclosure summary > i {
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+.rule-disclosure summary > i::before,
+.rule-disclosure summary > i::after {
+  transform-origin: center;
+}
+
+.rule-disclosure summary > i::before {
+  transform: rotate(-45deg);
+}
+
+.rule-disclosure summary > i::after {
+  transform: rotate(45deg);
+}
+
+.rule-disclosure[open] summary > i::before {
+  transform: rotate(-45deg);
+}
+
+.rule-disclosure[open] summary > i::after {
+  transform: rotate(-45deg);
+}
+
+.site-footer {
+  position: relative;
+  overflow: hidden;
+  border-top: 3px solid var(--primary);
+  background:
+    repeating-linear-gradient(125deg, transparent 0 28px, color-mix(in oklab, var(--primary) 4%, transparent) 28px 30px),
+    var(--foreground);
+}
+
+.site-footer::after {
+  position: absolute;
+  right: -2rem;
+  bottom: -4rem;
+  color: color-mix(in oklab, var(--background) 5%, transparent);
+  font-family: var(--font-display);
+  font-size: 18rem;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1;
+  content: "QW";
+}
+
+.site-footer__grid,
+.site-footer__bottom {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .battle-poster__scan,
+  .event-poster__scan {
+    animation: combat-scan 4.8s linear infinite;
+  }
+
+  .glitch-word::before {
+    animation: glitch-upper 4.2s steps(1) infinite;
+  }
+
+  .glitch-word::after {
+    animation: glitch-lower 4.2s steps(1) 90ms infinite;
+  }
+
+  .battle-poster__glitch {
+    animation: glitch-bar 3.7s steps(1) infinite;
+  }
+
+  .battle-poster__image {
+    animation: poster-breathe 12s ease-in-out alternate infinite;
+  }
+
+  @keyframes combat-scan {
+    0% { top: 8%; opacity: 0; }
+    8% { opacity: 0.62; }
+    80% { opacity: 0.35; }
+    100% { top: 92%; opacity: 0; }
+  }
+
+  @keyframes glitch-upper {
+    0%, 87%, 100% { transform: translate(3px, -1px); opacity: 0; }
+    88% { transform: translate(-7px, -1px); opacity: 0.9; }
+    90% { transform: translate(8px, -1px); opacity: 0.8; }
+    92% { opacity: 0; }
+  }
+
+  @keyframes glitch-lower {
+    0%, 89%, 100% { transform: translate(-3px, 1px); opacity: 0; }
+    90% { transform: translate(9px, 1px); opacity: 0.85; }
+    92% { transform: translate(-8px, 1px); opacity: 0.8; }
+    94% { opacity: 0; }
+  }
+
+  @keyframes glitch-bar {
+    0%, 84%, 100% { transform: translateX(0); opacity: 0.15; }
+    85% { transform: translateX(-54px); opacity: 0.8; }
+    87% { transform: translateX(24px); opacity: 0.5; }
+    89% { transform: translateX(0); opacity: 0.15; }
+  }
+
+  @keyframes poster-breathe {
+    from { transform: scale(1.015); }
+    to { transform: scale(1.055); }
+  }
+}
+
+@media (max-width: 70rem) {
+  .home-hero__layout {
+    grid-template-columns: minmax(0, 0.85fr) minmax(25rem, 1.15fr);
+  }
+
+  .match-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .match-pick:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 58rem) {
+  .home-hero--battle,
+  .home-hero__layout {
+    min-height: calc(100svh - var(--header-height) - 2rem);
+  }
+
+  .home-hero__layout {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding-block: 2.5rem 3rem;
+  }
+
+  .home-hero__copy {
+    width: min(100%, 38rem);
+    padding-top: 7rem;
+  }
+
+  .battle-poster {
+    position: absolute;
+    z-index: -1;
+    inset: 0 calc(50% - 50vw);
+    width: 100vw;
+    height: 100%;
+    aspect-ratio: auto;
+    border: 0;
+    clip-path: none;
+    box-shadow: none;
+    opacity: 0.63;
+  }
+
+  .battle-poster::before {
+    background:
+      linear-gradient(0deg, var(--background) 3%, color-mix(in oklab, var(--background) 22%, transparent) 54%, color-mix(in oklab, var(--background) 70%, transparent) 100%),
+      linear-gradient(90deg, var(--background) 0, color-mix(in oklab, var(--background) 35%, transparent) 70%, transparent);
+  }
+
+  .battle-poster__image {
+    object-position: 61% center;
+  }
+
+  .battle-poster figcaption,
+  .battle-poster__corner,
+  .battle-poster__glitch {
+    display: none;
+  }
+
+  .home-hero__copy > p {
+    color: color-mix(in oklab, var(--foreground) 83%, transparent);
+    text-shadow: 0 2px 18px var(--background);
+  }
+
+  .registration-page {
+    background:
+      linear-gradient(color-mix(in oklab, var(--background) 95%, transparent), color-mix(in oklab, var(--background) 95%, transparent)),
+      url("assets/ff-arena-03.jpg") center / cover;
+  }
+
+  .wizard-sidebar {
+    display: block;
+  }
+
+  .wizard-sidebar > p:not(.kicker),
+  .wizard-safety {
+    display: none;
+  }
+
+  .wizard-sidebar h1 {
+    margin-bottom: 0.4rem;
+  }
+
+  .wizard-steps {
+    margin: 1rem 0 1.4rem;
+  }
+
+  .event-poster {
+    width: min(78%, 27rem);
+    aspect-ratio: 4 / 4.6;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 44rem) {
+  body::before {
+    opacity: 0.035;
+  }
+
+  .section {
+    padding-block: 3.4rem;
+  }
+
+  .rules-sidebar > div:first-child {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .rules-sidebar nav {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    overflow: visible;
+    contain: none;
+  }
+
+  .rules-sidebar nav a {
+    width: 100%;
+    min-width: 0;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.62rem;
+  }
+
+  .section::after {
+    display: none;
+  }
+
+  .home-hero--battle,
+  .home-hero__layout {
+    min-height: calc(100svh - var(--header-height) - 3.1rem);
+    max-height: 48rem;
+  }
+
+  .home-hero__layout {
+    padding: 1.5rem 0 2.2rem;
+  }
+
+  .home-hero__copy {
+    padding-top: 5.5rem;
+  }
+
+  .hero-label {
+    margin-bottom: 0.8rem;
+    font-size: 0.6rem;
+  }
+
+  .home-hero h1 {
+    margin-bottom: 0.65rem;
+    font-size: clamp(4.25rem, 20vw, 5.4rem);
+    line-height: 0.72;
+  }
+
+  .home-hero__copy > p {
+    max-width: 21rem;
+    margin-bottom: 1.1rem;
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+
+  .home-hero .button-row {
+    flex-direction: row;
+  }
+
+  .home-hero .button-row .button {
+    width: auto;
+    min-height: 3rem;
+    flex: 1;
+    padding-inline: 0.7rem;
+    font-size: 0.68rem;
+  }
+
+  .hero-proof {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    font-size: 0.56rem;
+  }
+
+  .hero-proof span:nth-child(3) {
+    display: none;
+  }
+
+  .battle-poster__image {
+    transform: scale(1.07);
+  }
+
+  .signal-strip__grid > div {
+    min-height: 5.6rem;
+  }
+
+  .signal-strip__grid strong {
+    font-size: 2rem;
+  }
+
+  .section-heading {
+    margin-bottom: 1.7rem;
+  }
+
+  .section-heading--split {
+    gap: 0.4rem;
+  }
+
+  .section-heading--split > p,
+  .heading-action > p {
+    display: none;
+  }
+
+  .feature-event__content {
+    padding: 1.25rem;
+  }
+
+  .feature-event__content h2 {
+    font-size: 3.2rem;
+  }
+
+  .feature-event__lead {
+    font-size: 0.85rem;
+  }
+
+  .feature-event__visual {
+    min-height: 18rem;
+  }
+
+  .media-credit--image {
+    top: 0.55rem;
+    right: 0.55rem;
+    font-size: 0.48rem;
+  }
+
+  .event-card__art {
+    min-height: 12.5rem;
+  }
+
+  .combat-reel {
+    padding-block: 3.5rem;
+  }
+
+  .combat-reel__heading {
+    display: block;
+    margin-bottom: 1.2rem;
+  }
+
+  .combat-reel__heading > p {
+    display: none;
+  }
+
+  .combat-gallery {
+    width: calc(100% - 1.25rem);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1.25fr 0.75fr;
+    grid-template-rows: 13rem 10rem 10rem;
+  }
+
+  .combat-shot--1 {
+    grid-row: 1 / 3;
+  }
+
+  .combat-shot--2 {
+    grid-column: 2;
+  }
+
+  .combat-shot--3 {
+    grid-column: 2;
+  }
+
+  .combat-shot--4 {
+    grid-column: 1;
+  }
+
+  .combat-shot--5 {
+    grid-column: 2;
+  }
+
+  .combat-shot figcaption {
+    grid-template-columns: auto 1fr;
+  }
+
+  .combat-shot figcaption a {
+    display: none;
+  }
+
+  .combat-shot figcaption strong {
+    font-size: 1rem;
+  }
+
+  .process-steps h3 {
+    font-size: 2.1rem;
+  }
+
+  .page-intro,
+  .page-intro__layout {
+    min-height: 15.5rem;
+  }
+
+  .page-intro__layout {
+    display: flex;
+    align-items: flex-end;
+    padding-block: 2.3rem;
+  }
+
+  .page-intro__layout > div:first-child {
+    width: 100%;
+  }
+
+  .page-intro .breadcrumb {
+    margin-bottom: 1.2rem;
+  }
+
+  .page-intro h1,
+  .page-intro--tournaments h1 {
+    margin-bottom: 0.4rem;
+    font-size: clamp(3rem, 15vw, 4.3rem);
+  }
+
+  .page-intro__layout > div:first-child > p:last-child {
+    display: none;
+  }
+
+  .page-intro__index,
+  .roster-orbit,
+  .rules-seal {
+    display: none;
+  }
+
+  .catalog-section {
+    padding-top: 1.2rem;
+  }
+
+  .catalog-controls {
+    padding: 0.85rem;
+  }
+
+  .control-note {
+    display: none;
+  }
+
+  .event-hero--combat {
+    min-height: auto;
+  }
+
+  .event-hero__layout {
+    display: block;
+    padding: 0.5rem 0 1.5rem;
+  }
+
+  .event-hero .breadcrumb {
+    padding-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .event-hero__copy h1 {
+    font-size: clamp(3.5rem, 17vw, 5rem);
+  }
+
+  .event-hero__copy > p:not(.kicker) {
+    font-size: 0.84rem;
+  }
+
+  .event-poster {
+    width: 100%;
+    height: 13rem;
+    aspect-ratio: auto;
+    margin-top: 1.5rem;
+    clip-path: polygon(0 0, calc(100% - 1rem) 0, 100% 1rem, 100% 100%, 0 100%);
+    box-shadow: 7px 7px 0 color-mix(in oklab, var(--primary) 11%, transparent);
+  }
+
+  .event-poster > img {
+    object-position: center 25%;
+  }
+
+  .event-poster__code {
+    bottom: 1.5rem;
+    font-size: 4rem;
+  }
+
+  .event-fact-bar > div {
+    padding: 0.75rem;
+  }
+
+  .event-overview {
+    gap: 1.2rem;
+  }
+
+  .event-info-grid {
+    gap: 0.5rem;
+  }
+
+  .registration-page {
+    padding-block: 1rem 2rem;
+  }
+
+  .wizard-sidebar .breadcrumb {
+    margin-bottom: 0.8rem;
+  }
+
+  .wizard-sidebar .kicker {
+    margin-bottom: 0.25rem;
+  }
+
+  .wizard-sidebar h1 {
+    font-size: 3.8rem;
+  }
+
+  .wizard-card__progress {
+    padding-inline: 0.85rem;
+  }
+
+  .wizard-panel {
+    padding: 1rem;
+  }
+
+  .wizard-panel__heading {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .wizard-panel__heading p:last-child {
+    display: none;
+  }
+
+  .wizard-panel__heading h2 {
+    font-size: 2.7rem;
+  }
+
+  .match-picker {
+    display: flex;
+    gap: 0.6rem;
+    margin-right: -1rem;
+    overflow-x: auto;
+    padding: 0.2rem 1rem 0.8rem 0.2rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .match-picker::-webkit-scrollbar {
+    display: none;
+  }
+
+  .match-pick {
+    width: 13.25rem;
+    flex: 0 0 13.25rem;
+    scroll-snap-align: start;
+  }
+
+  .match-pick:last-child {
+    grid-column: auto;
+  }
+
+  .match-pick__image {
+    height: 6.5rem;
+  }
+
+  .match-pick__body > strong {
+    font-size: 1.2rem;
+  }
+
+  .picker-confirmation {
+    grid-template-columns: 1fr auto;
+  }
+
+  .picker-confirmation > span {
+    grid-column: 1 / -1;
+  }
+
+  .picker-confirmation > strong {
+    font-size: 1rem;
+  }
+
+  .wizard-actions {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+  }
+
+  .site-footer {
+    padding-top: 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-poster__scan,
+  .event-poster__scan,
+  .glitch-word::before,
+  .glitch-word::after,
+  .battle-poster__glitch,
+  .battle-poster__image {
+    animation: none !important;
+  }
+
+  .feature-event__visual > img,
+  .combat-shot img,
+  .event-poster > img {
+    transform: scale(1.04) !important;
+  }
+}
+
+/* Phone-density refinements after visual review */
+.wizard-panel__heading h2[tabindex="-1"]:focus,
+.wizard-panel__heading h2[tabindex="-1"]:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 44rem) {
+  .demo-ribbon .shell {
+    min-height: 1.75rem;
+    padding-block: 0.2rem;
+  }
+
+  .demo-ribbon .shell > span:last-child {
+    display: none;
+  }
+
+  .demo-ribbon strong::after {
+    color: var(--foreground);
+    content: " // DO NOT PAY";
+  }
+
+  .registration-page__layout {
+    gap: 0.55rem;
+  }
+
+  .wizard-sidebar .breadcrumb,
+  .wizard-sidebar > p:not(.kicker),
+  .wizard-safety {
+    display: none;
+  }
+
+  .wizard-sidebar .kicker {
+    margin-bottom: 0.1rem;
+  }
+
+  .wizard-sidebar h1 {
+    margin: 0;
+    font-size: 3.25rem;
+    line-height: 0.85;
+  }
+
+  .wizard-steps {
+    margin: 0.45rem 0 0.65rem;
+  }
+
+  .wizard-steps li {
+    padding-block: 0.2rem;
+  }
+
+  .wizard-steps li > span {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .wizard-steps::before {
+    top: 1.1rem;
+  }
+
+  .wizard-card__progress {
+    padding-top: 0.65rem;
+  }
+
+  .wizard-panel__heading .kicker {
+    display: none;
+  }
+
+  .wizard-panel__heading h2 {
+    margin-bottom: 0;
+    font-size: 2.55rem;
+  }
+}

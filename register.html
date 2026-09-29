@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build a Free Fire solo or four-player squad registration message and continue privately with QW Tournaments on WhatsApp.">
+  <meta name="color-scheme" content="light dark">
+  <title>Register — QW Tournaments</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Teko:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="gaming.css">
+  <script src="js/theme-init.js"></script>
+</head>
+<body data-page="register">
+  <a class="skip-link" href="#registrationWizard">Skip to registration</a>
+  <div id="siteHeader" class="site-header-mount"></div>
+  <noscript><div class="noscript-bar">JavaScript is required to prepare the WhatsApp message. Contact <a href="https://wa.me/919449449382">QW on WhatsApp</a> instead.</div></noscript>
+
+  <main class="registration-page" id="mainContent">
+    <div class="registration-page__mesh" aria-hidden="true"></div>
+    <div class="shell registration-page__layout">
+      <aside class="wizard-sidebar" data-reveal>
+        <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Register</span></nav>
+        <p class="kicker">Squad uplink // WhatsApp</p>
+        <h1>Deploy.</h1>
+        <p>Select the fight, lock the lineup, and transmit the entry to tournament command.</p>
+
+        <ol class="wizard-steps" aria-label="Registration progress">
+          <li data-step-item="1"><span>1</span><div><strong>Choose event</strong><small>Check fee and schedule</small></div></li>
+          <li data-step-item="2"><span>2</span><div><strong>Add lineup</strong><small>One player or four</small></div></li>
+          <li data-step-item="3"><span>3</span><div><strong>Review & send</strong><small>Continue in WhatsApp</small></div></li>
+        </ol>
+
+        <div class="wizard-safety"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><div><strong>No upload occurs here</strong><p>Payment proof is attached manually in the organizer’s WhatsApp conversation.</p></div></div>
+      </aside>
+
+      <section class="wizard-card" data-reveal>
+        <div class="wizard-card__progress"><div><span id="wizardStepLabel">Step 1 of 3</span><span>Registration builder</span></div><div class="wizard-progress"><span id="wizardProgressBar"></span></div></div>
+
+        <form id="registrationWizard" novalidate>
+          <div class="wizard-error" id="wizardError" role="alert" tabindex="-1" hidden></div>
+
+          <section class="wizard-panel" data-step-panel="1">
+            <div class="wizard-panel__heading"><p class="kicker">Step 01</p><h2 tabindex="-1">Select battle</h2><p>Only open events can accept a new registration message.</p></div>
+            <fieldset class="match-picker-fieldset">
+              <legend>Choose battle <span>*</span></legend>
+              <div class="match-picker" id="registrationEvent"></div>
+            </fieldset>
+            <div class="picker-confirmation" id="registrationEventPreview" aria-live="polite"></div>
+            <div class="wizard-actions wizard-actions--end"><a class="button button--text" href="tournaments.html">Match board</a><button class="button button--primary button--large" type="button" data-next-step>Lock battle <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+          </section>
+
+          <section class="wizard-panel" data-step-panel="2">
+            <div class="wizard-panel__heading"><p class="kicker">Step 02</p><h2 tabindex="-1">Add your lineup</h2><p>Use each player’s in-game name and exact numeric Free Fire UID.</p></div>
+            <div id="lineupFields"></div>
+            <div class="wizard-actions"><button class="button button--quiet" type="button" data-previous-step>Back</button><button class="button button--primary button--large" type="button" data-next-step>Review entry <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+          </section>
+
+          <section class="wizard-panel" data-step-panel="3">
+            <div class="wizard-panel__heading"><p class="kicker">Step 03</p><h2 tabindex="-1">Review before WhatsApp</h2><p>Check every UID. You can return to the lineup without losing the values.</p></div>
+            <div class="registration-review" id="registrationReview"></div>
+            <div class="consent-stack">
+              <label><input type="checkbox" data-consent required><span>I read and accept the <a href="rules.html" target="_blank">tournament rules</a>, including check-in and dispute deadlines.</span></label>
+              <label><input type="checkbox" data-consent required><span>Every player is 18+, or their parent/guardian approved participation and any payment.</span></label>
+              <label><input type="checkbox" data-consent required><span>I will attach payment proof manually in WhatsApp and wait for written organizer confirmation.</span></label>
+            </div>
+            <div class="payment-handoff"><div class="payment-handoff__icon">₹</div><div><strong>Payment happens after the handoff</strong><p>First send the prepared message. Pay only using details from the website’s WhatsApp number. A screenshot alone never confirms a slot.</p></div></div>
+            <div class="wizard-actions"><button class="button button--quiet" type="button" data-previous-step>Back</button><button class="button button--whatsapp button--large" type="submit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.3L3 20.3l1.4-5a8.4 8.4 0 1 1 16.1-3.7Z"/><path d="M8.1 7.5c.2-.4.4-.5.8-.5.3 0 .5 0 .7.5l1 2.2c.1.3.1.5-.1.7l-.7.8c-.2.2-.2.4-.1.7.6 1.1 1.5 2 2.6 2.6.3.2.5.2.7-.1l.9-1c.2-.3.5-.3.8-.2l2.1 1c.4.2.5.3.5.5 0 .9-.5 1.8-1.1 2.3-.6.5-1.5.8-2.3.7-1.2-.1-2.8-.6-4.5-2-1.4-1.1-2.5-2.5-3.2-4-.5-1.1-.5-2.2.1-3.2.4-.6.8-1 1-1Z"/></svg>Open WhatsApp</button></div>
+          </section>
+        </form>
+
+        <section class="registration-success" id="registrationResult" tabindex="-1" hidden>
+          <span class="registration-success__icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
+          <p class="kicker">Message prepared</p><h2>Continue in WhatsApp</h2>
+          <p>Your reference is <strong id="resultReference"></strong>. It helps identify the conversation but does not confirm a slot.</p>
+          <div class="button-row"><a class="button button--whatsapp" id="resultWhatsApp" href="#" target="_blank" rel="noopener noreferrer">Open WhatsApp again</a><button class="button button--quiet" id="copyRegistrationMessage" type="button">Copy message</button><button class="button button--text" id="editRegistration" type="button">Edit lineup</button></div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div id="siteFooter"></div>
+  <script src="data/config.js"></script>
+  <script src="data/tournaments.js"></script>
+  <script type="module" src="js/pages/register-page.js"></script>
+</body>
+</html>

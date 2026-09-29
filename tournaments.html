@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse QW Free Fire solo, squad Battle Royale, and TDM tournaments by format, date, entry fee, and prize pool.">
+  <meta name="color-scheme" content="light dark">
+  <title>Tournaments — QW Tournaments</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Teko:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="gaming.css">
+  <script src="js/theme-init.js"></script>
+</head>
+<body data-page="tournaments">
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <div id="siteHeader" class="site-header-mount"></div>
+  <noscript><div class="noscript-bar">JavaScript is required to load tournament data. <a href="https://wa.me/919449449382">Contact QW on WhatsApp</a>.</div></noscript>
+
+  <main id="mainContent">
+    <section class="page-intro page-intro--tournaments">
+      <div class="page-intro__mesh" aria-hidden="true"></div>
+      <div class="shell page-intro__layout">
+        <div data-reveal>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Tournaments</span></nav>
+          <p class="kicker">Tournament board</p>
+          <h1>Pick your battleground.</h1>
+          <p>Compare formats, schedules, entry fees, prize pools, and available slots before choosing an event.</p>
+        </div>
+        <div class="page-intro__index" aria-hidden="true" data-reveal><span>QW</span><strong>03</strong><small>active formats</small></div>
+      </div>
+    </section>
+
+    <section class="catalog-section section" aria-labelledby="catalogTitle">
+      <div class="shell catalog-layout">
+        <aside class="catalog-controls" aria-labelledby="filterTitle" data-reveal>
+          <div class="catalog-controls__heading"><div><p class="kicker">Refine</p><h2 id="filterTitle">Find a match</h2></div><span id="eventResultCount" role="status" aria-live="polite">0 tournaments shown</span></div>
+
+          <div class="field search-field">
+            <label for="eventSearch">Search tournaments</label>
+            <div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="eventSearch" type="search" placeholder="Name, mode, or map" autocomplete="off"></div>
+          </div>
+
+          <fieldset class="segment-field">
+            <legend>Format</legend>
+            <div class="segments">
+              <input class="visually-hidden" id="filterAll" name="eventFilter" type="radio" value="all" checked><label for="filterAll">All</label>
+              <input class="visually-hidden" id="filterSolo" name="eventFilter" type="radio" value="solo"><label for="filterSolo">Solo</label>
+              <input class="visually-hidden" id="filterSquad" name="eventFilter" type="radio" value="squad"><label for="filterSquad">Squad BR</label>
+              <input class="visually-hidden" id="filterTdm" name="eventFilter" type="radio" value="tdm"><label for="filterTdm">TDM</label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="eventSort">Sort by</label>
+            <select id="eventSort"><option value="date">Soonest match</option><option value="prize">Highest prize</option><option value="fee">Lowest entry fee</option></select>
+          </div>
+
+          <div class="control-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><p><strong>Check the status.</strong> Only “Registration open” and “Closing soon” events accept new lineups.</p></div>
+        </aside>
+
+        <div class="catalog-main">
+          <div class="catalog-main__heading" data-reveal><div><p class="kicker">Available events</p><h2 id="catalogTitle">Tournament lineup</h2></div><a class="button button--quiet" href="players.html">View confirmed players</a></div>
+          <div class="event-grid event-grid--catalog" id="eventCatalog"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section board-cta">
+      <div class="shell board-cta__inner" data-reveal><div><p class="kicker">Already selected?</p><h2>Build your registration in three steps.</h2></div><a class="button button--primary button--large" href="register.html">Start registration <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+  <script src="data/config.js"></script>
+  <script src="data/tournaments.js"></script>
+  <script type="module" src="js/pages/tournaments-page.js"></script>
+</body>
+</html>
