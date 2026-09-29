@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="QW Tournaments">
+  <style>
+    :root { --icon-bg: #15130f; --icon-accent: #ff9f1c; --icon-text: #fff8ec; }
+  </style>
+  <path fill="var(--icon-bg)" d="M8 4h48a4 4 0 0 1 4 4v33c0 10-11 16-28 21C15 57 4 51 4 41V8a4 4 0 0 1 4-4Z"/>
+  <path fill="none" stroke="var(--icon-accent)" stroke-width="4" d="M11 11h42v28c0 7-8 11-21 15-13-4-21-8-21-15V11Z"/>
+  <path fill="var(--icon-text)" d="M15 20h7l4 14 4-14h5l4 14 4-14h7l-8 24h-6l-4-12-4 12h-6Z"/>
+</svg>

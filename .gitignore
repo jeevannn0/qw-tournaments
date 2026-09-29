@@ -1,0 +1,15 @@
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local-only organizer records — never publish participant data
+private/
+registrations/
+*.private.csv
+*.private.json
+
+# Temporary files
+*.log
+*.tmp

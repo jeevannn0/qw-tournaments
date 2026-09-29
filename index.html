@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Join QW Tournaments for Free Fire solo, squad Battle Royale, and Clash Squad matches through WhatsApp.">
+  <meta name="color-scheme" content="light dark">
+  <title>QW Tournaments — Free Fire Community Matches</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="data/config.js" defer></script>
+  <script src="data/tournaments.js" defer></script>
+  <script src="data/players.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <div class="demo-banner" id="demoBanner" role="status" hidden>
+    <div class="shell demo-banner__inner">
+      <strong>Demo schedule</strong>
+      <span>Fees, prizes, dates, and roster entries are samples. Do not pay until the organizer confirms a live event in WhatsApp.</span>
+    </div>
+  </div>
+
+  <header class="site-header" id="top">
+    <div class="shell site-header__inner">
+      <a class="brand" href="#home" aria-label="QW Tournaments home">
+        <span class="brand__mark" aria-hidden="true">QW</span>
+        <span class="brand__name">QW Tournaments</span>
+      </a>
+
+      <button class="icon-button menu-button" id="menuButton" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="Open navigation">
+        <svg class="icon menu-open-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon menu-close-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+
+      <nav class="site-nav" id="siteNav" aria-label="Primary navigation">
+        <a href="#tournaments">Tournaments</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#roster">Confirmed players</a>
+        <a href="#rules">Rules</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-button" id="themeButton" type="button" aria-label="Switch color theme" title="Switch color theme">
+          <svg class="icon sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="icon moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 15.2A8.5 8.5 0 0 1 8.8 3.3 8.5 8.5 0 1 0 20.7 15.2Z"/></svg>
+        </button>
+        <a class="button button--small header-join" href="#register">Join a match</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <div class="hero__grid" aria-hidden="true"></div>
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="shell hero__inner">
+        <div class="hero__copy" data-reveal>
+          <p class="eyebrow">Free Fire community tournaments</p>
+          <h1 id="hero-title"><span>QW</span> Tournaments</h1>
+          <p class="hero__lead">Your next drop starts here. Pick solo or squad, register privately on WhatsApp, and earn your place on the confirmed roster.</p>
+          <div class="hero__actions">
+            <a class="button button--primary button--large" href="#tournaments">View tournaments</a>
+            <a class="button button--ghost button--large" href="#how-it-works">See how joining works</a>
+          </div>
+          <p class="hero__trust">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 12 2 2 4-4"/><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/></svg>
+            No account needed. Your form details stay in your WhatsApp message.
+          </p>
+        </div>
+
+        <figure class="hero__visual" data-reveal>
+          <svg viewBox="0 0 720 720" role="img" aria-labelledby="arenaTitle arenaDesc">
+            <title id="arenaTitle">QW tournament tactical arena</title>
+            <desc id="arenaDesc">An original abstract arena illustration showing solo, squad, and TDM match paths converging on the final zone.</desc>
+            <defs>
+              <pattern id="smallGrid" width="36" height="36" patternUnits="userSpaceOnUse">
+                <path d="M36 0H0v36" class="arena-grid-line"/>
+              </pattern>
+              <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="12" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="360" cy="360" r="322" class="arena-base"/>
+            <circle cx="360" cy="360" r="286" fill="url(#smallGrid)" class="arena-grid"/>
+            <path d="M112 388 224 276l84 38 92-128 110 75 100-39" class="arena-route"/>
+            <path d="m124 505 120-58 74 38 88-58 184 78" class="arena-route arena-route--quiet"/>
+            <circle cx="360" cy="360" r="148" class="arena-zone"/>
+            <circle cx="360" cy="360" r="72" class="arena-zone arena-zone--core" filter="url(#softGlow)"/>
+            <path d="M360 252v216M252 360h216" class="arena-crosshair"/>
+            <g class="arena-node arena-node--solo" transform="translate(96 349)">
+              <circle r="36"/><path d="M-10 8V-7a10 10 0 0 1 20 0V8M-18 17h36"/>
+            </g>
+            <g class="arena-node arena-node--squad" transform="translate(542 214)">
+              <circle r="42"/><circle cx="-10" cy="-8" r="7"/><circle cx="10" cy="-8" r="7"/><path d="M-25 18c2-12 9-18 15-18S3 6 5 18M-5 18C-3 6 4 0 10 0s13 6 15 18"/>
+            </g>
+            <g class="arena-node arena-node--tdm" transform="translate(576 514)">
+              <circle r="42"/><path d="M-20 0h40M0-20v40M-12-12l24 24M12-12l-24 24"/>
+            </g>
+            <g class="arena-label" transform="translate(118 424)"><rect x="-54" y="-18" width="108" height="36" rx="18"/><text text-anchor="middle" y="6">SOLO</text></g>
+            <g class="arena-label" transform="translate(548 146)"><rect x="-62" y="-18" width="124" height="36" rx="18"/><text text-anchor="middle" y="6">SQUAD</text></g>
+            <g class="arena-label" transform="translate(570 580)"><rect x="-48" y="-18" width="96" height="36" rx="18"/><text text-anchor="middle" y="6">TDM</text></g>
+            <path d="m339 360 14 14 30-35" class="arena-check"/>
+          </svg>
+        </figure>
+      </div>
+    </section>
+
+    <section class="join-flow section" id="how-it-works" aria-labelledby="flow-title">
+      <div class="shell">
+        <div class="section-heading section-heading--center" data-reveal>
+          <p class="eyebrow">Simple and human-verified</p>
+          <h2 id="flow-title">From form to confirmed slot</h2>
+          <p>Registration happens in four clear steps, with a real organizer confirming every payment and roster entry.</p>
+        </div>
+        <ol class="steps" data-reveal>
+          <li>
+            <span class="step-number">01</span>
+            <div><h3>Choose your match</h3><p>Compare mode, date, entry fee, prize pool, and available slots.</p></div>
+          </li>
+          <li>
+            <span class="step-number">02</span>
+            <div><h3>Fill player details</h3><p>Solo needs one player. Squad registration requires exactly four players.</p></div>
+          </li>
+          <li>
+            <span class="step-number">03</span>
+            <div><h3>Continue in WhatsApp</h3><p>Send the prepared message, receive verified payment details, then attach proof privately.</p></div>
+          </li>
+          <li>
+            <span class="step-number">04</span>
+            <div><h3>Get confirmed</h3><p>Your slot is final only after the organizer replies and publishes the confirmed roster.</p></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="tournaments section section--tinted" id="tournaments" aria-labelledby="tournaments-title">
+      <div class="shell">
+        <div class="section-heading section-heading--split" data-reveal>
+          <div>
+            <p class="eyebrow">Upcoming drops</p>
+            <h2 id="tournaments-title">Find your format</h2>
+          </div>
+          <p>Every event shows its complete cost, schedule, capacity, and rule set before you register.</p>
+        </div>
+        <div class="filter-bar" role="group" aria-label="Filter tournaments by format" data-reveal>
+          <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">All matches</button>
+          <button class="filter-button" type="button" data-filter="solo" aria-pressed="false">Solo</button>
+          <button class="filter-button" type="button" data-filter="squad" aria-pressed="false">Squad</button>
+          <button class="filter-button" type="button" data-filter="tdm" aria-pressed="false">TDM</button>
+        </div>
+        <div class="tournament-grid" id="tournamentGrid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="trust-section section" aria-labelledby="trust-title">
+      <div class="shell trust-layout">
+        <div class="trust-copy" data-reveal>
+          <p class="eyebrow">Know your slot status</p>
+          <h2 id="trust-title">A screenshot is not a confirmation</h2>
+          <p>Payment proof starts a review. Your entry is confirmed only when the organizer verifies the incoming transaction and replies with your registration status.</p>
+          <div class="safety-note">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.7 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.7a2 2 0 0 0-3.4 0Z"/></svg>
+            <p><strong>Protect your account.</strong> QW Tournaments will never ask for an OTP, UPI PIN, card PIN, Free Fire password, or account password.</p>
+          </div>
+        </div>
+        <ol class="status-track" aria-label="Registration states" data-reveal>
+          <li><span>1</span><div><strong>Message received</strong><small>Player details sent in WhatsApp</small></div></li>
+          <li><span>2</span><div><strong>Payment review</strong><small>Organizer checks the actual transaction</small></div></li>
+          <li><span>3</span><div><strong>Slot confirmed</strong><small>Registration ID and slot are assigned</small></div></li>
+          <li><span>4</span><div><strong>Roster published</strong><small>Public list appears before the match</small></div></li>
+          <li><span>5</span><div><strong>Room details sent</strong><small>Credentials are shared privately</small></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="registration section section--dark" id="register" aria-labelledby="register-title">
+      <div class="shell registration-layout">
+        <aside class="registration-intro" data-reveal>
+          <p class="eyebrow">Registration</p>
+          <h2 id="register-title">Build your WhatsApp entry</h2>
+          <p>Select a match and enter each player's details. Nothing is uploaded or stored by this page.</p>
+          <ul class="check-list">
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Use each player's exact Free Fire UID</li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Squad entries require exactly four players</li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Attach payment proof after WhatsApp opens</li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Wait for the organizer's confirmation reply</li>
+          </ul>
+          <div class="privacy-box">
+            <strong>Private by design</strong>
+            <p>Ages and payment proof stay in the organizer's WhatsApp conversation. They are never shown in the public roster.</p>
+          </div>
+        </aside>
+
+        <div class="form-panel" data-reveal>
+          <form id="registrationForm">
+            <div class="form-header">
+              <div><span class="form-step">Step 1 of 1</span><h3>Player details</h3></div>
+              <span class="required-note"><span aria-hidden="true">*</span> Required</span>
+            </div>
+
+            <div class="field-group">
+              <label for="tournamentSelect">Tournament <span aria-hidden="true">*</span></label>
+              <select id="tournamentSelect" name="tournament" required>
+                <option value="">Choose a tournament</option>
+              </select>
+              <p class="field-help" id="tournamentHelp">Choose an open event to load the correct registration fields.</p>
+            </div>
+
+            <div class="event-selection" id="eventSelection" hidden aria-live="polite"></div>
+
+            <fieldset class="participant-section" id="soloFields" hidden disabled>
+              <legend>Solo player</legend>
+              <div class="field-grid">
+                <div class="field-group field-group--wide">
+                  <label for="soloName">Player name / in-game name <span aria-hidden="true">*</span></label>
+                  <input id="soloName" name="soloName" type="text" minlength="2" maxlength="32" autocomplete="nickname" placeholder="Example: ShadowX" required>
+                </div>
+                <div class="field-group">
+                  <label for="soloUid">Free Fire UID <span aria-hidden="true">*</span></label>
+                  <input id="soloUid" name="soloUid" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="off" placeholder="6–12 digits" required aria-describedby="uidHelpSolo">
+                  <p class="field-help" id="uidHelpSolo">Numbers only. Check carefully before sending.</p>
+                </div>
+                <div class="field-group">
+                  <label for="soloAge">Age <span aria-hidden="true">*</span></label>
+                  <input id="soloAge" name="soloAge" type="number" inputmode="numeric" min="13" max="80" placeholder="18" required>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="participant-section" id="squadFields" hidden disabled>
+              <legend>Four-player squad</legend>
+              <div class="field-group">
+                <label for="teamName">Team name <span aria-hidden="true">*</span></label>
+                <input id="teamName" name="teamName" type="text" minlength="2" maxlength="32" autocomplete="organization" placeholder="Example: Zone Hunters" required>
+              </div>
+
+              <fieldset class="player-block" data-player="1">
+                <legend><span>Player 1</span><small>Captain</small></legend>
+                <div class="field-grid field-grid--player">
+                  <div class="field-group field-group--wide"><label for="player1Name">Player name <span aria-hidden="true">*</span></label><input id="player1Name" name="player1Name" type="text" minlength="2" maxlength="32" autocomplete="nickname" placeholder="Captain's in-game name" required></div>
+                  <div class="field-group"><label for="player1Uid">Free Fire UID <span aria-hidden="true">*</span></label><input id="player1Uid" name="player1Uid" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="off" placeholder="6–12 digits" required></div>
+                  <div class="field-group"><label for="player1Age">Age <span aria-hidden="true">*</span></label><input id="player1Age" name="player1Age" type="number" inputmode="numeric" min="13" max="80" placeholder="18" required></div>
+                </div>
+              </fieldset>
+              <fieldset class="player-block" data-player="2">
+                <legend><span>Player 2</span></legend>
+                <div class="field-grid field-grid--player">
+                  <div class="field-group field-group--wide"><label for="player2Name">Player name <span aria-hidden="true">*</span></label><input id="player2Name" name="player2Name" type="text" minlength="2" maxlength="32" autocomplete="off" placeholder="Player 2 in-game name" required></div>
+                  <div class="field-group"><label for="player2Uid">Free Fire UID <span aria-hidden="true">*</span></label><input id="player2Uid" name="player2Uid" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="off" placeholder="6–12 digits" required></div>
+                  <div class="field-group"><label for="player2Age">Age <span aria-hidden="true">*</span></label><input id="player2Age" name="player2Age" type="number" inputmode="numeric" min="13" max="80" placeholder="18" required></div>
+                </div>
+              </fieldset>
+              <fieldset class="player-block" data-player="3">
+                <legend><span>Player 3</span></legend>
+                <div class="field-grid field-grid--player">
+                  <div class="field-group field-group--wide"><label for="player3Name">Player name <span aria-hidden="true">*</span></label><input id="player3Name" name="player3Name" type="text" minlength="2" maxlength="32" autocomplete="off" placeholder="Player 3 in-game name" required></div>
+                  <div class="field-group"><label for="player3Uid">Free Fire UID <span aria-hidden="true">*</span></label><input id="player3Uid" name="player3Uid" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="off" placeholder="6–12 digits" required></div>
+                  <div class="field-group"><label for="player3Age">Age <span aria-hidden="true">*</span></label><input id="player3Age" name="player3Age" type="number" inputmode="numeric" min="13" max="80" placeholder="18" required></div>
+                </div>
+              </fieldset>
+              <fieldset class="player-block" data-player="4">
+                <legend><span>Player 4</span></legend>
+                <div class="field-grid field-grid--player">
+                  <div class="field-group field-group--wide"><label for="player4Name">Player name <span aria-hidden="true">*</span></label><input id="player4Name" name="player4Name" type="text" minlength="2" maxlength="32" autocomplete="off" placeholder="Player 4 in-game name" required></div>
+                  <div class="field-group"><label for="player4Uid">Free Fire UID <span aria-hidden="true">*</span></label><input id="player4Uid" name="player4Uid" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" autocomplete="off" placeholder="6–12 digits" required></div>
+                  <div class="field-group"><label for="player4Age">Age <span aria-hidden="true">*</span></label><input id="player4Age" name="player4Age" type="number" inputmode="numeric" min="13" max="80" placeholder="18" required></div>
+                </div>
+              </fieldset>
+            </fieldset>
+
+            <div class="consent-group">
+              <label class="checkbox-label">
+                <input id="rulesConsent" name="rulesConsent" type="checkbox" required>
+                <span>I have read the <a href="#rules">tournament rules</a>, and every player is eligible to participate. <span aria-hidden="true">*</span></span>
+              </label>
+              <label class="checkbox-label">
+                <input id="guardianConsent" name="guardianConsent" type="checkbox" required>
+                <span>Every player is 18+, or their parent/guardian has approved participation and any entry payment. <span aria-hidden="true">*</span></span>
+              </label>
+              <label class="checkbox-label">
+                <input id="paymentConsent" name="paymentConsent" type="checkbox" required>
+                <span>I understand that I must attach payment proof manually in WhatsApp and wait for organizer confirmation. <span aria-hidden="true">*</span></span>
+              </label>
+            </div>
+
+            <div class="form-error" id="formError" role="alert" hidden></div>
+            <button class="button button--whatsapp button--full button--large" type="submit">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.3L3 20.3l1.4-5a8.4 8.4 0 1 1 16.1-3.7Z"/><path d="M8.2 7.6c.2-.5.4-.5.8-.5h.3c.1 0 .3 0 .4.4l1 2.3c.1.3.1.5-.1.7l-.7.9c-.2.2-.3.4-.1.7.6 1.1 1.5 2 2.6 2.6.3.2.5.2.7-.1l.9-1.1c.2-.3.5-.3.8-.2l2.2 1c.3.2.5.3.5.5 0 .2-.1 1.3-.6 1.8-.5.6-1.4 1.1-2.4 1.1s-2.3-.3-4.1-1.3c-2.4-1.3-4-3.8-4.1-4-.1-.2-1-1.4-1-2.7 0-1.3.6-2 1-2.4Z"/></svg>
+              Join through WhatsApp
+            </button>
+            <p class="submit-help">WhatsApp opens with your prepared message. Review it, tap Send, and attach the payment screenshot in the chat.</p>
+          </form>
+
+          <div class="registration-result" id="registrationResult" hidden tabindex="-1">
+            <svg class="result-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+            <div>
+              <p class="eyebrow">Message prepared</p>
+              <h3>Continue in WhatsApp</h3>
+              <p>Your reference is <strong id="registrationId"></strong>. This reference does not confirm a slot.</p>
+              <div class="result-actions">
+                <a class="button button--primary" id="whatsappFallback" href="#" target="_blank" rel="noopener">Open WhatsApp again</a>
+                <button class="button button--ghost" id="copyMessageButton" type="button">Copy message</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="roster section" id="roster" aria-labelledby="roster-title">
+      <div class="shell">
+        <div class="section-heading section-heading--split" data-reveal>
+          <div>
+            <p class="eyebrow">Public confirmation</p>
+            <h2 id="roster-title">Confirmed players</h2>
+          </div>
+          <p>Final lists are published about two hours before each match. Ages, phone numbers, and payment details are never shown.</p>
+        </div>
+
+        <div class="roster-toolbar" data-reveal>
+          <div class="field-group">
+            <label for="rosterTournament">Tournament</label>
+            <select id="rosterTournament"></select>
+          </div>
+          <div class="field-group search-field">
+            <label for="rosterSearch">Find a player or team</label>
+            <div class="input-with-icon">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+              <input id="rosterSearch" type="search" placeholder="Search roster" autocomplete="off">
+            </div>
+          </div>
+        </div>
+        <div class="roster-meta" id="rosterMeta" aria-live="polite"></div>
+        <div class="roster-content" id="rosterContent" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="rules section section--tinted" id="rules" aria-labelledby="rules-title">
+      <div class="shell rules-layout">
+        <div class="rules-intro" data-reveal>
+          <p class="eyebrow">Fair play first</p>
+          <h2 id="rules-title">Tournament rules</h2>
+          <p>These baseline rules cover solo, full-map squad, and TDM events. Event-specific WhatsApp notices may add map or round details but cannot quietly change fees or prizes.</p>
+          <a class="text-link" href="#register">I understand — register now <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="rules-list" data-reveal>
+          <details open>
+            <summary><span>01</span> Eligibility and registration</summary>
+            <div class="details-content">
+              <ul>
+                <li>Players must use the exact in-game name and Free Fire UID submitted during registration.</li>
+                <li>Solo entries cover one player. Squad entries require exactly four players; no substitute is included.</li>
+                <li>One player may appear in only one entry per tournament.</li>
+                <li>Players under 18 need parent or guardian approval for participation and any payment.</li>
+                <li>A slot is confirmed only after organizer verification and a written WhatsApp reply.</li>
+              </ul>
+            </div>
+          </details>
+          <details>
+            <summary><span>02</span> Fair play and accounts</summary>
+            <div class="details-content">
+              <ul>
+                <li>Hacks, scripts, modified clients, macros, teaming, account sharing, and exploiting known bugs are prohibited.</li>
+                <li>Use the device and control methods allowed in the event notice. Emulators are not allowed unless the event explicitly says otherwise.</li>
+                <li>Offensive names, harassment, threats, and abusive messages can lead to removal.</li>
+                <li>The organizer may request match screenshots or screen recordings when reviewing credible evidence.</li>
+              </ul>
+            </div>
+          </details>
+          <details>
+            <summary><span>03</span> Check-in and room access</summary>
+            <div class="details-content">
+              <ul>
+                <li>Check in through the organizer's WhatsApp conversation 30 minutes before the scheduled start.</li>
+                <li>Room ID and password are sent privately to confirmed solo players or squad captains.</li>
+                <li>Do not share room credentials. Leaking them can cancel the entry without a refund.</li>
+                <li>Players must occupy their assigned slot and be ready before the announced lobby close time.</li>
+                <li>Late arrival or an individual connection/device issue does not guarantee a restart.</li>
+              </ul>
+            </div>
+          </details>
+          <details>
+            <summary><span>04</span> Battle Royale scoring</summary>
+            <div class="details-content">
+              <p>Unless the event notice states otherwise, each elimination earns 1 point. Placement points are:</p>
+              <div class="score-grid" role="table" aria-label="Battle Royale placement scoring">
+                <div role="row"><span role="columnheader">Place</span><span role="columnheader">Points</span></div>
+                <div role="row"><span role="cell">1st</span><span role="cell">12</span></div>
+                <div role="row"><span role="cell">2nd</span><span role="cell">9</span></div>
+                <div role="row"><span role="cell">3rd</span><span role="cell">8</span></div>
+                <div role="row"><span role="cell">4th</span><span role="cell">7</span></div>
+                <div role="row"><span role="cell">5th</span><span role="cell">6</span></div>
+                <div role="row"><span role="cell">6th–10th</span><span role="cell">5–1</span></div>
+              </div>
+              <p>Ties are resolved by total wins, then eliminations, then placement points, then the best final-match placement.</p>
+            </div>
+          </details>
+          <details>
+            <summary><span>05</span> Clash Squad / TDM</summary>
+            <div class="details-content">
+              <ul>
+                <li>Standard rounds are best of 3; the final may be best of 5 as shown on the event card.</li>
+                <li>Map order, side selection, allowed equipment, and lobby settings are announced before check-in closes.</li>
+                <li>A team that is not ready by the lobby deadline may forfeit the map or series.</li>
+                <li>Only an organizer-confirmed lobby or server-wide failure can trigger a restart.</li>
+              </ul>
+            </div>
+          </details>
+          <details>
+            <summary><span>06</span> Results and disputes</summary>
+            <div class="details-content">
+              <ul>
+                <li>Report a result issue in the existing WhatsApp conversation within 15 minutes of the posted result.</li>
+                <li>Include the registration ID, match number, and clear screenshot or recording evidence.</li>
+                <li>The organizer reviews available evidence consistently and posts any correction publicly.</li>
+                <li>Abusive or repeated unsupported claims may be closed without further review.</li>
+              </ul>
+            </div>
+          </details>
+          <details>
+            <summary><span>07</span> Payments, cancellations, and refunds</summary>
+            <div class="details-content">
+              <ul>
+                <li>Pay only using details sent from the WhatsApp number shown on this website.</li>
+                <li>Payment screenshots support a review but do not prove that funds reached the organizer.</li>
+                <li>If QW Tournaments cancels an event, verified entry payments are returned using the announced process.</li>
+                <li>No-show, late arrival, rule removal, or incorrect submitted details are not normally refundable.</li>
+                <li>If an event fills before payment is verified, the organizer must offer a place in a clearly agreed replacement event or return the verified payment.</li>
+              </ul>
+            </div>
+          </details>
+          <details>
+            <summary><span>08</span> Privacy and safety</summary>
+            <div class="details-content">
+              <ul>
+                <li>The site does not submit your form to a server; it prepares a WhatsApp message on your device.</li>
+                <li>Only approved in-game names, UIDs, teams, slots, and match status may appear publicly.</li>
+                <li>Ages, phone numbers, payment proof, payment addresses, and identity documents must stay private.</li>
+                <li>QW Tournaments never asks for an OTP, UPI PIN, card PIN, Free Fire password, or account password.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq section" id="faq" aria-labelledby="faq-title">
+      <div class="shell faq-layout">
+        <div class="section-heading" data-reveal>
+          <p class="eyebrow">Before you join</p>
+          <h2 id="faq-title">Common questions</h2>
+          <p>Still unsure? Message the organizer directly and mention the tournament name.</p>
+          <a class="button button--ghost" id="supportWhatsApp" href="#" target="_blank" rel="noopener">Ask on WhatsApp</a>
+        </div>
+        <div class="faq-list" data-reveal>
+          <details><summary>Does submitting the form reserve my slot?</summary><p>No. It prepares your registration message. Your slot is final only after payment is independently verified and the organizer replies with confirmation.</p></details>
+          <details><summary>How do I send the payment screenshot?</summary><p>After WhatsApp opens, send the prepared message first. Follow the organizer's verified payment instructions, then attach the screenshot directly in that chat.</p></details>
+          <details><summary>Where will I receive the room ID and password?</summary><p>Confirmed solo players or squad captains receive room credentials privately in WhatsApp before the match. Credentials are never published on this website.</p></details>
+          <details><summary>Can I register fewer than four squad players?</summary><p>No. Squad Battle Royale and squad TDM registration require exactly four player names, UIDs, and ages.</p></details>
+          <details><summary>When does my name appear in the confirmed list?</summary><p>The organizer publishes the final public roster about two hours before the match. Only approved public game details are shown.</p></details>
+          <details><summary>Does the site save my form?</summary><p>No. Personal registration fields are used only to prepare the WhatsApp message in your browser and are not stored by this website.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta section" aria-labelledby="final-title">
+      <div class="shell final-cta__inner" data-reveal>
+        <p class="eyebrow">Ready for the next zone?</p>
+        <h2 id="final-title">Choose your match. Earn your slot.</h2>
+        <p>Solo survival, four-player full-map battles, and squad TDM—all confirmed directly through WhatsApp.</p>
+        <a class="button button--primary button--large" href="#tournaments">Explore tournaments</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-grid">
+      <div>
+        <a class="brand brand--footer" href="#top"><span class="brand__mark" aria-hidden="true">QW</span><span class="brand__name">QW Tournaments</span></a>
+        <p>Independent community-run Free Fire tournaments with clear rules and human confirmation.</p>
+      </div>
+      <div>
+        <h2>Navigate</h2>
+        <a href="#tournaments">Tournaments</a>
+        <a href="#register">Register</a>
+        <a href="#roster">Confirmed players</a>
+        <a href="#rules">Rules</a>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <a id="footerWhatsApp" href="#" target="_blank" rel="noopener">WhatsApp <span id="whatsappDisplay"></span></a>
+        <span id="supportHours"></span>
+      </div>
+    </div>
+    <div class="shell footer-bottom">
+      <p>© <span id="currentYear"></span> QW Tournaments.</p>
+      <p>Not affiliated with, endorsed, sponsored, or administered by Garena. Free Fire and related marks belong to their respective owners.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
+  <noscript>
+    <div class="noscript-message">JavaScript is required to load tournament details and prepare WhatsApp registration messages. Please enable JavaScript or contact the organizer directly at +91 94494 49382.</div>
+  </noscript>
+</body>
+</html>
