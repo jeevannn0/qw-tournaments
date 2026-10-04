@@ -3,7 +3,6 @@ import {
   escapeHtml,
   eventMark,
   formatCurrency,
-  formatDateTime,
   formatReward,
   getCapacity,
   getEventMedia,
@@ -104,7 +103,7 @@ function renderEventPreview(tournament) {
     return;
   }
   eventPreview.hidden = false;
-  eventPreview.innerHTML = `<span>Selected Solo match</span><strong>${escapeHtml(tournament.name)}</strong><small>${escapeHtml(formatDateTime(tournament.matchAt))} · ${escapeHtml(formatCurrency(tournament.entryFee))} entry · ${escapeHtml(formatReward(tournament))}</small>`;
+  eventPreview.innerHTML = `<span>Selected Solo match</span><strong>${escapeHtml(tournament.name)}</strong><small>Always open · ${escapeHtml(formatCurrency(tournament.entryFee))} entry · ${escapeHtml(formatReward(tournament))}</small>`;
 }
 
 function centerSelectedBattle(behavior = preferredScrollBehavior()) {
@@ -195,7 +194,7 @@ function validateStep(step) {
 function renderReview() {
   const registration = collectRegistration(selectedTournament, new FormData(form));
   reviewMount.innerHTML = `
-    <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)} · ${escapeHtml(formatDateTime(selectedTournament.matchAt))}</p></div>
+    <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)} · Always open</p></div>
     ${registration.teamName ? `<div class="review-team"><small>Squad</small><strong>${escapeHtml(registration.teamName)}</strong></div>` : ""}
     <div class="review-lineup">${registration.participants.map((participant, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(participant.name)}</strong><small>${escapeHtml(participant.uid)} · Age ${escapeHtml(participant.age)}${participant.captain && selectedTournament.type === "squad" ? " · Captain" : ""}</small></div></article>`).join("")}</div>
     <div class="review-price"><div><small>Entry</small><strong>${escapeHtml(formatCurrency(selectedTournament.entryFee))}</strong></div><span>${escapeHtml(selectedTournament.feeUnit)}</span></div>

@@ -177,18 +177,20 @@ export function getEventHealth(tournament) {
   if (!/^[a-z0-9-]{1,64}$/.test(String(tournament.id || ""))) return { valid: false, reason: "Event code unavailable" };
   if (!['solo', 'squad'].includes(tournament.type)) return { valid: false, reason: "Format unavailable" };
 
-  const matchAt = Date.parse(tournament.matchAt);
-  const checkInAt = Date.parse(tournament.checkInAt);
-  const closesAt = Date.parse(tournament.registrationClosesAt);
-  const opensAt = tournament.registrationOpensAt ? Date.parse(tournament.registrationOpensAt) : null;
-  const scheduleValid = Number.isFinite(matchAt)
-    && Number.isFinite(checkInAt)
-    && Number.isFinite(closesAt)
-    && (opensAt === null || Number.isFinite(opensAt))
-    && (opensAt === null || opensAt <= closesAt)
-    && closesAt <= checkInAt
-    && checkInAt <= matchAt;
-  if (!scheduleValid) return { valid: false, reason: "Schedule unavailable" };
+  if (tournament.alwaysOpen !== true) {
+    const matchAt = Date.parse(tournament.matchAt);
+    const checkInAt = Date.parse(tournament.checkInAt);
+    const closesAt = Date.parse(tournament.registrationClosesAt);
+    const opensAt = tournament.registrationOpensAt ? Date.parse(tournament.registrationOpensAt) : null;
+    const scheduleValid = Number.isFinite(matchAt)
+      && Number.isFinite(checkInAt)
+      && Number.isFinite(closesAt)
+      && (opensAt === null || Number.isFinite(opensAt))
+      && (opensAt === null || opensAt <= closesAt)
+      && closesAt <= checkInAt
+      && checkInAt <= matchAt;
+    if (!scheduleValid) return { valid: false, reason: "Schedule unavailable" };
+  }
 
   const fee = Number(tournament.entryFee);
   const prize = Number(tournament.prizePool);
@@ -217,18 +219,19 @@ export function getEventState(tournament, now = Date.now()) {
 
   const health = getEventHealth(tournament);
   if (!health.valid) return { key: "unavailable", label: "Event unavailable", open: false, action: "View event", reason: health.reason };
+  if (tournament.registrationOpen !== true) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
+  if (Number(tournament.spotsLeft) <= 0) return { key: "full", label: "Slots full", open: false, action: "View event" };
+  if (!config.registrationSafe) return { key: "unavailable", label: "Registration unavailable", open: false, action: "View event", reason: "Organizer contact unavailable" };
+  if (tournament.alwaysOpen === true) {
+    return { key: "open", label: "Live now", open: true, action: "Register now", reason: "Registration has no closing time." };
+  }
 
   const matchAt = Date.parse(tournament.matchAt);
   const opensAt = tournament.registrationOpensAt ? Date.parse(tournament.registrationOpensAt) : null;
   const closesAt = Date.parse(tournament.registrationClosesAt);
-
   if (now >= matchAt) return { key: "complete", label: "Completed", open: false, action: "View event" };
   if (opensAt !== null && now < opensAt) return { key: "scheduled", label: "Registration opens soon", open: false, action: "View event" };
-  if (tournament.registrationOpen !== true) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
-  if (Number(tournament.spotsLeft) <= 0) return { key: "full", label: "Slots full", open: false, action: "View event" };
   if (now >= closesAt) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
-  if (!config.registrationSafe) return { key: "unavailable", label: "Registration unavailable", open: false, action: "View event", reason: "Organizer contact unavailable" };
-  if (tournament.live === true) return { key: "open", label: "Live now", open: true, action: "Register now" };
   if (closesAt - now <= 24 * 60 * 60 * 1000) return { key: "closing", label: "Closing soon", open: true, action: "Register now" };
   return { key: "open", label: "Registration open", open: true, action: "Register now" };
 }

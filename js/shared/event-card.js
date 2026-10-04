@@ -19,13 +19,17 @@ export function eventStatusBadge(tournament) {
 
 function eventFacts(tournament, capacity) {
   const comingSoon = tournament.comingSoon === true;
-  const starts = comingSoon
-    ? "Schedule pending"
-    : `<time datetime="${escapeHtml(tournament.matchAt)}">${escapeHtml(formatDateTime(tournament.matchAt))}</time>`;
+  const alwaysOpen = tournament.alwaysOpen === true;
+  const firstLabel = comingSoon ? "Schedule" : alwaysOpen ? "Registration" : "Starts";
+  const firstValue = comingSoon
+    ? "Pending"
+    : alwaysOpen
+      ? "Always open"
+      : `<time datetime="${escapeHtml(tournament.matchAt)}">${escapeHtml(formatDateTime(tournament.matchAt))}</time>`;
   const availability = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
   return `
     <dl class="event-card__facts">
-      <div><dt>Starts</dt><dd>${starts}</dd></div>
+      <div><dt>${firstLabel}</dt><dd>${firstValue}</dd></div>
       <div><dt>Reward</dt><dd>${escapeHtml(formatReward(tournament))}</dd></div>
       <div><dt>Entry</dt><dd>${escapeHtml(formatCurrency(tournament.entryFee))}</dd></div>
       <div><dt>${comingSoon ? "Capacity" : "Open"}</dt><dd>${escapeHtml(availability)}</dd></div>

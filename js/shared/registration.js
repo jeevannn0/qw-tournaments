@@ -1,4 +1,4 @@
-import { config, formatCurrency, formatDateTime, normalize, whatsappUrl } from "./data.js";
+import { config, formatCurrency, normalize, whatsappUrl } from "./data.js";
 
 export function createRegistrationId(tournament) {
   const now = new Date();
@@ -81,7 +81,7 @@ export function buildRegistrationMessage(tournament, registration, reference) {
     `*Reference:* ${reference}`,
     `*Tournament:* ${tournament.name}`,
     `*Format:* ${tournament.formatLabel}`,
-    `*Match:* ${formatDateTime(tournament.matchAt, "long")}`,
+    `*Registration:* Always open`,
     `*Entry:* ${formatCurrency(tournament.entryFee)} ${tournament.feeUnit}`,
     `*Kill reward:* ${formatCurrency(tournament.killReward)} per confirmed kill`,
     `*Booyah bonus:* ${formatCurrency(tournament.booyahBonus)} additional for the match winner`

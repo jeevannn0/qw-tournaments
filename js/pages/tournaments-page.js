@@ -1,4 +1,4 @@
-import { isTdm, normalize, tournaments } from "../shared/data.js";
+import { getEventState, isTdm, normalize, tournaments } from "../shared/data.js";
 import { eventCard } from "../shared/event-card.js";
 import { initializeShell } from "../shared/shell.js";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
@@ -28,7 +28,7 @@ function getVisibleEvents() {
   return visible.sort((a, b) => {
     if (sort.value === "prize") return Number(b.prizePool) - Number(a.prizePool);
     if (sort.value === "fee") return Number(a.entryFee) - Number(b.entryFee);
-    return Date.parse(a.matchAt) - Date.parse(b.matchAt);
+    return Number(getEventState(b).open) - Number(getEventState(a).open);
   });
 }
 

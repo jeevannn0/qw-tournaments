@@ -3,7 +3,6 @@ import {
   eventMark,
   eventUrl,
   formatCurrency,
-  formatDateTime,
   getCapacity,
   getEventMedia,
   getEventState,
@@ -38,12 +37,12 @@ function renderFeaturedEvent(tournament) {
           <span><strong>${escapeHtml(formatCurrency(tournament.booyahBonus))}</strong><small>Booyah bonus</small></span>
         </div>
         <dl class="feature-event__facts">
-          <div><dt>Starts</dt><dd>${escapeHtml(formatDateTime(tournament.matchAt))}</dd></div>
+          <div><dt>Registration</dt><dd>Always open</dd></div>
           <div><dt>Map</dt><dd>${escapeHtml(tournament.map)}</dd></div>
           <div><dt>Open</dt><dd>${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}</dd></div>
         </dl>
         <progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress>
-        <div class="button-row">${mainAction}<a class="button button--quiet button--large" href="${eventUrl(tournament)}">Rules and schedule</a></div>
+        <div class="button-row">${mainAction}<a class="button button--quiet button--large" href="${eventUrl(tournament)}">Rules and how to join</a></div>
       </div>
       <div class="feature-event__visual" data-reveal>
         <img src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" width="480" height="270" loading="lazy" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}">
@@ -60,12 +59,7 @@ function renderFeaturedEvent(tournament) {
 function renderEventPreview() {
   const grid = document.querySelector("#homeEventGrid");
   if (!grid) return;
-  const ordered = [...tournaments].sort((a, b) => {
-    const stateDifference = Number(getEventState(b).open) - Number(getEventState(a).open);
-    const aTime = Date.parse(a.matchAt) || Number.MAX_SAFE_INTEGER;
-    const bTime = Date.parse(b.matchAt) || Number.MAX_SAFE_INTEGER;
-    return stateDifference || aTime - bTime;
-  });
+  const ordered = [...tournaments].sort((a, b) => Number(getEventState(b).open) - Number(getEventState(a).open));
   grid.innerHTML = ordered.length
     ? ordered.map((tournament, index) => eventCard(tournament, { compact: true, eager: index === 0 })).join("")
     : '<div class="empty-state"><h2>No matches published</h2><p>The next match will appear here when its schedule is ready.</p></div>';

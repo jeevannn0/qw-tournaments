@@ -83,7 +83,9 @@ function renderRoster() {
     if (!roster.published) {
       content.innerHTML = tournament.comingSoon
         ? emptyState("Match coming soon", "Registration and roster publication are not open for this format yet.")
-        : emptyState("Roster not published", `Confirmed ${unit} are normally posted about ${config.rosterLeadHours} hours before ${formatDateTime(tournament.matchAt, "long")}.`);
+        : tournament.alwaysOpen
+          ? emptyState("Roster not published", "Confirmed players appear here after the organizer publishes the Solo roster.")
+          : emptyState("Roster not published", `Confirmed ${unit} are normally posted about ${config.rosterLeadHours} hours before ${formatDateTime(tournament.matchAt, "long")}.`);
       return;
     }
     if (!allEntries.length) {

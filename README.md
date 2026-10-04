@@ -10,14 +10,14 @@ Registration details are prepared only in the player's browser and handed to the
 |---|---|
 | `index.html` | Focused homepage, featured event, upcoming-event preview, and joining flow |
 | `tournaments.html` | Searchable/filterable tournament board |
-| `tournament.html?tournament=<id>` | Dedicated schedule, rewards, format, availability, and rules view |
+| `tournament.html?tournament=<id>` | Dedicated join flow, rewards, format, availability, and rules view |
 | `register.html?tournament=<id>` | Three-step Solo registration builder; future formats remain disabled |
 | `players.html?tournament=<id>` | Searchable public confirmed-player roster |
 | `rules.html` | Eligibility, fair play, check-in, scoring, dispute, payment, and privacy rules |
 
 ## Current release
 
-- **Solo Survival 01:** registration open, ₹10 entry per player, ₹6 per organizer-verified kill, and an additional ₹30 Booyah bonus.
+- **Solo Survival 01:** always-open registration, ₹10 entry per player, ₹6 per organizer-verified kill, and an additional ₹30 Booyah bonus.
 - **Squad Last Circle 01:** Coming soon; registration, payment, schedule, fee, and rewards are unavailable.
 - **Clash Squad Cup 01:** Coming soon under the same restrictions.
 - Public rosters are empty until the organizer confirms and publishes real entries.
@@ -25,7 +25,7 @@ Registration details are prepared only in the player's browser and handed to the
 ## Before publishing
 
 1. Verify the WhatsApp number in `data/config.js`.
-2. Confirm the Solo registration-close, check-in, and match timestamps in `data/tournaments.js`; the current release uses 4 October 2026.
+2. Confirm that Solo remains `alwaysOpen: true` and has no opening, closing, check-in, or match timestamp fields.
 3. Confirm Bermuda and the 48-player capacity.
 4. Test the complete Solo registration and WhatsApp message.
 5. Publish exact cancellation, refund, eligibility, result-verification, and payout timing terms before accepting payment.
@@ -40,7 +40,7 @@ Registration details are prepared only in the player's browser and handed to the
 ├── data/
 │   ├── config.js                  # Brand, WhatsApp, timezone, and age settings
 │   ├── players.js                 # Manually maintained public rosters
-│   └── tournaments.js             # Event details, schedules, prizes, and slots
+│   └── tournaments.js             # Event details, availability, rewards, and slots
 ├── css/
 │   ├── styles.css                  # Structural and base styles
 │   └── gaming.css                  # Combat skin, layered after styles.css
@@ -79,7 +79,7 @@ Registration details are prepared only in the player's browser and handed to the
 6. Age and payment details are never included in the group message. The result panel provides **Send private details** for the organizer chat.
 7. The organizer sends payment instructions privately and verifies the incoming transaction in the organizer-controlled account. A screenshot alone is not confirmation.
 8. The organizer replies privately with the final registration state and assigned slot.
-9. About two hours before the match, the organizer publishes only approved public game details in `data/players.js`.
+9. The organizer publishes approved public game details in `data/players.js` when the roster is ready.
 10. Room ID and password are sent privately to confirmed players and are never committed here.
 
 The generated browser reference helps identify a conversation; it is not a reservation, receipt, or payment confirmation.
@@ -88,11 +88,7 @@ The generated browser reference helps identify a conversation; it is not a reser
 
 Events live in `data/tournaments.js`. Keep each `id` unique and stable because event links and roster records use it.
 
-Dates use ISO 8601 with the India offset:
-
-```js
-matchAt: "2026-10-10T19:00:00+05:30"
-```
+Solo uses `alwaysOpen: true` and intentionally has no opening, closing, check-in, or match timestamps. Lobby details are announced in the configured WhatsApp group after registration.
 
 Use:
 
@@ -104,7 +100,7 @@ Use:
 - `registrationOpen: false` to close a previously open event manually.
 - `spotsLeft: 0` to show that capacity is full.
 
-The effective state also changes when the registration deadline or match time passes.
+Future scheduled events may still use time-based states after their dates are published.
 
 ## Publish confirmed players
 
