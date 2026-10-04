@@ -2,8 +2,8 @@
 window.QW_CONFIG = Object.freeze({
   brandName: "QW Tournaments",
   gameName: "Free Fire",
-  whatsappNumber: "919449449382",
-  whatsappDisplay: "+91 94494 49382",
+  whatsappNumber: "919900344144",
+  whatsappDisplay: "+91 99003 44144",
   whatsappGroupUrl: "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
   timezone: "Asia/Kolkata",
   timezoneLabel: "IST",
