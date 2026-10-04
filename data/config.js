@@ -1,15 +1,12 @@
-/*
- * QW Tournaments public configuration.
- * Review every value and turn demoMode off before accepting real entries.
- */
+/* QW Tournaments public production configuration. */
 window.QW_CONFIG = Object.freeze({
   brandName: "QW Tournaments",
   gameName: "Free Fire",
   whatsappNumber: "919449449382",
   whatsappDisplay: "+91 94494 49382",
+  whatsappGroupUrl: "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
   timezone: "Asia/Kolkata",
   timezoneLabel: "IST",
-  demoMode: true,
   rosterLeadHours: 2,
   minimumAge: 13,
   guardianConsentAge: 18,

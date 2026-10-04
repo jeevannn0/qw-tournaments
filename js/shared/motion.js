@@ -1,5 +1,10 @@
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const finePointer = window.matchMedia("(pointer: fine)");
 let activeTransition = null;
+
+export function preferredScrollBehavior() {
+  return reducedMotion.matches ? "auto" : "smooth";
+}
 
 export function transitionUpdate(update) {
   if (reducedMotion.matches || typeof document.startViewTransition !== "function") {
@@ -11,11 +16,7 @@ export function transitionUpdate(update) {
     activeTransition?.skipTransition?.();
     const transition = document.startViewTransition(update);
     activeTransition = transition;
-    Promise.allSettled([
-      transition.ready,
-      transition.updateCallbackDone,
-      transition.finished
-    ]).finally(() => {
+    Promise.allSettled([transition.ready, transition.updateCallbackDone, transition.finished]).finally(() => {
       if (activeTransition === transition) activeTransition = null;
     });
     return transition;
@@ -25,70 +26,49 @@ export function transitionUpdate(update) {
   }
 }
 
-function initializeReveals(root) {
-  const items = [...root.querySelectorAll("[data-reveal]")].filter((item) => item.dataset.revealReady !== "true");
-  if (!items.length) return;
-  items.forEach((item) => { item.dataset.revealReady = "true"; });
-
-  if (reducedMotion.matches || !("IntersectionObserver" in window)) {
-    items.forEach((item) => item.classList.add("is-visible"));
-    return;
-  }
-
-  document.documentElement.classList.add("motion-ready");
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("is-visible");
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.12, rootMargin: "0px 0px -5%" });
-
-  items.forEach((item, index) => {
-    item.style.setProperty("--reveal-order", String(index % 4));
-    const bounds = item.getBoundingClientRect();
-    if (bounds.top < window.innerHeight * 0.96) {
-      window.requestAnimationFrame(() => item.classList.add("is-visible"));
-    } else {
-      observer.observe(item);
-    }
-  });
-}
-
-function initializeSpotlights(root) {
-  if (reducedMotion.matches || !window.matchMedia("(pointer: fine)").matches) return;
-  const surfaces = [...root.querySelectorAll("[data-spotlight]")].filter((surface) => surface.dataset.spotlightReady !== "true");
-  surfaces.forEach((surface) => {
-    surface.dataset.spotlightReady = "true";
-    surface.addEventListener("pointermove", (event) => {
-      const bounds = surface.getBoundingClientRect();
-      surface.style.setProperty("--spot-x", `${event.clientX - bounds.left}px`);
-      surface.style.setProperty("--spot-y", `${event.clientY - bounds.top}px`);
-    });
-  });
-}
-
 function initializeParallax(root) {
-  if (reducedMotion.matches || !window.matchMedia("(pointer: fine)").matches) return;
-  const items = [...root.querySelectorAll("[data-parallax]")].filter((item) => item.dataset.parallaxReady !== "true");
-  items.forEach((item) => {
-    item.dataset.parallaxReady = "true";
-    item.addEventListener("pointermove", (event) => {
-      const bounds = item.getBoundingClientRect();
-      const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * -12;
-      const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * -12;
-      item.style.setProperty("--parallax-x", `${x.toFixed(2)}px`);
-      item.style.setProperty("--parallax-y", `${y.toFixed(2)}px`);
-    });
-    item.addEventListener("pointerleave", () => {
-      item.style.setProperty("--parallax-x", "0px");
-      item.style.setProperty("--parallax-y", "0px");
-    });
+  if (reducedMotion.matches || !finePointer.matches) return;
+  root.querySelectorAll("[data-parallax]").forEach((surface) => {
+    if (surface.dataset.parallaxReady === "true") return;
+    surface.dataset.parallaxReady = "true";
+    let frame = 0;
+
+    const update = (event) => {
+      const bounds = surface.getBoundingClientRect();
+      const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 8;
+      const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 5;
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        surface.style.setProperty("--aim-x", `${x.toFixed(2)}px`);
+        surface.style.setProperty("--aim-y", `${y.toFixed(2)}px`);
+      });
+    };
+
+    const reset = () => {
+      window.cancelAnimationFrame(frame);
+      surface.style.setProperty("--aim-x", "0px");
+      surface.style.setProperty("--aim-y", "0px");
+    };
+
+    surface.addEventListener("pointermove", update, { passive: true });
+    surface.addEventListener("pointerleave", reset);
+  });
+}
+
+function initializeImageFallbacks(root) {
+  root.querySelectorAll("img").forEach((image) => {
+    if (image.dataset.fallbackReady === "true") return;
+    image.dataset.fallbackReady = "true";
+    image.addEventListener("error", () => {
+      image.classList.add("image-unavailable");
+      image.removeAttribute("src");
+      image.alt = image.alt || "Artwork unavailable";
+    }, { once: true });
   });
 }
 
 export function initializeMotion(root = document) {
-  initializeReveals(root);
-  initializeSpotlights(root);
+  root.querySelectorAll("[data-reveal]").forEach((item) => item.classList.add("is-visible"));
+  initializeImageFallbacks(root);
   initializeParallax(root);
 }

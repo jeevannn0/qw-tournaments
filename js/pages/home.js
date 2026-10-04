@@ -1,15 +1,12 @@
 import {
-  config,
   escapeHtml,
   eventMark,
   eventUrl,
   formatCurrency,
   formatDateTime,
-  galleryMedia,
   getCapacity,
   getEventMedia,
   getEventState,
-  officialWallpaperSource,
   registrationUrl,
   supportUrl,
   tournaments
@@ -25,32 +22,37 @@ function renderFeaturedEvent(tournament) {
   const capacity = getCapacity(tournament);
   const media = getEventMedia(tournament);
   const mainAction = state.open
-    ? `<a class="button button--primary button--large" href="${registrationUrl(tournament)}">Enter this lobby ${icon("arrow")}</a>`
-    : `<a class="button button--primary button--large" href="${eventUrl(tournament)}">Open match intel ${icon("arrow")}</a>`;
+    ? `<a class="button button--primary button--large" href="${registrationUrl(tournament)}">Register for ${escapeHtml(formatCurrency(tournament.entryFee))} ${icon("arrow")}</a>`
+    : `<a class="button button--quiet button--large" href="${eventUrl(tournament)}">View preview ${icon("arrow")}</a>`;
 
   mount.innerHTML = `
-    <article class="feature-event" data-spotlight>
+    <article class="feature-event">
       <div class="feature-event__content" data-reveal>
-        <div class="inline-badges">${eventStatusBadge(tournament)}${config.demoMode ? '<span class="demo-chip">Demo match</span>' : ""}</div>
-        <p class="kicker">Priority drop // ${escapeHtml(tournament.shortCode)}</p>
+        <div class="inline-badges">${eventStatusBadge(tournament)}</div>
+        <p class="kicker">Live solo match · ${escapeHtml(tournament.shortCode)}</p>
         <h2>${escapeHtml(tournament.name)}</h2>
         <p class="feature-event__lead">${escapeHtml(tournament.tagline)}</p>
+        <div class="reward-strip reward-strip--feature" aria-label="Solo match rewards">
+          <span><strong>${escapeHtml(formatCurrency(tournament.entryFee))}</strong><small>entry</small></span>
+          <span><strong>${escapeHtml(formatCurrency(tournament.killReward))}</strong><small>per confirmed kill</small></span>
+          <span><strong>${escapeHtml(formatCurrency(tournament.booyahBonus))}</strong><small>Booyah bonus</small></span>
+        </div>
         <dl class="feature-event__facts">
-          <div><dt>Drop time</dt><dd>${escapeHtml(formatDateTime(tournament.matchAt))}</dd></div>
-          <div><dt>Bounty</dt><dd>${escapeHtml(formatCurrency(tournament.prizePool))}</dd></div>
-          <div><dt>Open slots</dt><dd>${capacity.spotsLeft} / ${capacity.capacity} ${capacity.unit}</dd></div>
+          <div><dt>Starts</dt><dd>${escapeHtml(formatDateTime(tournament.matchAt))}</dd></div>
+          <div><dt>Map</dt><dd>${escapeHtml(tournament.map)}</dd></div>
+          <div><dt>Open</dt><dd>${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}</dd></div>
         </dl>
-        <div class="button-row">${mainAction}<a class="button button--quiet button--large" href="${eventUrl(tournament)}">Match intel</a></div>
+        <progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress>
+        <div class="button-row">${mainAction}<a class="button button--quiet button--large" href="${eventUrl(tournament)}">Rules and schedule</a></div>
       </div>
-      <div class="feature-event__visual" data-reveal data-parallax>
-        <img src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}">
+      <div class="feature-event__visual" data-reveal>
+        <img src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" width="480" height="270" loading="lazy" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}">
         <span class="feature-event__shade" aria-hidden="true"></span>
-        <span class="feature-event__grid" aria-hidden="true"></span>
         <span class="feature-event__mark" aria-hidden="true">${escapeHtml(eventMark(tournament))}</span>
-        <span class="feature-event__crosshair" aria-hidden="true"><i></i><i></i></span>
-        <a class="feature-event__hit" href="${eventUrl(tournament)}" aria-label="Open ${escapeHtml(tournament.name)} match intel"></a>
+        <a class="feature-event__hit" href="${eventUrl(tournament)}" aria-label="View ${escapeHtml(tournament.name)} details"></a>
         <span class="feature-event__caption"><small>${escapeHtml(tournament.stage)}</small><strong>${escapeHtml(tournament.formatLabel)}</strong></span>
-        <a class="media-credit media-credit--image" href="${officialWallpaperSource}" target="_blank" rel="noopener noreferrer">Official Free Fire wallpaper · Garena</a>
+        <span class="feature-event__scan" aria-hidden="true"></span>
+        <span class="feature-event__glitch" aria-hidden="true"></span>
       </div>
     </article>`;
 }
@@ -58,40 +60,33 @@ function renderFeaturedEvent(tournament) {
 function renderEventPreview() {
   const grid = document.querySelector("#homeEventGrid");
   if (!grid) return;
-  const ordered = [...tournaments].sort((a, b) => Date.parse(a.matchAt) - Date.parse(b.matchAt));
-  grid.innerHTML = ordered.slice(0, 3).map((tournament) => eventCard(tournament, { compact: true })).join("");
-}
-
-function renderCombatGallery() {
-  const gallery = document.querySelector("#combatGallery");
-  if (!gallery) return;
-  gallery.innerHTML = galleryMedia.map((media, index) => `
-    <figure class="combat-shot combat-shot--${index + 1}" data-reveal data-parallax>
-      <img src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" loading="lazy" decoding="async">
-      <span class="combat-shot__overlay" aria-hidden="true"></span>
-      <figcaption><span>0${index + 1}</span><strong>${escapeHtml(media.label)}</strong><a href="${officialWallpaperSource}" target="_blank" rel="noopener noreferrer">Garena wallpaper</a></figcaption>
-    </figure>`).join("");
+  const ordered = [...tournaments].sort((a, b) => {
+    const stateDifference = Number(getEventState(b).open) - Number(getEventState(a).open);
+    const aTime = Date.parse(a.matchAt) || Number.MAX_SAFE_INTEGER;
+    const bTime = Date.parse(b.matchAt) || Number.MAX_SAFE_INTEGER;
+    return stateDifference || aTime - bTime;
+  });
+  grid.innerHTML = ordered.length
+    ? ordered.map((tournament, index) => eventCard(tournament, { compact: true, eager: index === 0 })).join("")
+    : '<div class="empty-state"><h2>No matches published</h2><p>The next match will appear here when its schedule is ready.</p></div>';
 }
 
 function renderLiveFacts() {
-  const openEvents = tournaments.filter((tournament) => getEventState(tournament).open).length;
-  const modes = new Set(tournaments.map((tournament) => tournament.formatLabel)).size;
-  const totalPrize = tournaments.reduce((sum, tournament) => sum + (Number(tournament.prizePool) || 0), 0);
-  document.querySelector("#homeEventCount").textContent = String(openEvents).padStart(2, "0");
-  document.querySelector("#homeModeCount").textContent = String(modes).padStart(2, "0");
-  document.querySelector("#homePrizeTotal").textContent = formatCurrency(totalPrize);
+  const solo = tournaments.find((tournament) => tournament.type === "solo" && !tournament.comingSoon);
+  document.querySelector("#homeEventCount").textContent = String(tournaments.filter((tournament) => getEventState(tournament).open).length).padStart(2, "0");
+  document.querySelector("#homeKillReward").textContent = formatCurrency(solo?.killReward);
+  document.querySelector("#homeBooyahBonus").textContent = formatCurrency(solo?.booyahBonus);
 }
 
 function initializeHome() {
   initializeShell();
-  const featured = tournaments.find((tournament) => tournament.featured) || tournaments[0];
-  renderFeaturedEvent(featured);
+  const featured = tournaments.find((tournament) => tournament.featured) || tournaments.find((tournament) => getEventState(tournament).open) || tournaments[0];
   renderEventPreview();
-  renderCombatGallery();
+  renderFeaturedEvent(featured);
   renderLiveFacts();
-
   const support = document.querySelector("#homeSupportLink");
-  if (support) support.href = supportUrl("joining a Free Fire tournament");
+  const supportHref = supportUrl("joining the Solo Survival match");
+  if (support && supportHref) support.href = supportHref;
   initializeMotion();
 }
 

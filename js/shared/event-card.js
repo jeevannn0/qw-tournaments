@@ -1,14 +1,13 @@
 import {
-  config,
   escapeHtml,
   eventMark,
   eventUrl,
   formatCurrency,
   formatDateTime,
+  formatReward,
   getCapacity,
   getEventMedia,
   getEventState,
-  officialWallpaperSource,
   registrationUrl
 } from "./data.js";
 import { icon } from "./shell.js";
@@ -18,44 +17,59 @@ export function eventStatusBadge(tournament) {
   return `<span class="status-badge status-badge--${escapeHtml(state.key)}"><span aria-hidden="true"></span>${escapeHtml(state.label)}</span>`;
 }
 
+function eventFacts(tournament, capacity) {
+  const comingSoon = tournament.comingSoon === true;
+  const starts = comingSoon
+    ? "Schedule pending"
+    : `<time datetime="${escapeHtml(tournament.matchAt)}">${escapeHtml(formatDateTime(tournament.matchAt))}</time>`;
+  const availability = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
+  return `
+    <dl class="event-card__facts">
+      <div><dt>Starts</dt><dd>${starts}</dd></div>
+      <div><dt>Reward</dt><dd>${escapeHtml(formatReward(tournament))}</dd></div>
+      <div><dt>Entry</dt><dd>${escapeHtml(formatCurrency(tournament.entryFee))}</dd></div>
+      <div><dt>${comingSoon ? "Capacity" : "Open"}</dt><dd>${escapeHtml(availability)}</dd></div>
+    </dl>`;
+}
+
+function rewardStrip(tournament) {
+  if (tournament.comingSoon) {
+    return '<div class="coming-soon-strip"><strong>Coming soon</strong><span>Schedule and entry details will be announced here.</span></div>';
+  }
+  return `<div class="reward-strip" aria-label="Solo match rewards"><span><strong>${escapeHtml(formatCurrency(tournament.killReward))}</strong><small>per confirmed kill</small></span><span><strong>${escapeHtml(formatCurrency(tournament.booyahBonus))}</strong><small>Booyah bonus</small></span></div>`;
+}
+
 export function eventCard(tournament, options = {}) {
   const state = getEventState(tournament);
   const capacity = getCapacity(tournament);
   const media = getEventMedia(tournament);
   const compact = Boolean(options.compact);
-  const classes = ["event-card", tournament.featured ? "event-card--featured" : "", compact ? "event-card--compact" : ""].filter(Boolean).join(" ");
-  const action = state.open
-    ? `<a class="button button--primary" href="${registrationUrl(tournament)}">${escapeHtml(state.action)} ${icon("arrow")}</a>`
-    : `<a class="button button--quiet" href="${eventUrl(tournament)}">${escapeHtml(state.action)} ${icon("arrow")}</a>`;
+  const comingSoon = tournament.comingSoon === true;
+  const classes = ["event-card", tournament.featured ? "event-card--featured" : "", compact ? "event-card--compact" : "", comingSoon ? "event-card--coming-soon" : ""].filter(Boolean).join(" ");
+  const primaryAction = state.open
+    ? `<a class="button button--primary" href="${registrationUrl(tournament)}">Register for ₹10 ${icon("arrow")}</a>`
+    : `<span class="button button--disabled" aria-disabled="true">Coming soon</span>`;
+  const secondaryAction = `<a class="button button--text" href="${eventUrl(tournament)}">${comingSoon ? "Preview" : "Details"}</a>`;
 
   return `
-    <article class="${classes}" data-reveal data-spotlight>
+    <article class="${classes}" data-reveal>
       <a class="event-card__art" href="${eventUrl(tournament)}" aria-label="View ${escapeHtml(tournament.name)} details">
-        <img class="event-card__image" src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" loading="lazy" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}">
+        <img class="event-card__image" src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" width="480" height="270" loading="${options.eager ? "eager" : "lazy"}" decoding="async" ${options.eager ? 'fetchpriority="high"' : ""} style="object-position:${escapeHtml(media.focus || "center")}">
         <span class="event-card__shade" aria-hidden="true"></span>
-        <span class="event-card__grid" aria-hidden="true"></span>
         <span class="event-card__mark" aria-hidden="true">${escapeHtml(eventMark(tournament))}</span>
-        <span class="event-card__topline">${eventStatusBadge(tournament)}${config.demoMode ? '<span class="demo-chip">Sample</span>' : ""}</span>
+        <span class="event-card__topline">${eventStatusBadge(tournament)}</span>
         <span class="event-card__code">${escapeHtml(tournament.shortCode)}</span>
       </a>
       <div class="event-card__body">
-        <a class="media-credit" href="${officialWallpaperSource}" target="_blank" rel="noopener noreferrer">Official Free Fire wallpaper · Garena</a>
-        <div>
+        <div class="event-card__identity">
           <p class="event-card__format">${escapeHtml(tournament.formatLabel)} · ${escapeHtml(tournament.server || "India")}</p>
           <h3><a href="${eventUrl(tournament)}">${escapeHtml(tournament.name)}</a></h3>
           <p class="event-card__tagline">${escapeHtml(tournament.tagline || tournament.description || "Competitive community match")}</p>
         </div>
-        <dl class="event-card__facts">
-          <div><dt>${icon("calendar")} Starts</dt><dd><time datetime="${escapeHtml(tournament.matchAt)}">${escapeHtml(formatDateTime(tournament.matchAt))}</time></dd></div>
-          <div><dt>${icon("crown")} Prize</dt><dd>${escapeHtml(formatCurrency(tournament.prizePool))}</dd></div>
-          <div><dt>${icon("team")} Available</dt><dd>${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}</dd></div>
-          <div><dt>₹ Entry</dt><dd>${escapeHtml(formatCurrency(tournament.entryFee))} ${escapeHtml(tournament.feeUnit)}</dd></div>
-        </dl>
-        <div class="capacity-meter" aria-label="${capacity.percent}% of slots filled"><span style="width:${capacity.percent}%"></span></div>
-        <div class="event-card__actions">
-          ${action}
-          <a class="button button--text" href="${eventUrl(tournament)}">Intel</a>
-        </div>
+        ${rewardStrip(tournament)}
+        ${eventFacts(tournament, capacity)}
+        ${comingSoon ? "" : `<progress class="capacity-meter" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress>`}
+        <div class="event-card__actions">${primaryAction}${secondaryAction}</div>
       </div>
     </article>`;
 }

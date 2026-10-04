@@ -10,21 +10,26 @@ Registration details are prepared only in the player's browser and handed to the
 |---|---|
 | `index.html` | Focused homepage, featured event, upcoming-event preview, and joining flow |
 | `tournaments.html` | Searchable/filterable tournament board |
-| `tournament.html?tournament=<id>` | Dedicated schedule, prize, format, availability, and ruleset view |
-| `register.html?tournament=<id>` | Three-step solo or exactly-four-player registration builder |
+| `tournament.html?tournament=<id>` | Dedicated schedule, rewards, format, availability, and rules view |
+| `register.html?tournament=<id>` | Three-step Solo registration builder; future formats remain disabled |
 | `players.html?tournament=<id>` | Searchable public confirmed-player roster |
 | `rules.html` | Eligibility, fair play, check-in, scoring, dispute, payment, and privacy rules |
 
-## Important before launch
+## Current release
 
-The repository starts in **demo mode**. Sample dates, entry fees, prizes, and one sample roster are clearly marked.
+- **Solo Survival 01:** registration open, ₹10 entry per player, ₹6 per organizer-verified kill, and an additional ₹30 Booyah bonus.
+- **Squad Last Circle 01:** Coming soon; registration, payment, schedule, fee, and rewards are unavailable.
+- **Clash Squad Cup 01:** Coming soon under the same restrictions.
+- Public rosters are empty until the organizer confirms and publishes real entries.
 
-1. Review the WhatsApp number in `data/config.js`.
-2. Replace every sample event value in `data/tournaments.js`.
-3. Remove the sample entries from `data/players.js`.
-4. Test both solo and squad registration journeys.
-5. Set `demoMode: false` in `data/config.js` only when the events are real.
-6. Publish exact prize, cancellation, refund, eligibility, and check-in terms before accepting payment.
+## Before publishing
+
+1. Verify the WhatsApp number in `data/config.js`.
+2. Confirm the Solo registration-close, check-in, and match timestamps in `data/tournaments.js`; the current release uses 4 October 2026.
+3. Confirm Bermuda and the 48-player capacity.
+4. Test the complete Solo registration and WhatsApp message.
+5. Publish exact cancellation, refund, eligibility, result-verification, and payout timing terms before accepting payment.
+6. Never accept Squad or TDM payment while those cards say Coming soon.
 
 ## Project structure
 
@@ -33,9 +38,12 @@ The repository starts in **demo mode**. Sample dates, entry fees, prizes, and on
 ├── assets/
 │   └── favicon.svg
 ├── data/
-│   ├── config.js                  # Brand, WhatsApp, timezone, and demo switch
+│   ├── config.js                  # Brand, WhatsApp, timezone, and age settings
 │   ├── players.js                 # Manually maintained public rosters
 │   └── tournaments.js             # Event details, schedules, prizes, and slots
+├── css/
+│   ├── styles.css                  # Structural and base styles
+│   └── gaming.css                  # Combat skin, layered after styles.css
 ├── docs/
 │   └── ui-references.md            # Product and accessibility research applied
 ├── js/
@@ -58,21 +66,21 @@ The repository starts in **demo mode**. Sample dates, entry fees, prizes, and on
 ├── register.html
 ├── rules.html
 ├── tournament.html
-├── tournaments.html
-└── styles.css
+└── tournaments.html
 ```
 
 ## Registration and confirmation flow
 
-1. The player chooses an open tournament.
-2. The three-step registration builder collects one solo player or exactly four squad players.
-3. The player reviews names, numeric Free Fire UIDs, ages, event fee, and eligibility confirmations.
-4. **Open WhatsApp** prepares a private message to `+91 94494 49382`.
-5. The player sends that message, receives verified payment instructions, and manually attaches payment proof in WhatsApp.
-6. The organizer verifies the incoming transaction in the organizer-controlled account. A screenshot alone is not confirmation.
-7. The organizer replies with the final registration state and assigned slot.
-8. About two hours before the match, the organizer publishes only approved public game details in `data/players.js`.
-9. Room ID and password are sent privately to confirmed players or captains and are never committed here.
+1. The player selects Solo Survival 01; Squad and TDM choices remain visible but disabled as Coming soon.
+2. The three-step registration builder collects one Solo player.
+3. The player reviews the in-game name, numeric Free Fire UID, age, ₹10 entry, ₹6 kill reward, ₹30 Booyah bonus, and eligibility confirmations.
+4. Submitting the final step opens the configured WhatsApp match-group invite and attempts to copy a group-safe message.
+5. The player joins the group and pastes only the reference, in-game name, and Free Fire UID.
+6. Age and payment details are never included in the group message. The result panel provides **Send private details** for the organizer chat.
+7. The organizer sends payment instructions privately and verifies the incoming transaction in the organizer-controlled account. A screenshot alone is not confirmation.
+8. The organizer replies privately with the final registration state and assigned slot.
+9. About two hours before the match, the organizer publishes only approved public game details in `data/players.js`.
+10. Room ID and password are sent privately to confirmed players and are never committed here.
 
 The generated browser reference helps identify a conversation; it is not a reservation, receipt, or payment confirmation.
 
@@ -89,9 +97,11 @@ matchAt: "2026-10-10T19:00:00+05:30"
 Use:
 
 - `type: "solo"` for one-player registration.
-- `type: "squad"` for exactly four players.
+- `entryFee: 10`, `killReward: 6`, and `booyahBonus: 30` for the published Solo economy.
+- `comingSoon: true` plus `registrationOpen: false` to keep a future format visible but non-registerable.
+- `type: "squad"` for future four-player formats.
 - A `mode` containing `TDM` or `Clash` for the TDM category.
-- `registrationOpen: false` to close an event manually.
+- `registrationOpen: false` to close a previously open event manually.
 - `spotsLeft: 0` to show that capacity is full.
 
 The effective state also changes when the registration deadline or match time passes.
@@ -101,21 +111,16 @@ The effective state also changes when the registration deadline or match time pa
 Add approved entries under the matching event ID in `data/players.js`, update `updatedAt`, and set `published: true`.
 
 ```js
-"squad-last-circle-01": {
+"solo-survival-01": {
   published: true,
-  updatedAt: "2026-10-10T17:00:00+05:30",
+  updatedAt: "2026-10-04T17:00:00+05:30",
   entries: [
     {
-      registrationId: "QW-BR01-0001",
+      registrationId: "QW-SOLO01-0001",
       slot: 1,
-      teamName: "Example Squad",
-      status: "Confirmed",
-      players: [
-        { displayName: "Player One", uid: "123456789" },
-        { displayName: "Player Two", uid: "223456789" },
-        { displayName: "Player Three", uid: "323456789" },
-        { displayName: "Player Four", uid: "423456789" }
-      ]
+      displayName: "Example Player",
+      uid: "123456789",
+      status: "Confirmed"
     }
   ]
 }
@@ -136,14 +141,14 @@ Open `http://localhost:4173`.
 
 ## UI and accessibility behavior
 
-- Shared desktop navigation and a native modal mobile drawer
-- Light and dark themes saved locally without storing player information
-- Same-origin page transitions where supported, with ordinary navigation as fallback
-- One-time Intersection Observer reveals; content remains visible without enhancement
-- Reduced-motion support that removes spatial animation
-- Native disclosures for rules and native radio controls for tournament filters
-- Visible keyboard focus, touch-sized controls, semantic headings, and mobile table-to-card conversion
-- No autoplay carousel, endless ticker, or decorative video
+- Mobile-first match access: compact hero, live match summary, and the first actionable event near the opening viewport
+- Native modal navigation with an accessible fallback, Escape handling, focus containment, and focus return
+- Light and dark themes available on desktop and inside the mobile drawer; only the theme preference is stored locally
+- Restrained state transitions, with spatial movement removed when reduced motion is requested
+- Semantic progress elements for registration and lobby capacity
+- Step-level form errors linked to the relevant field through `aria-describedby`
+- Native rule disclosures, semantic scoring table, keyboard-visible focus, 44 px controls, and mobile roster records
+- No autoplay carousel, decorative video, cursor spotlight, or scroll-hidden content; hero parallax is bounded to fine-pointer devices and disabled for reduced motion
 
 The product and component references applied during the redesign are documented in [`docs/ui-references.md`](docs/ui-references.md).
 
@@ -161,12 +166,13 @@ All page and asset links are relative, so project-subpath URLs such as `https://
 - Never request an OTP, UPI PIN, card PIN, game password, or account password.
 - Verify money in the organizer-controlled payment account instead of trusting screenshots.
 - Rotate room credentials for every event and send them privately.
+- The WhatsApp group invite is embedded in public JavaScript; rotate it if unwanted members or spam appear.
 - Require appropriate guardian approval for under-18 entrants and review applicable local requirements before operating paid events.
 - Keep evidence-based dispute deadlines and publish corrections consistently.
 - This is an independent community tournament site. It is not affiliated with, endorsed, sponsored, or administered by Garena. Free Fire and related marks belong to their respective owners.
 
-## Gaming artwork
+## Free Fire artwork
 
-The combat skin is isolated in `gaming.css`, layered after the structural `styles.css`. The Home route uses original `assets/battle-arena.svg` artwork; tournament cards, event detail, registration match cards, route headers, and the combat gallery use eight optimized official Free Fire wallpapers. All source URLs and ownership notes are recorded in [`docs/image-credits.md`](docs/image-credits.md). Visible image credits also link to Garena’s official wallpaper library.
+The public UI uses a responsive 2880×1020-source hero (`assets/free-fire-hero-960.jpg` on phones and `assets/free-fire-hero-1920.jpg` on larger displays) plus three event-specific images from Garena’s Free Fire media: `assets/free-fire-solo.jpg`, `assets/free-fire-squad.jpg`, and `assets/free-fire-clash.jpg`. They were resized proportionally and compressed without recoloring or compositing. Source URLs, ownership notes, and the pre-launch policy reminder are recorded in [`docs/image-credits.md`](docs/image-credits.md).
 
-Phone-specific behavior keeps the Home hero inside one viewport, turns the registration battle picker into a swipeable poster rail, centers a deep-linked selection, removes redundant copy, and starts the registration panel near the top of the first screen.
+Phone-specific behavior uses the HD character scene as a cinematic hero backdrop, surfaces all three match cards immediately after the live summary, presents registration choices as a swipeable poster rail, centers deep-linked selections, and keeps form actions in normal document flow above the software keyboard. Intermittent signal glitches, scan sweeps, HUD marks, and the targeting reticle provide gaming energy while `prefers-reduced-motion` removes their movement.
