@@ -55,7 +55,7 @@ Every registration requires:
 - Numeric 6–12 digit Free Fire UID
 - Age from 13 through 80
 - Private 10-digit Indian WhatsApp number
-- UPI payment of ₹10 to `9449449382@slc` using Google Pay, Paytm, PhonePe, super.money, or another UPI app
+- UPI payment of ₹10 to `9900344144@ybl`, copied from the registration page and paid through any UPI app
 - 6–40 character UTR or transaction reference
 - JPG, PNG, or WebP payment screenshot no larger than 2 MB
 - Rules, guardian, payment, and public-roster confirmations

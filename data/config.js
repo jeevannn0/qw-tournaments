@@ -5,7 +5,7 @@ window.QW_CONFIG = Object.freeze({
   whatsappNumber: "919900344144",
   whatsappDisplay: "+91 99003 44144",
   whatsappGroupUrl: "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
-  upiId: "9449449382@slc",
+  upiId: "9900344144@ybl",
   upiPayeeName: "QW Tournaments",
   timezone: "Asia/Kolkata",
   timezoneLabel: "IST",
