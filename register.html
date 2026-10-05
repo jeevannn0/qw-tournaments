@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Register — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-upi-ios">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-upi-manual">
   <link rel="stylesheet" href="css/gaming.css">
   <script src="js/theme-init.js"></script>
 </head>
@@ -52,13 +52,13 @@
 
             <section class="payment-proof" aria-labelledby="paymentProofTitle">
               <div class="lineup-heading"><div><span class="kicker">Private details</span><h2 id="paymentProofTitle">Payment proof</h2></div><span class="lineup-count">Required</span></div>
-              <p class="payment-proof__intro">Pay ₹10 only by UPI to the verified QW payment ID below. The screenshot is evidence for review and does not confirm payment.</p>
+              <p class="payment-proof__intro"><strong>Enter ₹10 manually in your payment app.</strong> Choose an app below, verify the UPI ID, pay exactly ₹10, then upload the screenshot. The screenshot does not confirm payment.</p>
               <div class="upi-payment-card">
                 <span>Pay ₹10 to this UPI ID</span>
                 <strong id="paymentUpiId">Loading verified UPI ID…</strong>
-                <div class="upi-app-grid" aria-label="Choose UPI payment app"><a class="button button--whatsapp" id="payWithGpay" href="#">Google Pay</a><a class="button button--whatsapp" id="payWithPaytm" href="#">Paytm</a><a class="button button--whatsapp" id="payWithPhonePe" href="#">PhonePe</a><a class="button button--whatsapp" id="payWithSuperMoney" href="#">super.money</a></div>
+                <div class="upi-app-grid" aria-label="Choose UPI payment app"><a class="button button--whatsapp" id="payWithGpay" href="#">Open Google Pay</a><a class="button button--whatsapp" id="payWithPaytm" href="#">Open Paytm</a><a class="button button--whatsapp" id="payWithPhonePe" href="#">Open PhonePe</a><a class="button button--whatsapp" id="payWithSuperMoney" href="#">Open super.money</a></div>
                 <div class="button-row"><a class="button button--quiet" id="openUpiPayment" href="#">Other UPI app</a><button class="button button--quiet" id="copyUpiId" type="button">Copy UPI ID</button></div>
-                <small id="upiAppHelp">Choose a payment app. Confirm the UPI ID exactly before paying, and never enter your UPI PIN on this website.</small>
+                <small id="upiAppHelp">Choose a payment app, then enter ₹10 manually. Confirm the UPI ID exactly before paying, and never enter your UPI PIN on this website.</small>
               </div>
               <input type="hidden" id="paymentMethod" name="paymentMethod" value="upi">
               <div class="form-grid payment-form-grid">
@@ -101,9 +101,9 @@
   </main>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js?v=20261006-upi-ios"></script>
-  <script src="data/tournaments.js?v=20261006-upi-ios"></script>
+  <script src="data/config.js?v=20261006-upi-manual"></script>
+  <script src="data/tournaments.js?v=20261006-upi-manual"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/register-page.js?v=20261006-upi-ios"></script>
+  <script type="module" src="js/pages/register-page.js?v=20261006-upi-manual"></script>
 </body>
 </html>

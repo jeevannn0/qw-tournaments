@@ -15,14 +15,14 @@ import {
   getTimeSlot,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261006-upi-ios";
+} from "../shared/data.js?v=20261006-upi-manual";
 import {
   buildGroupJoinMessage,
   collectRegistration,
   createRegistrationId,
   registrationWhatsAppUrl,
   validateRegistration
-} from "../shared/registration.js?v=20261006-upi-ios";
+} from "../shared/registration.js?v=20261006-upi-manual";
 import {
   collectPaymentDetails,
   MAX_PAYMENT_PROOF_BYTES,
@@ -30,7 +30,7 @@ import {
   registrationSubmissionError,
   submitCompleteRegistration,
   validatePaymentDetails
-} from "../shared/registration-backend.js?v=20261006-upi-ios";
+} from "../shared/registration-backend.js?v=20261006-upi-manual";
 import { isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell, showToast } from "../shared/shell.js";
 import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
@@ -453,7 +453,6 @@ function initializeWizard() {
     const paymentParameters = [
       ["pa", config.upiId],
       ["pn", config.upiPayeeName],
-      ["am", String(selectedTournament?.entryFee || 10)],
       ["cu", "INR"],
       ["tn", "Solo Survival 01 entry"]
     ].map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
@@ -486,10 +485,10 @@ function initializeWizard() {
     });
     copyUpiButton.addEventListener("click", copyConfiguredUpi);
     upiAppHelp.textContent = isAndroid
-      ? "Choose a dedicated button to open that exact Android app. Other UPI app uses your phone’s default handler."
+      ? "Choose a dedicated button to open that exact Android app, then enter ₹10 manually. Other UPI app uses your phone’s default handler."
       : isIos
-        ? "Google Pay, Paytm and PhonePe open directly on iPhone. For super.money, copy the UPI ID and open the app manually."
-        : "On a phone, choose a supported payment app. On this device, copy the UPI ID and pay in your preferred app.";
+        ? "Google Pay, Paytm and PhonePe open directly on iPhone; enter ₹10 manually. For super.money, copy the UPI ID and open the app manually."
+        : "On a phone, choose a supported payment app and enter ₹10 manually. On this device, copy the UPI ID and pay in your preferred app.";
   } else {
     upiIdMount.textContent = "UPI payment unavailable";
     [upiPaymentLink, ...dedicatedUpiApps.map(({ selector }) => document.querySelector(selector))].forEach((link) => {
