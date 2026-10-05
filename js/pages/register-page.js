@@ -15,14 +15,14 @@ import {
   getTimeSlot,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261006-lobbies";
+} from "../shared/data.js?v=20261006-upi-apps";
 import {
   buildGroupJoinMessage,
   collectRegistration,
   createRegistrationId,
   registrationWhatsAppUrl,
   validateRegistration
-} from "../shared/registration.js?v=20261006-lobbies";
+} from "../shared/registration.js?v=20261006-upi-apps";
 import {
   collectPaymentDetails,
   MAX_PAYMENT_PROOF_BYTES,
@@ -30,7 +30,7 @@ import {
   registrationSubmissionError,
   submitCompleteRegistration,
   validatePaymentDetails
-} from "../shared/registration-backend.js?v=20261006-lobbies";
+} from "../shared/registration-backend.js?v=20261006-upi-apps";
 import { isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell, showToast } from "../shared/shell.js";
 import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
@@ -438,6 +438,12 @@ function initializeWizard() {
   const upiIdMount = document.querySelector("#paymentUpiId");
   const upiPaymentLink = document.querySelector("#openUpiPayment");
   const copyUpiButton = document.querySelector("#copyUpiId");
+  const dedicatedUpiApps = [
+    { selector: "#payWithGpay", packageName: "com.google.android.apps.nbu.paisa.user" },
+    { selector: "#payWithPaytm", packageName: "net.one97.paytm" },
+    { selector: "#payWithPhonePe", packageName: "com.phonepe.app" },
+    { selector: "#payWithSuperMoney", packageName: "money.super.payments" }
+  ];
   if (config.upiSafe) {
     upiIdMount.textContent = config.upiId;
     const paymentParameters = [
@@ -448,6 +454,16 @@ function initializeWizard() {
       ["tn", "Solo Survival 01 entry"]
     ].map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
     upiPaymentLink.href = `upi://pay?${paymentParameters}`;
+    dedicatedUpiApps.forEach(({ selector, packageName }) => {
+      const link = document.querySelector(selector);
+      link.href = `intent://pay?${paymentParameters}#Intent;scheme=upi;package=${packageName};end`;
+      link.addEventListener("click", (event) => {
+        if (!/Android/i.test(navigator.userAgent)) {
+          event.preventDefault();
+          showToast("Dedicated UPI app buttons require Android. Copy the UPI ID and pay in your preferred app.", 6500);
+        }
+      });
+    });
     copyUpiButton.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(config.upiId);
@@ -458,8 +474,10 @@ function initializeWizard() {
     });
   } else {
     upiIdMount.textContent = "UPI payment unavailable";
-    upiPaymentLink.removeAttribute("href");
-    upiPaymentLink.setAttribute("aria-disabled", "true");
+    [upiPaymentLink, ...dedicatedUpiApps.map(({ selector }) => document.querySelector(selector))].forEach((link) => {
+      link.removeAttribute("href");
+      link.setAttribute("aria-disabled", "true");
+    });
     copyUpiButton.disabled = true;
   }
   supabaseWarning.hidden = isSupabaseConfigured() && config.upiSafe;
