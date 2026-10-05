@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Organizer dashboard — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-admin-review">
   <link rel="stylesheet" href="css/gaming.css">
   <script src="js/theme-init.js"></script>
 </head>
@@ -59,17 +59,23 @@
             <article><span>Pending review</span><strong id="adminPending">0</strong></article>
             <article><span>Payment verified</span><strong id="adminPaid">0</strong></article>
             <article><span>Confirmed</span><strong id="adminConfirmed">0</strong></article>
+            <article class="admin-metric--danger"><span>Duplicate UTRs</span><strong id="adminDuplicates">0</strong></article>
           </div>
 
           <div class="admin-controls">
-            <div class="field search-field"><label for="adminSearch">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Reference, name, UID, phone, or transaction" autocomplete="off"></div></div>
-            <div class="field"><label for="adminStatusFilter">Status</label><select id="adminStatusFilter"><option value="all">All registrations</option><option value="pending">Pending review</option><option value="payment-verified">Payment verified</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
+            <div class="field search-field"><label for="adminSearch">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Reference, name, UID, phone, or UTR" autocomplete="off"></div></div>
+            <div class="field"><label for="adminLobbyFilter">Lobby</label><select id="adminLobbyFilter"><option value="all">Both lobbies</option><option value="solo-2026-10-06-1930">7:30 PM lobby</option><option value="solo-2026-10-06-2100">9:00 PM lobby</option></select></div>
+            <div class="field"><label for="adminPaymentFilter">Payment</label><select id="adminPaymentFilter"><option value="all">All payment states</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="not-found">Not found</option><option value="duplicate">Marked duplicate</option></select></div>
+            <div class="field"><label for="adminRegistrationFilter">Registration</label><select id="adminRegistrationFilter"><option value="all">All registration states</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
+            <div class="field"><label for="adminDuplicateFilter">UTR check</label><select id="adminDuplicateFilter"><option value="all">All transaction IDs</option><option value="duplicates">Duplicates only</option><option value="unique">Unique only</option></select></div>
+            <div class="field"><label for="adminSort">Sort</label><select id="adminSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="lobby">Lobby then player</option><option value="player">Player name</option><option value="transaction">Transaction ID</option></select></div>
           </div>
 
+          <div class="admin-export-actions"><button class="button button--quiet" id="adminExportFiltered" type="button">Export filtered PDF</button><button class="button button--primary" id="adminExportAll" type="button">Export all PDF</button></div>
           <div class="admin-list-meta" id="adminListMeta" role="status" aria-live="polite">Loading registrations…</div>
           <div class="responsive-table admin-table-wrap">
             <table class="admin-table">
-              <thead><tr><th>Submitted</th><th>Player</th><th>Lobby</th><th>Reference</th><th>Payment</th><th>Registration</th><th>Action</th></tr></thead>
+              <thead><tr><th>Submitted</th><th>Player</th><th>Lobby</th><th>Reference</th><th>Payment / UTR</th><th>Registration</th><th>Action</th></tr></thead>
               <tbody id="adminRegistrationRows"></tbody>
             </table>
           </div>
@@ -101,6 +107,6 @@
   <script src="data/config.js"></script>
   <script src="data/tournaments.js"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/admin-page.js?v=20261006-lobbies"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261006-admin-review"></script>
 </body>
 </html>

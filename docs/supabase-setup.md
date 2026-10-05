@@ -152,3 +152,11 @@ If `supabase-schema.sql` was run before the organizer Delete button was added, r
 ## Two-lobby migration
 
 Before deploying the 6 October 2026 lobby release, run `supabase-migrations/2026-10-05-solo-lobbies.sql` once in SQL Editor. It requires the registration and public roster tables to be empty, adds the mandatory 7:30 PM and 9:00 PM IST lobby fields, changes player numbers to 1–50, and makes player-number uniqueness apply within each lobby.
+
+## Duplicate UTR detection migration
+
+Before using automatic duplicate-payment marking, run `supabase-migrations/2026-10-05-duplicate-utr.sql` once in SQL Editor. The trigger marks a new registration as duplicate when its normalized UTR already exists and marks matching non-confirmed registrations for review. Confirmed payments are not overwritten. The admin dashboard also calculates duplicate groups independently, so all matching records receive a visible warning and can be filtered.
+
+## PDF reconciliation
+
+The protected admin dashboard provides **Export filtered PDF** and **Export all PDF**. Each opens the browser print dialog; choose **Save as PDF**. Reports include lobby, player/UID, private WhatsApp number, UTR, claimed amount, payment state, registration state, player number, and reference. Payment screenshots are deliberately excluded. Treat the resulting PDF as private financial-review data and delete it when reconciliation is complete.

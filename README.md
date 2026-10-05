@@ -70,11 +70,13 @@ Open `admin.html` and sign in with the organizer email/password account. The acc
 
 The dashboard supports:
 
-- Total, pending, payment-verified, and confirmed counts
-- Search and status filtering
+- Total, pending, payment-verified, confirmed, and duplicate-UTR counts
+- Search plus lobby, payment, registration, duplicate-UTR, and sort filters
+- Automatic duplicate UTR warning badges, including cross-record counts
 - Complete private player/payment details
 - On-demand private screenshot loading
-- Payment verification, rejection, cancellation, notes, and slot assignment
+- Payment verification, rejection, cancellation, notes, and player-number assignment
+- Export filtered PDF and Export all PDF reconciliation reports without screenshots
 - Direct WhatsApp contact
 - Permanent deletion of cancelled or rejected registrations and their private screenshots
 - Atomic private-status and public-roster updates through `review_registration`

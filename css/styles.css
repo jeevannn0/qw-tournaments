@@ -5145,3 +5145,54 @@ select:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Organizer reconciliation filters and duplicate warnings */
+.admin-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.admin-metric--danger strong {
+  color: var(--danger);
+}
+
+.admin-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+.admin-payment-cell {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+}
+
+.admin-payment-cell code {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.duplicate-warning {
+  border: 1px solid var(--danger);
+  background: color-mix(in oklab, var(--danger) 10%, var(--card));
+  color: var(--danger);
+  padding: 0.25rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+@media (min-width: 60rem) {
+  .admin-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media print {
+  .admin-export-actions {
+    display: none;
+  }
+}
