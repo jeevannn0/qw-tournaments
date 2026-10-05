@@ -167,4 +167,4 @@ Content was rephrased for compliance with licensing restrictions.
 
 ## UPI payment handoff
 
-The receiving address is a personal UPI VPA, not a merchant payment-gateway integration. The payment choices copy the configured UPI ID and instruct players to open Google Pay, Paytm, PhonePe, super.money, or another UPI app manually. The site does not issue partial merchant-style UPI intents because payment apps can report misleading bank-limit failures when required merchant fields are unavailable. Players paste the ID, verify the recipient name, enter exactly ₹10, and the organizer verifies the actual received amount.
+The receiving address is a personal UPI VPA, not a merchant payment-gateway integration. The payment card displays the configured UPI ID and provides one **Copy UPI ID** button. Players paste the ID into any UPI app, verify the recipient name, enter exactly ₹10, and the organizer verifies the actual received amount. The site does not issue partial merchant-style UPI intents because payment apps can report misleading bank-limit failures when required merchant fields are unavailable.

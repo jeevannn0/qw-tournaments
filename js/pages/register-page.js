@@ -436,45 +436,21 @@ function initializeWizard() {
     showToast("Submitted fields are read-only. Contact the organizer with your reference for help.");
   });
   const upiIdMount = document.querySelector("#paymentUpiId");
-  const upiPaymentLink = document.querySelector("#openUpiPayment");
   const copyUpiButton = document.querySelector("#copyUpiId");
   const upiAppHelp = document.querySelector("#upiAppHelp");
-  const dedicatedUpiApps = [
-    { selector: "#payWithGpay", appName: "Google Pay" },
-    { selector: "#payWithPaytm", appName: "Paytm" },
-    { selector: "#payWithPhonePe", appName: "PhonePe" },
-    { selector: "#payWithSuperMoney", appName: "super.money" }
-  ];
   if (config.upiSafe) {
     upiIdMount.textContent = config.upiId;
-    const copyConfiguredUpi = async (appName = "your UPI app") => {
+    copyUpiButton.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(config.upiId);
-        showToast(`UPI ID copied. Open ${appName}, paste it, verify the recipient, and pay ₹10.`, 7000);
+        showToast("UPI ID copied. Open any UPI app, paste it, verify the recipient, and pay ₹10.", 7000);
       } catch {
-        showToast(`Copy unavailable. In ${appName}, enter ${config.upiId} and pay ₹10.`, 7000);
+        showToast(`Copy unavailable. Enter ${config.upiId} in your UPI app and pay ₹10.`, 7000);
       }
-    };
-    const configureManualPayment = (link, appName) => {
-      link.href = "#";
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
-        copyConfiguredUpi(appName);
-      });
-    };
-
-    dedicatedUpiApps.forEach(({ selector, appName }) => {
-      configureManualPayment(document.querySelector(selector), appName);
     });
-    configureManualPayment(upiPaymentLink, "your preferred UPI app");
-    copyUpiButton.addEventListener("click", () => copyConfiguredUpi());
-    upiAppHelp.textContent = "Payment-app deep links are disabled because banks can reject incomplete personal-UPI requests with a false limit error. Copy the ID, open your app, paste it, verify the recipient name, and enter ₹10 manually.";
+    upiAppHelp.textContent = "After copying, open any UPI app, paste the ID, verify the recipient name, and enter ₹10 manually.";
   } else {
     upiIdMount.textContent = "UPI payment unavailable";
-    [upiPaymentLink, ...dedicatedUpiApps.map(({ selector }) => document.querySelector(selector))].forEach((link) => {
-      link.removeAttribute("href");
-      link.setAttribute("aria-disabled", "true");
-    });
     copyUpiButton.disabled = true;
   }
   supabaseWarning.hidden = isSupabaseConfigured() && config.upiSafe;

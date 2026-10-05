@@ -52,13 +52,12 @@
 
             <section class="payment-proof" aria-labelledby="paymentProofTitle">
               <div class="lineup-heading"><div><span class="kicker">Private details</span><h2 id="paymentProofTitle">Payment proof</h2></div><span class="lineup-count">Required</span></div>
-              <p class="payment-proof__intro"><strong>Pay manually to avoid the false bank-limit error.</strong> Copy the UPI ID, open your payment app, paste the ID, verify the recipient, and enter exactly ₹10. Then upload the screenshot; it does not confirm payment.</p>
+              <p class="payment-proof__intro"><strong>Pay manually to avoid the false bank-limit error.</strong> Copy the UPI ID below, open your payment app, paste the ID, verify the recipient, and enter exactly ₹10. Then upload the screenshot; it does not confirm payment.</p>
               <div class="upi-payment-card">
                 <span>Pay ₹10 to this UPI ID</span>
                 <strong id="paymentUpiId">Loading verified UPI ID…</strong>
-                <div class="upi-app-grid" aria-label="Copy UPI ID for a payment app"><a class="button button--whatsapp" id="payWithGpay" href="#">Copy for Google Pay</a><a class="button button--whatsapp" id="payWithPaytm" href="#">Copy for Paytm</a><a class="button button--whatsapp" id="payWithPhonePe" href="#">Copy for PhonePe</a><a class="button button--whatsapp" id="payWithSuperMoney" href="#">Copy for super.money</a></div>
-                <div class="button-row"><a class="button button--quiet" id="openUpiPayment" href="#">Copy for another app</a><button class="button button--quiet" id="copyUpiId" type="button">Copy UPI ID</button></div>
-                <small id="upiAppHelp">Copy the UPI ID, open your app, paste it, verify the recipient name, and enter ₹10 manually. Never enter your UPI PIN on this website.</small>
+                <div class="button-row"><button class="button button--whatsapp" id="copyUpiId" type="button">Copy UPI ID</button></div>
+                <small id="upiAppHelp">After copying, open any UPI app, paste the ID, verify the recipient name, and enter ₹10 manually. Never enter your UPI PIN on this website.</small>
               </div>
               <input type="hidden" id="paymentMethod" name="paymentMethod" value="upi">
               <div class="form-grid payment-form-grid">
@@ -104,6 +103,6 @@
   <script src="data/config.js?v=20261006-upi-manual"></script>
   <script src="data/tournaments.js?v=20261006-upi-manual"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/register-page.js?v=20261006-upi-copy"></script>
+  <script type="module" src="js/pages/register-page.js?v=20261006-upi-copy-only"></script>
 </body>
 </html>
