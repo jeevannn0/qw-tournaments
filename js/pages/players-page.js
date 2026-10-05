@@ -8,6 +8,7 @@ import {
   rosters,
   tournaments
 } from "../shared/data.js";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell } from "../shared/shell.js";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
 
@@ -16,11 +17,13 @@ const search = document.querySelector("#rosterSearch");
 const content = document.querySelector("#rosterContent");
 const meta = document.querySelector("#rosterMeta");
 const activeStatuses = new Set(["confirmed", "checked in"]);
+const supabaseRosterCache = new Map();
+let renderRequest = 0;
 
 function projectedEntry(entry) {
   if (!entry || typeof entry !== "object") return null;
   return {
-    registrationId: normalize(entry.registrationId).slice(0, 40),
+    registrationId: normalize(entry.registrationId || entry.reference).slice(0, 40),
     slot: Number.isFinite(Number(entry.slot)) ? Number(entry.slot) : "—",
     teamName: normalize(entry.teamName).slice(0, 40),
     displayName: normalize(entry.displayName).slice(0, 40),
@@ -62,7 +65,32 @@ function soloTable(entries) {
     <tr><td data-label="Slot">${escapeHtml(entry.slot)}</td><td data-label="Player"><strong>${escapeHtml(entry.displayName)}</strong></td><td data-label="Free Fire UID"><code>${escapeHtml(entry.uid)}</code></td><td data-label="Reference">${escapeHtml(entry.registrationId)}</td><td data-label="Status">${statusBadge(entry.status)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
-function renderRoster() {
+async function supabaseRoster(tournament) {
+  if (!isSupabaseConfigured() || tournament.comingSoon) return null;
+  if (supabaseRosterCache.has(tournament.id)) return supabaseRosterCache.get(tournament.id);
+  const client = await getSupabaseClient();
+  const { data, error } = await client
+    .from("public_players")
+    .select("reference, slot, display_name, ff_uid, status")
+    .eq("tournament_id", tournament.id)
+    .order("slot", { ascending: true });
+  if (error) throw error;
+  const entries = (data || [])
+    .map((row) => projectedEntry({
+      reference: row.reference,
+      slot: row.slot,
+      displayName: row.display_name,
+      uid: row.ff_uid,
+      status: row.status
+    }))
+    .filter(Boolean);
+  const roster = { published: true, updatedAt: null, entries, live: true };
+  supabaseRosterCache.set(tournament.id, roster);
+  return roster;
+}
+
+async function renderRoster() {
+  const request = ++renderRequest;
   const tournament = getTournament(eventSelect.value) || tournaments[0];
   if (!tournament) {
     meta.textContent = "No tournaments configured.";
@@ -70,7 +98,20 @@ function renderRoster() {
     return;
   }
 
-  const roster = rosters[tournament.id] || { published: false, entries: [] };
+  let roster = rosters[tournament.id] || { published: false, entries: [] };
+  if (isSupabaseConfigured() && !tournament.comingSoon && !supabaseRosterCache.has(tournament.id)) {
+    meta.textContent = `Loading confirmed players for ${tournament.name}…`;
+  }
+  try {
+    roster = await supabaseRoster(tournament) || roster;
+  } catch {
+    if (request !== renderRequest) return;
+    meta.textContent = "The live confirmed-player roster is temporarily unavailable.";
+    content.innerHTML = emptyState("Roster unavailable", "Please try again later or contact the organizer with your registration reference.");
+    return;
+  }
+  if (request !== renderRequest) return;
+
   const allEntries = (Array.isArray(roster.entries) ? roster.entries : []).map(projectedEntry).filter(Boolean);
   const query = normalize(search.value).slice(0, 80).toLowerCase();
   const entries = allEntries.filter((entry) => entryMatches(entry, query));
@@ -78,7 +119,8 @@ function renderRoster() {
   const activeCount = allEntries.filter((entry) => activeStatuses.has(entry.status.toLowerCase())).length;
 
   const update = () => {
-    meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><div class="roster-meta__end"><span>${roster.updatedAt ? escapeHtml(formatDateTime(roster.updatedAt, "long")) : "Not published"}</span><span>${activeCount} active · ${allEntries.length} total ${unit}</span></div>`;
+    const updateLabel = roster.live ? "Live Supabase roster" : roster.updatedAt ? formatDateTime(roster.updatedAt, "long") : "Not published";
+    meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><div class="roster-meta__end"><span>${escapeHtml(updateLabel)}</span><span>${activeCount} active · ${allEntries.length} total ${unit}</span></div>`;
 
     if (!roster.published) {
       content.innerHTML = tournament.comingSoon
@@ -89,7 +131,7 @@ function renderRoster() {
       return;
     }
     if (!allEntries.length) {
-      content.innerHTML = emptyState("Roster published — no entries", "The organizer has published this roster, but no confirmed entries are listed.");
+      content.innerHTML = emptyState("No confirmed players yet", "Complete registrations appear here only after the organizer verifies payment and assigns a slot.");
       return;
     }
     if (!entries.length) {

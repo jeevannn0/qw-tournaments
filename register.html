@@ -3,34 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Register for the live ₹10 QW Free Fire Solo match and review the ₹6 kill reward and ₹30 Booyah bonus before WhatsApp.">
+  <meta name="description" content="Submit a complete QW Free Fire Solo registration with required player details and private payment proof.">
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#111824" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Register — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261005-upi">
   <link rel="stylesheet" href="css/gaming.css">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="register">
   <a class="skip-link" href="#registrationWizard">Skip to registration</a>
   <div id="siteHeader" class="site-header-mount"></div>
-  <noscript><div class="noscript-bar">JavaScript is required to prepare the message. <a href="https://wa.me/919900344144">Contact QW on WhatsApp</a>.</div></noscript>
+  <noscript><div class="noscript-bar">JavaScript is required to submit a registration. <a href="https://wa.me/919900344144">Contact QW on WhatsApp</a>.</div></noscript>
 
   <main class="registration-page" id="mainContent">
     <div class="shell registration-page__layout">
       <aside class="wizard-sidebar" data-reveal>
         <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Register</span></nav>
-        <p class="kicker">Private WhatsApp handoff</p>
+        <p class="kicker">Private Supabase submission</p>
         <h1>Register.</h1>
-        <p>Choose a match, enter the exact lineup, then review everything before opening WhatsApp.</p>
+        <p>Choose the live match, provide every player and payment field, then submit the complete entry for organizer review.</p>
         <ol class="wizard-steps" aria-label="Registration progress">
           <li data-step-item="1"><span>1</span><div><strong>Match</strong><small>Always open</small></div></li>
-          <li data-step-item="2"><span>2</span><div><strong>Lineup</strong><small>Player details</small></div></li>
-          <li data-step-item="3"><span>3</span><div><strong>Review</strong><small>Confirm and send</small></div></li>
+          <li data-step-item="2"><span>2</span><div><strong>Details</strong><small>Player and payment</small></div></li>
+          <li data-step-item="3"><span>3</span><div><strong>Review</strong><small>Submit everything</small></div></li>
         </ol>
-        <div class="wizard-safety"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><div><strong>No website upload</strong><p>Payment proof is attached manually in the organizer’s WhatsApp chat.</p></div></div>
+        <div class="wizard-safety"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><div><strong>Private payment proof</strong><p>The screenshot is stored privately and is visible only to an approved organizer.</p></div></div>
       </aside>
 
       <section class="wizard-card" data-reveal>
@@ -39,47 +39,68 @@
           <div class="wizard-error" id="wizardError" role="alert" tabindex="-1" hidden></div>
 
           <section class="wizard-panel" data-step-panel="1">
-            <div class="wizard-panel__heading"><p class="kicker">Step 1</p><h2 tabindex="-1">Choose a match</h2><p>Open events can accept a new registration message.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 1</p><h2 tabindex="-1">Choose a match</h2><p>Only the live Solo tournament can accept a registration.</p></div>
             <fieldset class="match-picker-fieldset"><legend>Free Fire match <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></legend><div class="match-picker" id="registrationEvent" aria-label="Available Free Fire matches"></div></fieldset>
             <div class="picker-confirmation" id="registrationEventPreview" aria-live="polite"></div>
             <div class="wizard-actions wizard-actions--end"><a class="button button--text" href="tournaments.html">Match board</a><button class="button button--primary button--large" type="button" data-next-step>Continue <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
           </section>
 
           <section class="wizard-panel" data-step-panel="2" hidden>
-            <div class="wizard-panel__heading"><p class="kicker">Step 2</p><h2 tabindex="-1">Enter the lineup</h2><p>Use each player’s in-game name and exact numeric Free Fire UID.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 2</p><h2 tabindex="-1">Player and payment</h2><p>Every field and the payment screenshot are required. Nothing is submitted at this step.</p></div>
             <div id="lineupFields"></div>
-            <div class="wizard-actions"><button class="button button--quiet" type="button" data-previous-step>Back</button><button class="button button--primary button--large" type="button" data-next-step>Review entry <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+
+            <section class="payment-proof" aria-labelledby="paymentProofTitle">
+              <div class="lineup-heading"><div><span class="kicker">Private details</span><h2 id="paymentProofTitle">Payment proof</h2></div><span class="lineup-count">Required</span></div>
+              <p class="payment-proof__intro">Pay ₹10 only by UPI to the verified QW payment ID below. The screenshot is evidence for review and does not confirm payment.</p>
+              <div class="upi-payment-card">
+                <span>Pay ₹10 to this UPI ID</span>
+                <strong id="paymentUpiId">Loading verified UPI ID…</strong>
+                <div class="button-row"><a class="button button--whatsapp" id="openUpiPayment" href="#">Pay ₹10 in UPI app</a><button class="button button--quiet" id="copyUpiId" type="button">Copy UPI ID</button></div>
+                <small>Confirm the UPI ID exactly before paying. Never enter your UPI PIN anywhere on this website.</small>
+              </div>
+              <input type="hidden" id="paymentMethod" name="paymentMethod" value="upi">
+              <div class="form-grid payment-form-grid">
+                <div class="field"><label for="contactWhatsapp">WhatsApp number <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="contactWhatsapp" name="contactWhatsapp" type="tel" inputmode="numeric" autocomplete="tel" pattern="[6-9][0-9]{9}" minlength="10" maxlength="10" placeholder="10-digit Indian number" required><small>Used privately for registration updates.</small></div>
+                <div class="field"><label for="paymentReference">UTR or transaction reference <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="paymentReference" name="paymentReference" type="text" autocomplete="off" minlength="6" maxlength="40" pattern="[A-Za-z0-9\-]{6,40}" placeholder="Example: 123456789012" required><small>Copy the reference from your payment app.</small></div>
+                <div class="field payment-screenshot-field"><label for="paymentScreenshot">Payment screenshot <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="paymentScreenshot" name="paymentScreenshot" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="paymentScreenshotHelp paymentScreenshotState" required><small id="paymentScreenshotHelp">JPG, PNG, or WebP; maximum 2 MB. Do not upload an OTP, PIN, password, or identity document.</small><span id="paymentScreenshotState" class="file-state" aria-live="polite">No screenshot selected.</span></div>
+              </div>
+            </section>
+
+            <div class="wizard-actions"><button class="button button--quiet" type="button" data-previous-step>Back</button><button class="button button--primary button--large" type="button" data-next-step>Review complete entry <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
           </section>
 
           <section class="wizard-panel" data-step-panel="3" hidden>
-            <div class="wizard-panel__heading"><p class="kicker">Step 3</p><h2 tabindex="-1">Review before WhatsApp</h2><p>Check every name and UID. Back keeps all entered values.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 3</p><h2 tabindex="-1">Review everything</h2><p>The player record is created only after validation and the private screenshot upload both succeed.</p></div>
+            <div class="backend-status" id="supabaseSetupWarning" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration and deploy the security rules before accepting registrations.</p></div>
             <div class="registration-review" id="registrationReview"></div>
             <div class="consent-stack">
-              <label><input type="checkbox" data-consent required><span>I accept the <a href="rules.html" target="_blank" rel="noopener noreferrer">tournament rules</a>, including kill verification, Booyah verification, lobby instructions, and dispute deadlines.</span></label>
-              <label><input type="checkbox" data-consent required><span>Every player is 18+, or their parent or guardian approved participation and payment.</span></label>
-              <label><input type="checkbox" data-consent required><span>I will attach payment proof in WhatsApp and wait for written organizer confirmation.</span></label>
-              <label><input type="checkbox" data-consent required><span>I understand that my in-game name, UID, and registration reference can be shared in the match group; age and payment details remain private.</span></label>
+              <label><input type="checkbox" name="rulesAccepted" data-consent required><span>I accept the <a href="rules.html" target="_blank" rel="noopener noreferrer">tournament rules</a>, including kill verification, Booyah verification, lobby instructions, and dispute deadlines.</span></label>
+              <label><input type="checkbox" name="guardianApproved" data-consent required><span>I am 18+, or my parent or guardian approved participation and payment.</span></label>
+              <label><input type="checkbox" name="paymentConfirmed" data-consent required><span>I made the ₹10 payment, entered the correct transaction reference, and uploaded the matching screenshot.</span></label>
+              <label><input type="checkbox" name="publicRosterApproved" data-consent required><span>I understand that my in-game name, UID, slot, and registration reference can appear in the public confirmed-player roster; my age, number, and payment proof stay private.</span></label>
             </div>
-            <div class="payment-handoff"><div class="payment-handoff__icon" aria-hidden="true">₹</div><div><strong>₹10 entry · verified rewards</strong><p>Each confirmed kill pays ₹6. The Booyah winner receives an additional ₹30. Pay only through details sent from this site’s WhatsApp number.</p></div></div>
-            <div class="wizard-actions"><button class="button button--quiet" type="button" data-previous-step>Back</button><button class="button button--whatsapp button--large" type="submit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.3L3 20.3l1.4-5a8.4 8.4 0 1 1 16.1-3.7Z"/><path d="M8.1 7.5c.2-.4.4-.5.8-.5.3 0 .5 0 .7.5l1 2.2c.1.3.1.5-.1.7l-.7.8c-.2.2-.2.4-.1.7.6 1.1 1.5 2 2.6 2.6.3.2.5.2.7-.1l.9-1c.2-.3.5-.3.8-.2l2.1 1c.4.2.5.3.5.5 0 .9-.5 1.8-1.1 2.3-.6.5-1.5.8-2.3.7-1.2-.1-2.8-.6-4.5-2-1.4-1.1-2.5-2.5-3.2-4-.5-1.1-.5-2.2.1-3.2.4-.6.8-1 1-1Z"/></svg>Join match group</button></div>
+            <div class="payment-handoff"><div class="payment-handoff__icon" aria-hidden="true">₹</div><div><strong>Submission is not confirmation</strong><p>The organizer checks the incoming ₹10 payment in the organizer-controlled account. A screenshot or successful upload does not confirm a slot.</p></div></div>
+            <div class="upload-progress" id="registrationUploadProgress" role="status" aria-live="polite" hidden><span id="registrationUploadLabel">Preparing secure upload…</span><progress id="registrationUploadMeter" max="100" value="0">0%</progress></div>
+            <div class="wizard-actions"><button class="button button--quiet" type="button" data-previous-step>Back</button><button class="button button--whatsapp button--large" id="submitRegistration" type="submit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Submit for verification</button></div>
           </section>
         </form>
 
         <section class="registration-success registration-success--group" id="registrationResult" tabindex="-1" hidden>
           <span class="registration-success__icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
-          <p class="kicker">Group invite ready</p>
-          <h2>Join the Solo match group</h2>
-          <p>Your reference is <strong id="resultReference"></strong>. The group invite opens automatically after submission.</p>
-          <div class="group-handoff-note"><strong>Safe details copied</strong><p>Paste the copied reference, in-game name, and UID after joining. Your age and payment information are never included in the group message.</p></div>
-          <div class="button-row"><a class="button button--whatsapp" id="resultGroup" href="#" target="_blank" rel="noopener noreferrer" hidden>Join WhatsApp group</a><button class="button button--primary" id="copyRegistrationMessage" type="button">Copy group details</button><a class="button button--quiet" id="resultWhatsApp" href="#" target="_blank" rel="noopener noreferrer">Send private details</a><button class="button button--text" id="editRegistration" type="button">Edit lineup</button></div>
+          <p class="kicker">Complete entry received</p>
+          <h2>Await organizer verification</h2>
+          <p>Your reference is <strong id="resultReference"></strong>. Your player details and payment proof were stored privately. This is not a confirmed slot.</p>
+          <div class="group-handoff-note"><strong>Match group details ready</strong><p>After joining, paste only the copied reference, in-game name, and UID. Private payment and contact details are not included.</p></div>
+          <div class="button-row"><a class="button button--whatsapp" id="resultGroup" href="#" target="_blank" rel="noopener noreferrer" hidden>Join WhatsApp group</a><button class="button button--primary" id="copyRegistrationMessage" type="button">Copy group details</button><a class="button button--quiet" id="resultWhatsApp" href="#" target="_blank" rel="noopener noreferrer">Send private summary</a><button class="button button--text" id="editRegistration" type="button">View submitted fields</button></div>
         </section>
       </section>
     </div>
   </main>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js"></script>
+  <script src="data/config.js?v=20261005-upi"></script>
   <script src="data/tournaments.js"></script>
-  <script type="module" src="js/pages/register-page.js"></script>
+  <script src="data/supabase-config.js"></script>
+  <script type="module" src="js/pages/register-page.js?v=20261005-upi"></script>
 </body>
 </html>

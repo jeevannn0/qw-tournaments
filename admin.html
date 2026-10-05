@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Private QW tournament registration and payment-review dashboard.">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#111824" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
+  <title>Organizer dashboard — QW Tournaments</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/gaming.css">
+  <script src="js/theme-init.js"></script>
+</head>
+<body data-page="admin">
+  <a class="skip-link" href="#adminContent">Skip to organizer dashboard</a>
+  <div id="siteHeader" class="site-header-mount"></div>
+  <noscript><div class="noscript-bar">JavaScript is required for the private organizer dashboard.</div></noscript>
+
+  <main id="adminContent">
+    <section class="page-intro page-intro--admin">
+      <div class="shell page-intro__layout">
+        <div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Organizer</span></nav><p class="kicker">Restricted operations</p><h1>Registration control.</h1><p>Review complete player submissions, verify payments in the organizer-controlled account, and publish only confirmed public roster fields.</p></div>
+        <div class="page-intro__index" aria-hidden="true"><span>QW</span><strong>ADM</strong><small>private</small></div>
+      </div>
+    </section>
+
+    <section class="section admin-access-section">
+      <div class="shell">
+        <div class="backend-status" id="adminSetup" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration to <code>data/supabase-config.js</code> before using this dashboard.</p></div>
+
+        <section class="admin-access-card" id="adminSignedOut" hidden>
+          <span class="admin-access-card__icon" aria-hidden="true">QW</span>
+          <p class="kicker">Organizer authentication</p>
+          <h2>Sign in to review registrations</h2>
+          <p>Use the organizer email and password created in Supabase Authentication and approved in the private <code>admin_users</code> table.</p>
+          <form class="admin-login-form" id="adminLoginForm">
+            <div class="field"><label for="adminEmail">Organizer email</label><input id="adminEmail" name="adminEmail" type="email" autocomplete="username" required></div>
+            <div class="field"><label for="adminPassword">Password</label><input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" minlength="8" required></div>
+            <button class="button button--primary button--large" id="adminSignIn" type="submit">Sign in securely</button>
+          </form>
+        </section>
+
+        <section class="admin-access-card" id="adminDenied" hidden>
+          <span class="admin-access-card__icon" aria-hidden="true">!</span>
+          <p class="kicker">Access denied</p>
+          <h2>This account is not an approved organizer</h2>
+          <p id="adminDeniedMessage"></p>
+          <button class="button button--quiet" id="adminDeniedSignOut" type="button">Sign out</button>
+        </section>
+
+        <section class="admin-dashboard" id="adminDashboard" hidden>
+          <div class="admin-session-bar"><div><span>Signed in as</span><strong id="adminIdentity"></strong></div><button class="button button--quiet" id="adminSignOut" type="button">Sign out</button></div>
+
+          <div class="admin-metrics" aria-label="Registration summary">
+            <article><span>Total</span><strong id="adminTotal">0</strong></article>
+            <article><span>Pending review</span><strong id="adminPending">0</strong></article>
+            <article><span>Payment verified</span><strong id="adminPaid">0</strong></article>
+            <article><span>Confirmed</span><strong id="adminConfirmed">0</strong></article>
+          </div>
+
+          <div class="admin-controls">
+            <div class="field search-field"><label for="adminSearch">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Reference, name, UID, phone, or transaction" autocomplete="off"></div></div>
+            <div class="field"><label for="adminStatusFilter">Status</label><select id="adminStatusFilter"><option value="all">All registrations</option><option value="pending">Pending review</option><option value="payment-verified">Payment verified</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
+          </div>
+
+          <div class="admin-list-meta" id="adminListMeta" role="status" aria-live="polite">Loading registrations…</div>
+          <div class="responsive-table admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Submitted</th><th>Player</th><th>Reference</th><th>Payment</th><th>Registration</th><th>Action</th></tr></thead>
+              <tbody id="adminRegistrationRows"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="adminEmpty" hidden><span class="empty-state__mark" aria-hidden="true">0</span><h2>No registrations found</h2><p>New complete submissions will appear here automatically.</p></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="admin-detail-dialog" id="adminDetailDialog" aria-labelledby="adminDetailTitle">
+    <div class="admin-detail-dialog__panel">
+      <header><div><p class="kicker">Private registration</p><h2 id="adminDetailTitle">Registration details</h2></div><button class="icon-button" id="adminDetailClose" type="button" aria-label="Close registration details"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+      <div class="backend-status" id="adminDetailStatus" role="status" aria-live="polite" hidden></div>
+      <div class="admin-detail-content" id="adminDetailContent"></div>
+      <section class="admin-proof-panel" aria-labelledby="adminProofTitle"><div><p class="kicker">Private file</p><h3 id="adminProofTitle">Payment screenshot</h3><p>The image loads only when requested by an approved organizer.</p></div><button class="button button--quiet" id="adminLoadProof" type="button">Load private screenshot</button><div class="admin-proof-view" id="adminProofView" hidden><img id="adminProofImage" alt="Payment screenshot submitted with this registration"></div></section>
+      <form id="adminReviewForm">
+        <div class="form-grid admin-review-grid">
+          <div class="field"><label for="adminPaymentStatus">Payment review</label><select id="adminPaymentStatus" required><option value="pending">Pending</option><option value="verified">Verified in organizer account</option><option value="not-found">Payment not found</option><option value="duplicate">Duplicate transaction</option></select></div>
+          <div class="field"><label for="adminRegistrationStatus">Registration status</label><select id="adminRegistrationStatus" required><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
+          <div class="field"><label for="adminSlot">Assigned Solo slot</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="48" placeholder="Required for confirmation"></div>
+          <div class="field admin-note-field"><label for="adminOrganizerNote">Private organizer note</label><textarea id="adminOrganizerNote" maxlength="500" rows="4" placeholder="Visible only to approved organizers"></textarea></div>
+        </div>
+        <div class="wizard-actions"><a class="button button--quiet" id="adminWhatsappPlayer" href="#" target="_blank" rel="noopener noreferrer">Message player</a><button class="button button--primary" id="adminSaveReview" type="submit">Save review</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <div id="siteFooter"></div>
+  <script src="data/config.js"></script>
+  <script src="data/tournaments.js"></script>
+  <script src="data/supabase-config.js"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261005-delete"></script>
+</body>
+</html>

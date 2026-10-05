@@ -25,8 +25,14 @@ function validWhatsappGroupUrl(value) {
   return /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]{20,32}$/.test(url) ? url : "";
 }
 
+function validUpiId(value) {
+  const upiId = String(value ?? "").trim().toLowerCase();
+  return /^[a-z0-9._-]{2,256}@[a-z0-9.-]{2,64}$/.test(upiId) ? upiId : "";
+}
+
 const whatsappNumber = String(rawConfig.whatsappNumber ?? "").replace(/\D/g, "");
 const whatsappGroupUrl = validWhatsappGroupUrl(rawConfig.whatsappGroupUrl);
+const upiId = validUpiId(rawConfig.upiId);
 const registrationPrefix = normalizedText(rawConfig.registrationPrefix, "QW", 8).replace(/[^A-Z0-9]/gi, "").toUpperCase() || "QW";
 const minimumAge = boundedNumber(rawConfig.minimumAge, 13, 13, 80);
 const guardianConsentAge = boundedNumber(rawConfig.guardianConsentAge, 18, minimumAge, 80);
@@ -38,6 +44,9 @@ export const config = Object.freeze({
   whatsappDisplay: normalizedText(rawConfig.whatsappDisplay, "WhatsApp"),
   whatsappGroupUrl,
   whatsappGroupSafe: Boolean(whatsappGroupUrl),
+  upiId,
+  upiPayeeName: normalizedText(rawConfig.upiPayeeName, "QW Tournaments", 80),
+  upiSafe: Boolean(upiId),
   timezone: validTimezone(rawConfig.timezone),
   timezoneLabel: normalizedText(rawConfig.timezoneLabel, "IST", 12),
   rosterLeadHours: boundedNumber(rawConfig.rosterLeadHours, 2, 0, 72),

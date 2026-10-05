@@ -74,14 +74,14 @@ export function validateRegistration(tournament, registration) {
   return null;
 }
 
-export function buildRegistrationMessage(tournament, registration, reference) {
+export function buildRegistrationMessage(tournament, registration, reference, payment = null) {
   const lines = [
-    `*${config.brandName.toUpperCase()} — NEW REGISTRATION*`,
+    `*${config.brandName.toUpperCase()} — SUBMITTED REGISTRATION*`,
     "",
     `*Reference:* ${reference}`,
     `*Tournament:* ${tournament.name}`,
     `*Format:* ${tournament.formatLabel}`,
-    `*Registration:* Always open`,
+    "*Registration:* Always open",
     `*Entry:* ${formatCurrency(tournament.entryFee)} ${tournament.feeUnit}`,
     `*Kill reward:* ${formatCurrency(tournament.killReward)} per confirmed kill`,
     `*Booyah bonus:* ${formatCurrency(tournament.booyahBonus)} additional for the match winner`
@@ -95,33 +95,41 @@ export function buildRegistrationMessage(tournament, registration, reference) {
     lines.push(label, `• Name: ${participant.name}`, `• Free Fire UID: ${participant.uid}`, `• Age: ${participant.age}`);
   });
 
+  if (payment) {
+    lines.push(
+      "",
+      "*Payment submitted to the private portal*",
+      `• Player WhatsApp: ${payment.contactWhatsapp}`,
+      "• Method: UPI",
+      `• Transaction reference: ${payment.paymentReference}`,
+      "• Screenshot: Uploaded privately for organizer review"
+    );
+  }
+
   lines.push(
     "",
     "*Entrant confirmations*",
     "• Rules and payout verification terms accepted: Yes",
     `• Every player is ${config.guardianConsentAge}+ or has guardian approval: Yes`,
-    "• Payment-proof process understood: Yes",
+    "• Payment details and screenshot supplied: Yes",
     "",
-    "I understand that eliminations and the Booyah result must be verified by the organizer. I will attach payment proof in this chat only after receiving payment instructions, and I understand that this message does not confirm my slot."
+    "I understand that the organizer must verify the incoming payment, eliminations, and Booyah result. This submission and screenshot do not confirm my slot."
   );
 
   return lines.filter((line, index) => !(line === "" && lines[index - 1] === "")).join("\n");
 }
 
 export function buildGroupJoinMessage(tournament, registration, reference) {
-  const lines = [
+  return [
     `*${config.brandName.toUpperCase()} — MATCH GROUP CHECK-IN*`,
     "",
     `*Reference:* ${reference}`,
     `*Tournament:* ${tournament.name}`,
     `*Player:* ${registration.participants[0]?.name || "Player"}`,
-    `*Free Fire UID:* ${registration.participants[0]?.uid || "UID pending"}`,
-    "",
-    "Age and payment information stay private. Send them only through the organizer chat if requested."
-  ];
-  return lines.join("\n");
+    `*Free Fire UID:* ${registration.participants[0]?.uid || "UID pending"}`
+  ].join("\n");
 }
 
-export function registrationWhatsAppUrl(tournament, registration, reference) {
-  return whatsappUrl(buildRegistrationMessage(tournament, registration, reference));
+export function registrationWhatsAppUrl(tournament, registration, reference, payment = null) {
+  return whatsappUrl(buildRegistrationMessage(tournament, registration, reference, payment));
 }

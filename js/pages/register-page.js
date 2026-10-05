@@ -10,7 +10,7 @@ import {
   getRequestedTournament,
   getTournament,
   tournaments
-} from "../shared/data.js";
+} from "../shared/data.js?v=20261005-upi";
 import {
   buildGroupJoinMessage,
   collectRegistration,
@@ -18,6 +18,15 @@ import {
   registrationWhatsAppUrl,
   validateRegistration
 } from "../shared/registration.js";
+import {
+  collectPaymentDetails,
+  MAX_PAYMENT_PROOF_BYTES,
+  paymentMethodLabel,
+  registrationSubmissionError,
+  submitCompleteRegistration,
+  validatePaymentDetails
+} from "../shared/registration-backend.js";
+import { isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell, showToast } from "../shared/shell.js";
 import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
 
@@ -36,9 +45,18 @@ const resultGroup = document.querySelector("#resultGroup");
 const copyButton = document.querySelector("#copyRegistrationMessage");
 const progress = document.querySelector("#wizardProgress");
 const progressBar = document.querySelector("#wizardProgressBar");
+const screenshotInput = document.querySelector("#paymentScreenshot");
+const screenshotState = document.querySelector("#paymentScreenshotState");
+const submitButton = document.querySelector("#submitRegistration");
+const uploadStatus = document.querySelector("#registrationUploadProgress");
+const uploadLabel = document.querySelector("#registrationUploadLabel");
+const uploadMeter = document.querySelector("#registrationUploadMeter");
+const supabaseWarning = document.querySelector("#supabaseSetupWarning");
 let activeStep = 1;
 let selectedTournament = null;
 let preparedGroupMessage = "";
+let submitted = false;
+let submitting = false;
 
 function requiredLabel(text) {
   return `${text} <span class="required-label"><span aria-hidden="true">*</span><span class="visually-hidden"> required</span></span>`;
@@ -119,7 +137,7 @@ function chooseTournament(event) {
   selectedTournament = getTournament(checked?.value);
   renderEventPreview(selectedTournament);
   renderLineupFields(selectedTournament);
-  result.hidden = true;
+  if (!submitted) result.hidden = true;
   window.requestAnimationFrame(() => centerSelectedBattle(event ? preferredScrollBehavior() : "auto"));
 }
 
@@ -169,42 +187,62 @@ function validateStep(step) {
   if (step === 1) return true;
 
   if (step === 2) {
-    const fields = [...lineupMount.querySelectorAll("input")];
+    const fields = [...panels[1].querySelectorAll("input, select")];
     const invalid = fields.find((field) => !field.checkValidity());
     if (invalid) {
-      setError(invalid.validity.patternMismatch ? "Use the requested format for this field." : "Complete this required field.", invalid);
+      const message = invalid.type === "file"
+        ? "Upload the required payment screenshot."
+        : invalid.validity.patternMismatch
+          ? "Use the requested format for this field."
+          : "Complete this required field.";
+      setError(message, invalid);
       return false;
     }
-    const validation = validateRegistration(selectedTournament, collectRegistration(selectedTournament, new FormData(form)));
-    if (validation) {
-      setError(validation.message, fieldForName(validation.fieldName));
+    const formData = new FormData(form);
+    const registrationValidation = validateRegistration(selectedTournament, collectRegistration(selectedTournament, formData));
+    if (registrationValidation) {
+      setError(registrationValidation.message, fieldForName(registrationValidation.fieldName));
+      return false;
+    }
+    const paymentValidation = validatePaymentDetails(formData);
+    if (paymentValidation) {
+      setError(paymentValidation.message, fieldForName(paymentValidation.fieldName));
       return false;
     }
     return true;
   }
 
+  if (!validateStep(2)) return false;
   const missing = [...form.querySelectorAll("[data-consent]")].find((checkbox) => !checkbox.checked);
   if (missing) {
-    setError("Accept every confirmation before opening WhatsApp.", missing);
+    setError("Accept every confirmation before submitting the complete registration.", missing);
+    return false;
+  }
+  if (!isSupabaseConfigured() || !config.upiSafe) {
+    setError("Registration is unavailable until Supabase and the verified UPI payment ID are configured.");
     return false;
   }
   return true;
 }
 
 function renderReview() {
-  const registration = collectRegistration(selectedTournament, new FormData(form));
+  const formData = new FormData(form);
+  const registration = collectRegistration(selectedTournament, formData);
+  const payment = collectPaymentDetails(formData);
+  const screenshotName = payment.screenshot instanceof File ? payment.screenshot.name : "Not selected";
   reviewMount.innerHTML = `
     <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)} · Always open</p></div>
     ${registration.teamName ? `<div class="review-team"><small>Squad</small><strong>${escapeHtml(registration.teamName)}</strong></div>` : ""}
     <div class="review-lineup">${registration.participants.map((participant, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(participant.name)}</strong><small>${escapeHtml(participant.uid)} · Age ${escapeHtml(participant.age)}${participant.captain && selectedTournament.type === "squad" ? " · Captain" : ""}</small></div></article>`).join("")}</div>
-    <div class="review-price"><div><small>Entry</small><strong>${escapeHtml(formatCurrency(selectedTournament.entryFee))}</strong></div><span>${escapeHtml(selectedTournament.feeUnit)}</span></div>
+    <div class="review-private"><div><small>Private WhatsApp</small><strong>${escapeHtml(payment.contactWhatsapp)}</strong></div><div><small>Payment method</small><strong>${escapeHtml(paymentMethodLabel(payment.paymentMethod))}</strong></div><div><small>Transaction reference</small><strong>${escapeHtml(payment.paymentReference)}</strong></div><div><small>Private screenshot</small><strong>${escapeHtml(screenshotName)}</strong></div></div>
+    <div class="review-price"><div><small>Entry paid</small><strong>${escapeHtml(formatCurrency(selectedTournament.entryFee))}</strong></div><span>${escapeHtml(selectedTournament.feeUnit)}</span></div>
     <div class="review-rewards"><span><strong>${escapeHtml(formatCurrency(selectedTournament.killReward))}</strong><small>per confirmed kill</small></span><span><strong>${escapeHtml(formatCurrency(selectedTournament.booyahBonus))}</strong><small>additional Booyah bonus</small></span></div>`;
 }
 
 function goToStep(step, moveFocus = true) {
   activeStep = Math.min(3, Math.max(1, step));
   clearError();
-  if (activeStep < 3) result.hidden = true;
+  if (activeStep < 3 && !submitted) result.hidden = true;
   panels.forEach((panel) => { panel.hidden = Number(panel.dataset.stepPanel) !== activeStep; });
   stepItems.forEach((item) => {
     const itemStep = Number(item.dataset.stepItem);
@@ -229,46 +267,102 @@ async function copyMessage() {
     await navigator.clipboard.writeText(preparedGroupMessage);
     showToast("Group-safe match details copied. Paste them after joining.");
   } catch {
-    showToast("Copy unavailable. Use Copy group details again.");
+    showToast("Copy unavailable. Send the private summary or type the reference manually.");
   }
 }
 
-function submitRegistration(event) {
+function consentsFromForm() {
+  return {
+    rulesAccepted: Boolean(form.elements.namedItem("rulesAccepted")?.checked),
+    guardianApproved: Boolean(form.elements.namedItem("guardianApproved")?.checked),
+    paymentConfirmed: Boolean(form.elements.namedItem("paymentConfirmed")?.checked),
+    publicRosterApproved: Boolean(form.elements.namedItem("publicRosterApproved")?.checked)
+  };
+}
+
+function setSubmitting(value) {
+  submitting = value;
+  submitButton.disabled = value || !isSupabaseConfigured() || !config.upiSafe;
+  form.querySelectorAll("button, input, select").forEach((control) => {
+    if (control !== submitButton) control.disabled = value || control.dataset.wasDisabled === "true";
+  });
+  if (value) {
+    uploadStatus.hidden = false;
+    uploadMeter.value = 0;
+    uploadLabel.textContent = "Preparing secure upload…";
+    submitButton.innerHTML = `${icon("shield")} Uploading payment proof…`;
+  } else {
+    submitButton.innerHTML = `${icon("shield")} Submit for verification`;
+  }
+}
+
+async function submitRegistration(event) {
   event.preventDefault();
-  if (!validateStep(3)) return;
-  const registration = collectRegistration(selectedTournament, new FormData(form));
+  if (submitting || submitted || !validateStep(3)) return;
+  const formData = new FormData(form);
+  const registration = collectRegistration(selectedTournament, formData);
+  const payment = collectPaymentDetails(formData);
   const reference = createRegistrationId(selectedTournament);
-  const privateUrl = registrationWhatsAppUrl(selectedTournament, registration, reference);
-  preparedGroupMessage = buildGroupJoinMessage(selectedTournament, registration, reference);
-  if (!privateUrl) {
-    setError("Organizer contact is unavailable. Registration cannot continue safely.");
+  const consents = consentsFromForm();
+  setSubmitting(true);
+
+  try {
+    await submitCompleteRegistration({
+      tournament: selectedTournament,
+      registration,
+      payment,
+      reference,
+      consents,
+      onProgress: (percent) => {
+        uploadMeter.value = percent;
+        uploadLabel.textContent = percent < 100 ? `Uploading private payment proof: ${percent}%` : "Saving complete registration…";
+      }
+    });
+
+    preparedGroupMessage = buildGroupJoinMessage(selectedTournament, registration, reference);
+    const privateUrl = registrationWhatsAppUrl(selectedTournament, registration, reference, payment);
+    const groupUrl = config.whatsappGroupSafe ? config.whatsappGroupUrl : "";
+    resultReference.textContent = reference;
+    resultWhatsApp.href = privateUrl;
+    resultGroup.hidden = !groupUrl;
+    if (groupUrl) resultGroup.href = groupUrl;
+    submitted = true;
+    form.hidden = true;
+    result.hidden = false;
+    uploadStatus.hidden = true;
+
+    try {
+      await navigator.clipboard.writeText(preparedGroupMessage);
+      showToast("Registration stored. Group-safe details copied.");
+    } catch {
+      showToast("Registration stored. Use Copy group details before posting.");
+    }
+
+    result.focus({ preventScroll: true });
+    result.scrollIntoView({ behavior: preferredScrollBehavior(), block: "center" });
+  } catch (error) {
+    setError(registrationSubmissionError(error));
+    uploadStatus.hidden = true;
+  } finally {
+    setSubmitting(false);
+  }
+}
+
+function updateScreenshotState() {
+  const file = screenshotInput.files?.[0];
+  if (!file) {
+    screenshotState.textContent = "No screenshot selected.";
     return;
   }
-
-  const groupUrl = config.whatsappGroupSafe ? config.whatsappGroupUrl : "";
-  resultReference.textContent = reference;
-  resultWhatsApp.href = privateUrl;
-  resultGroup.hidden = !groupUrl;
-  if (groupUrl) resultGroup.href = groupUrl;
-  form.hidden = true;
-  result.hidden = false;
-
-  const copyPromise = navigator.clipboard?.writeText
-    ? navigator.clipboard.writeText(preparedGroupMessage)
-    : Promise.reject(new Error("Clipboard unavailable"));
-  (groupUrl ? resultGroup : resultWhatsApp).click();
-  copyPromise
-    .then(() => showToast(groupUrl ? "Group opened. Match details copied—paste them after joining." : "Match details copied."))
-    .catch(() => showToast(groupUrl ? "Group opened. Use Copy group details before posting." : "Copy unavailable."));
-
-  result.focus({ preventScroll: true });
-  result.scrollIntoView({ behavior: preferredScrollBehavior(), block: "center" });
+  const size = file.size / (1024 * 1024);
+  screenshotState.textContent = `${file.name} · ${size.toFixed(2)} MB${file.size > MAX_PAYMENT_PROOF_BYTES ? " · Too large" : " · Ready"}`;
 }
 
 function initializeWizard() {
   initializeShell();
   form.dataset.enhanced = "true";
   eventPicker.innerHTML = tournaments.map(matchPickerCard).join("");
+  eventPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
   const requested = getRequestedTournament();
   if (requested && getEventState(requested).open) {
     const input = eventPicker.querySelector(`input[value="${CSS.escape(requested.id)}"]`);
@@ -284,12 +378,45 @@ function initializeWizard() {
   }));
   document.querySelectorAll("[data-previous-step]").forEach((button) => button.addEventListener("click", () => transitionUpdate(() => goToStep(activeStep - 1))));
   form.addEventListener("submit", submitRegistration);
+  screenshotInput.addEventListener("change", updateScreenshotState);
   copyButton.addEventListener("click", copyMessage);
   document.querySelector("#editRegistration")?.addEventListener("click", () => {
     form.hidden = false;
     result.hidden = true;
-    goToStep(2);
+    panels.forEach((panel) => { panel.hidden = Number(panel.dataset.stepPanel) !== 3; });
+    form.querySelectorAll("input, select, button").forEach((control) => { control.disabled = true; });
+    form.scrollIntoView({ behavior: preferredScrollBehavior(), block: "start" });
+    showToast("Submitted fields are read-only. Contact the organizer with your reference for help.");
   });
+  const upiIdMount = document.querySelector("#paymentUpiId");
+  const upiPaymentLink = document.querySelector("#openUpiPayment");
+  const copyUpiButton = document.querySelector("#copyUpiId");
+  if (config.upiSafe) {
+    upiIdMount.textContent = config.upiId;
+    const paymentParameters = [
+      ["pa", config.upiId],
+      ["pn", config.upiPayeeName],
+      ["am", String(selectedTournament?.entryFee || 10)],
+      ["cu", "INR"],
+      ["tn", "Solo Survival 01 entry"]
+    ].map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
+    upiPaymentLink.href = `upi://pay?${paymentParameters}`;
+    copyUpiButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(config.upiId);
+        showToast("UPI ID copied. Confirm it before paying ₹10.");
+      } catch {
+        showToast(`Copy unavailable. UPI ID: ${config.upiId}`);
+      }
+    });
+  } else {
+    upiIdMount.textContent = "UPI payment unavailable";
+    upiPaymentLink.removeAttribute("href");
+    upiPaymentLink.setAttribute("aria-disabled", "true");
+    copyUpiButton.disabled = true;
+  }
+  supabaseWarning.hidden = isSupabaseConfigured() && config.upiSafe;
+  submitButton.disabled = !isSupabaseConfigured() || !config.upiSafe;
   goToStep(1, false);
   initializeMotion();
 }

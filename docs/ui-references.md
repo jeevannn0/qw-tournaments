@@ -37,3 +37,9 @@ The redesign borrows information architecture and interaction principles—not v
 7. Room credentials, ages, phone numbers, and payment evidence never enter public roster data.
 
 Content was rephrased for compliance with licensing restrictions.
+
+## Supabase-backed registration extension
+
+The frontend remains a static GitHub Pages application, but registration now uses Supabase Authentication, PostgreSQL, Row Level Security, and private Storage. The form is intentionally all-or-nothing: every player field, private contact field, payment field, screenshot, and consent must pass before upload begins; the pending registration row is inserted only after the screenshot succeeds. The organizer dashboard loads private screenshots only on demand, keeps status changes behind a database review function, and publishes a separate sanitized public roster record rather than exposing the private registration table.
+
+Security is enforced by database and Storage policies rather than by obscuring the administrator URL or frontend source. A successful upload remains pending until the organizer verifies the receiving account and assigns a slot.
