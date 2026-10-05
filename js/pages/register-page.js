@@ -15,14 +15,14 @@ import {
   getTimeSlot,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261006-upi-apps";
+} from "../shared/data.js?v=20261006-upi-ios";
 import {
   buildGroupJoinMessage,
   collectRegistration,
   createRegistrationId,
   registrationWhatsAppUrl,
   validateRegistration
-} from "../shared/registration.js?v=20261006-upi-apps";
+} from "../shared/registration.js?v=20261006-upi-ios";
 import {
   collectPaymentDetails,
   MAX_PAYMENT_PROOF_BYTES,
@@ -30,7 +30,7 @@ import {
   registrationSubmissionError,
   submitCompleteRegistration,
   validatePaymentDetails
-} from "../shared/registration-backend.js?v=20261006-upi-apps";
+} from "../shared/registration-backend.js?v=20261006-upi-ios";
 import { isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell, showToast } from "../shared/shell.js";
 import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
@@ -438,11 +438,15 @@ function initializeWizard() {
   const upiIdMount = document.querySelector("#paymentUpiId");
   const upiPaymentLink = document.querySelector("#openUpiPayment");
   const copyUpiButton = document.querySelector("#copyUpiId");
+  const upiAppHelp = document.querySelector("#upiAppHelp");
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const dedicatedUpiApps = [
-    { selector: "#payWithGpay", packageName: "com.google.android.apps.nbu.paisa.user" },
-    { selector: "#payWithPaytm", packageName: "net.one97.paytm" },
-    { selector: "#payWithPhonePe", packageName: "com.phonepe.app" },
-    { selector: "#payWithSuperMoney", packageName: "money.super.payments" }
+    { selector: "#payWithGpay", packageName: "com.google.android.apps.nbu.paisa.user", iosScheme: "gpay://upi/pay?" },
+    { selector: "#payWithPaytm", packageName: "net.one97.paytm", iosScheme: "paytmmp://pay?" },
+    { selector: "#payWithPhonePe", packageName: "com.phonepe.app", iosScheme: "phonepe://pay?" },
+    { selector: "#payWithSuperMoney", packageName: "money.super.payments", iosScheme: "" }
   ];
   if (config.upiSafe) {
     upiIdMount.textContent = config.upiId;
@@ -453,25 +457,39 @@ function initializeWizard() {
       ["cu", "INR"],
       ["tn", "Solo Survival 01 entry"]
     ].map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
-    upiPaymentLink.href = `upi://pay?${paymentParameters}`;
-    dedicatedUpiApps.forEach(({ selector, packageName }) => {
-      const link = document.querySelector(selector);
-      link.href = `intent://pay?${paymentParameters}#Intent;scheme=upi;package=${packageName};end`;
-      link.addEventListener("click", (event) => {
-        if (!/Android/i.test(navigator.userAgent)) {
-          event.preventDefault();
-          showToast("Dedicated UPI app buttons require Android. Copy the UPI ID and pay in your preferred app.", 6500);
-        }
-      });
-    });
-    copyUpiButton.addEventListener("click", async () => {
+    const copyConfiguredUpi = async () => {
       try {
         await navigator.clipboard.writeText(config.upiId);
         showToast("UPI ID copied. Confirm it before paying ₹10.");
       } catch {
         showToast(`Copy unavailable. UPI ID: ${config.upiId}`);
       }
+    };
+
+    upiPaymentLink.href = `upi://pay?${paymentParameters}`;
+    dedicatedUpiApps.forEach(({ selector, packageName, iosScheme }) => {
+      const link = document.querySelector(selector);
+      if (isAndroid) {
+        link.href = `intent://pay?${paymentParameters}#Intent;scheme=upi;package=${packageName};end`;
+      } else if (isIos && iosScheme) {
+        link.href = `${iosScheme}${paymentParameters}`;
+      } else {
+        link.href = "#";
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          copyConfiguredUpi();
+          showToast(isIos
+            ? "UPI ID copied. Open super.money and pay ₹10 using the copied ID."
+            : "UPI ID copied. Open your preferred payment app and pay ₹10.", 6500);
+        });
+      }
     });
+    copyUpiButton.addEventListener("click", copyConfiguredUpi);
+    upiAppHelp.textContent = isAndroid
+      ? "Choose a dedicated button to open that exact Android app. Other UPI app uses your phone’s default handler."
+      : isIos
+        ? "Google Pay, Paytm and PhonePe open directly on iPhone. For super.money, copy the UPI ID and open the app manually."
+        : "On a phone, choose a supported payment app. On this device, copy the UPI ID and pay in your preferred app.";
   } else {
     upiIdMount.textContent = "UPI payment unavailable";
     [upiPaymentLink, ...dedicatedUpiApps.map(({ selector }) => document.querySelector(selector))].forEach((link) => {

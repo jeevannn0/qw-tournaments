@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Register — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-upi-apps">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-upi-ios">
   <link rel="stylesheet" href="css/gaming.css">
   <script src="js/theme-init.js"></script>
 </head>
@@ -58,7 +58,7 @@
                 <strong id="paymentUpiId">Loading verified UPI ID…</strong>
                 <div class="upi-app-grid" aria-label="Choose UPI payment app"><a class="button button--whatsapp" id="payWithGpay" href="#">Google Pay</a><a class="button button--whatsapp" id="payWithPaytm" href="#">Paytm</a><a class="button button--whatsapp" id="payWithPhonePe" href="#">PhonePe</a><a class="button button--whatsapp" id="payWithSuperMoney" href="#">super.money</a></div>
                 <div class="button-row"><a class="button button--quiet" id="openUpiPayment" href="#">Other UPI app</a><button class="button button--quiet" id="copyUpiId" type="button">Copy UPI ID</button></div>
-                <small>On Android, choose a dedicated button to open that exact app. “Other UPI app” uses your phone’s default UPI handler. Confirm the UPI ID exactly before paying, and never enter your UPI PIN on this website.</small>
+                <small id="upiAppHelp">Choose a payment app. Confirm the UPI ID exactly before paying, and never enter your UPI PIN on this website.</small>
               </div>
               <input type="hidden" id="paymentMethod" name="paymentMethod" value="upi">
               <div class="form-grid payment-form-grid">
@@ -101,9 +101,9 @@
   </main>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js?v=20261006-upi-apps"></script>
-  <script src="data/tournaments.js?v=20261006-upi-apps"></script>
+  <script src="data/config.js?v=20261006-upi-ios"></script>
+  <script src="data/tournaments.js?v=20261006-upi-ios"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/register-page.js?v=20261006-upi-apps"></script>
+  <script type="module" src="js/pages/register-page.js?v=20261006-upi-ios"></script>
 </body>
 </html>

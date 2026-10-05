@@ -164,3 +164,7 @@ Runtime artwork and ownership notes are documented in [`docs/image-credits.md`](
 The Supabase Free plan currently includes 500 MB database space, 1 GB file storage, 5 GB egress, and 50,000 monthly active users. See [Supabase billing documentation](https://supabase.com/docs/guides/platform/billing-on-supabase).
 
 Content was rephrased for compliance with licensing restrictions.
+
+## UPI app routing
+
+On Android, payment buttons target the installed Google Pay, Paytm, PhonePe, or super.money package directly. On iPhone, Google Pay, Paytm, and PhonePe use their documented custom UPI URL schemes. No verified public super.money iOS payment scheme is available, so that button copies the configured UPI ID and instructs the player to open super.money manually. The generic **Other UPI app** button uses the device’s standard UPI handler, and **Copy UPI ID** remains available everywhere.
