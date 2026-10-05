@@ -439,56 +439,36 @@ function initializeWizard() {
   const upiPaymentLink = document.querySelector("#openUpiPayment");
   const copyUpiButton = document.querySelector("#copyUpiId");
   const upiAppHelp = document.querySelector("#upiAppHelp");
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const dedicatedUpiApps = [
-    { selector: "#payWithGpay", packageName: "com.google.android.apps.nbu.paisa.user", iosScheme: "gpay://upi/pay?" },
-    { selector: "#payWithPaytm", packageName: "net.one97.paytm", iosScheme: "paytmmp://pay?" },
-    { selector: "#payWithPhonePe", packageName: "com.phonepe.app", iosScheme: "phonepe://pay?" },
-    { selector: "#payWithSuperMoney", packageName: "money.super.payments", iosScheme: "" }
+    { selector: "#payWithGpay", appName: "Google Pay" },
+    { selector: "#payWithPaytm", appName: "Paytm" },
+    { selector: "#payWithPhonePe", appName: "PhonePe" },
+    { selector: "#payWithSuperMoney", appName: "super.money" }
   ];
   if (config.upiSafe) {
     upiIdMount.textContent = config.upiId;
-    const paymentParameters = [
-      ["pa", config.upiId],
-      ["pn", config.upiPayeeName],
-      ["cu", "INR"],
-      ["tn", "Solo Survival 01 entry"]
-    ].map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
-    const copyConfiguredUpi = async () => {
+    const copyConfiguredUpi = async (appName = "your UPI app") => {
       try {
         await navigator.clipboard.writeText(config.upiId);
-        showToast("UPI ID copied. Confirm it before paying ₹10.");
+        showToast(`UPI ID copied. Open ${appName}, paste it, verify the recipient, and pay ₹10.`, 7000);
       } catch {
-        showToast(`Copy unavailable. UPI ID: ${config.upiId}`);
+        showToast(`Copy unavailable. In ${appName}, enter ${config.upiId} and pay ₹10.`, 7000);
       }
     };
+    const configureManualPayment = (link, appName) => {
+      link.href = "#";
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        copyConfiguredUpi(appName);
+      });
+    };
 
-    upiPaymentLink.href = `upi://pay?${paymentParameters}`;
-    dedicatedUpiApps.forEach(({ selector, packageName, iosScheme }) => {
-      const link = document.querySelector(selector);
-      if (isAndroid) {
-        link.href = `intent://pay?${paymentParameters}#Intent;scheme=upi;package=${packageName};end`;
-      } else if (isIos && iosScheme) {
-        link.href = `${iosScheme}${paymentParameters}`;
-      } else {
-        link.href = "#";
-        link.addEventListener("click", (event) => {
-          event.preventDefault();
-          copyConfiguredUpi();
-          showToast(isIos
-            ? "UPI ID copied. Open super.money and pay ₹10 using the copied ID."
-            : "UPI ID copied. Open your preferred payment app and pay ₹10.", 6500);
-        });
-      }
+    dedicatedUpiApps.forEach(({ selector, appName }) => {
+      configureManualPayment(document.querySelector(selector), appName);
     });
-    copyUpiButton.addEventListener("click", copyConfiguredUpi);
-    upiAppHelp.textContent = isAndroid
-      ? "Choose a dedicated button to open that exact Android app, then enter ₹10 manually. Other UPI app uses your phone’s default handler."
-      : isIos
-        ? "Google Pay, Paytm and PhonePe open directly on iPhone; enter ₹10 manually. For super.money, copy the UPI ID and open the app manually."
-        : "On a phone, choose a supported payment app and enter ₹10 manually. On this device, copy the UPI ID and pay in your preferred app.";
+    configureManualPayment(upiPaymentLink, "your preferred UPI app");
+    copyUpiButton.addEventListener("click", () => copyConfiguredUpi());
+    upiAppHelp.textContent = "Payment-app deep links are disabled because banks can reject incomplete personal-UPI requests with a false limit error. Copy the ID, open your app, paste it, verify the recipient name, and enter ₹10 manually.";
   } else {
     upiIdMount.textContent = "UPI payment unavailable";
     [upiPaymentLink, ...dedicatedUpiApps.map(({ selector }) => document.querySelector(selector))].forEach((link) => {

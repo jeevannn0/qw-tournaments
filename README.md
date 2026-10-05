@@ -165,6 +165,6 @@ The Supabase Free plan currently includes 500 MB database space, 1 GB file stora
 
 Content was rephrased for compliance with licensing restrictions.
 
-## UPI app routing
+## UPI payment handoff
 
-On Android, payment buttons target the installed Google Pay, Paytm, PhonePe, or super.money package directly. On iPhone, Google Pay, Paytm, and PhonePe use their documented custom UPI URL schemes. No verified public super.money iOS payment scheme is available, so that button copies the configured UPI ID and instructs the player to open super.money manually. The generic **Other UPI app** button uses the device’s standard UPI handler, and **Copy UPI ID** remains available everywhere. Because the receiving address is a personal UPI VPA, payment links intentionally omit the fixed `am` parameter; players must enter exactly ₹10 manually, and the organizer verifies the actual received amount.
+The receiving address is a personal UPI VPA, not a merchant payment-gateway integration. The payment choices copy the configured UPI ID and instruct players to open Google Pay, Paytm, PhonePe, super.money, or another UPI app manually. The site does not issue partial merchant-style UPI intents because payment apps can report misleading bank-limit failures when required merchant fields are unavailable. Players paste the ID, verify the recipient name, enter exactly ₹10, and the organizer verifies the actual received amount.
