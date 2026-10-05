@@ -3,10 +3,12 @@ import {
   eventMark,
   formatCurrency,
   formatDateTime,
+  formatLobbySchedule,
   formatReward,
   getCapacity,
   getEventMedia,
   getEventState,
+  getEventTimeSlots,
   getRequestedTournament,
   getTournament,
   registrationUrl,
@@ -14,8 +16,8 @@ import {
   rosters,
   setDocumentTitle,
   tournaments
-} from "../shared/data.js";
-import { eventStatusBadge } from "../shared/event-card.js";
+} from "../shared/data.js?v=20261006-lobbies";
+import { eventStatusBadge } from "../shared/event-card.js?v=20261006-lobbies";
 import { icon, initializeShell } from "../shared/shell.js";
 import { initializeMotion } from "../shared/motion.js";
 
@@ -36,6 +38,10 @@ function scheduleContent(tournament) {
   if (tournament.comingSoon) {
     return '<div class="coming-soon-panel"><span aria-hidden="true">⌁</span><h3>Schedule not announced</h3><p>Registration remains disabled. Match details will appear here before entries open.</p></div>';
   }
+  const timeSlots = getEventTimeSlots(tournament);
+  if (timeSlots.length) {
+    return `<ol class="timeline" data-reveal>${timeSlots.map((timeSlot, index) => `<li><span>0${index + 1}</span><div><small>${escapeHtml(timeSlot.label)}</small><strong>${escapeHtml(formatDateTime(timeSlot.startsAt, "long"))}</strong><p>Choose this 50-player lobby during registration and use the player number assigned by the organizer.</p></div></li>`).join("")}</ol>`;
+  }
   if (tournament.alwaysOpen) {
     return '<ol class="timeline" data-reveal><li><span>01</span><div><small>Register anytime</small><strong>No closing time</strong><p>Complete the Solo entry whenever registration is available.</p></div></li><li><span>02</span><div><small>Join the match group</small><strong>Group opens after registration</strong><p>Paste the copied in-game name, UID, and reference.</p></div></li><li><span>03</span><div><small>Receive lobby details</small><strong>Announcement in WhatsApp</strong><p>The organizer shares the lobby and check-in instructions in the group.</p></div></li></ol>';
   }
@@ -55,17 +61,18 @@ function renderTournament(tournament) {
   const roster = rosters[tournament.id] || { published: false, entries: [] };
   const rosterCount = Array.isArray(roster.entries) ? roster.entries.length : 0;
   const comingSoon = tournament.comingSoon === true;
+  const timeSlots = getEventTimeSlots(tournament);
   const alwaysOpen = tournament.alwaysOpen === true;
   const rosterLabel = tournament.type === "solo" ? "Player roster" : "Squad roster";
   const primaryAction = state.open
     ? `<a class="button button--primary button--large" href="${registrationUrl(tournament)}">Register for ${escapeHtml(formatCurrency(tournament.entryFee))} ${icon("arrow")}</a>`
-    : `<span class="button button--disabled button--large" aria-disabled="true">Coming soon</span>`;
+    : `<span class="button button--disabled button--large" aria-disabled="true">${escapeHtml(state.label)}</span>`;
   const secondaryAction = comingSoon
     ? '<a class="button button--quiet button--large" href="tournaments.html">Match board</a>'
     : `<a class="button button--quiet button--large" href="${rosterUrl(tournament)}">${rosterLabel}</a>`;
-  const registrationLabel = comingSoon ? "Schedule" : alwaysOpen ? "Registration" : "Starts";
-  const registrationValue = comingSoon ? "Pending" : alwaysOpen ? "Always open" : formatDateTime(tournament.matchAt);
-  const capacityValue = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
+  const registrationLabel = comingSoon ? "Schedule" : timeSlots.length ? "Lobbies" : alwaysOpen ? "Registration" : "Starts";
+  const registrationValue = comingSoon ? "Pending" : timeSlots.length ? formatLobbySchedule(tournament) : alwaysOpen ? "Always open" : formatDateTime(tournament.matchAt);
+  const capacityValue = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : timeSlots.length ? "50 players per lobby" : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
 
   root.innerHTML = `
     <section class="event-hero ${comingSoon ? "event-hero--coming-soon" : ""}">
@@ -79,11 +86,11 @@ function renderTournament(tournament) {
       </div>
     </section>
     <nav class="event-local-nav" aria-label="Tournament sections"><div class="shell"><a href="#overview">Overview</a><a href="#prizes">Rewards</a><a href="#schedule">How to join</a><a href="#ruleset">Rules</a></div></nav>
-    <section class="section" id="overview"><div class="shell event-overview"><div data-reveal><p class="kicker">Current status</p><h2>${comingSoon ? "This format is preparing." : "Know the match before joining."}</h2><p class="section-lead">${comingSoon ? "No registration or payment is available for this event yet." : "Registration has no closing time. Check the payout and join whenever you are ready."}</p></div><div class="event-status-panel" data-reveal><div class="event-status-panel__top"><div>${eventStatusBadge(tournament)}<h3>${state.open ? "Solo registration open" : state.label}</h3></div><span class="event-status-panel__index">01</span></div><p>${state.open ? `Registration is always open. Each verified kill pays ${escapeHtml(formatCurrency(tournament.killReward))}, and Booyah adds ${escapeHtml(formatCurrency(tournament.booyahBonus))}.` : escapeHtml(state.reason)}</p>${comingSoon ? "" : `<div class="capacity-block"><div><span>Lobby occupancy</span><strong>${capacity.filled} filled · ${capacity.spotsLeft} open</strong></div><progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress></div>`}<ul class="mini-checks"><li>${icon("check")} Organizer verifies ${comingSoon ? "all published terms" : "kills and Booyah"}</li><li>${icon("check")} Written reply confirms the slot</li><li>${icon("lock")} Room credentials stay private</li></ul></div><div class="event-info-grid"><article data-reveal><span class="info-icon">${icon("gamepad")}</span><small>Mode</small><strong>${escapeHtml(tournament.mode)}</strong><p>${escapeHtml(tournament.platform)} · ${escapeHtml(tournament.server)}</p></article><article data-reveal><span class="info-icon">${icon("team")}</span><small>Entry unit</small><strong>${tournament.type === "solo" ? "1 player" : "4 players"}</strong><p>${comingSoon ? "Registration not open" : "Join anytime"}</p></article><article data-reveal><span class="info-icon">${icon("shield")}</span><small>Roster</small><strong>${comingSoon ? "Not open" : roster.published ? `${rosterCount} ${capacity.unit}` : "Not published"}</strong><p>${comingSoon ? "Available after registration opens" : `Published after organizer confirmation`}</p></article></div></div></section>
+    <section class="section" id="overview"><div class="shell event-overview"><div data-reveal><p class="kicker">Current status</p><h2>${comingSoon ? "This format is preparing." : "Know the match before joining."}</h2><p class="section-lead">${comingSoon ? "No registration or payment is available for this event yet." : timeSlots.length ? "Choose the 7:30 PM or 9:00 PM IST lobby. Each lobby holds 50 players." : "Check the payout and availability before joining."}</p></div><div class="event-status-panel" data-reveal><div class="event-status-panel__top"><div>${eventStatusBadge(tournament)}<h3>${state.open ? "Solo registration open" : state.label}</h3></div><span class="event-status-panel__index">01</span></div><p>${state.open ? timeSlots.length ? `Choose one of the two 50-player lobbies. Each verified kill pays ${escapeHtml(formatCurrency(tournament.killReward))}, and Booyah adds ${escapeHtml(formatCurrency(tournament.booyahBonus))}.` : `Registration is open. Each verified kill pays ${escapeHtml(formatCurrency(tournament.killReward))}, and Booyah adds ${escapeHtml(formatCurrency(tournament.booyahBonus))}.` : escapeHtml(state.reason)}</p>${comingSoon ? "" : `<div class="capacity-block"><div><span>${timeSlots.length ? "Lobby capacity" : "Lobby occupancy"}</span><strong>${timeSlots.length ? "50 players in each of 2 lobbies" : `${capacity.filled} filled · ${capacity.spotsLeft} open`}</strong></div><progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress></div>`}<ul class="mini-checks"><li>${icon("check")} Organizer verifies ${comingSoon ? "all published terms" : "kills and Booyah"}</li><li>${icon("check")} Written reply confirms the slot</li><li>${icon("lock")} Room credentials stay private</li></ul></div><div class="event-info-grid"><article data-reveal><span class="info-icon">${icon("gamepad")}</span><small>Mode</small><strong>${escapeHtml(tournament.mode)}</strong><p>${escapeHtml(tournament.platform)} · ${escapeHtml(tournament.server)}</p></article><article data-reveal><span class="info-icon">${icon("team")}</span><small>Entry unit</small><strong>${tournament.type === "solo" ? "1 player" : "4 players"}</strong><p>${comingSoon ? "Registration not open" : timeSlots.length ? "Choose one lobby time" : "Registration open"}</p></article><article data-reveal><span class="info-icon">${icon("shield")}</span><small>Roster</small><strong>${comingSoon ? "Not open" : roster.published ? `${rosterCount} ${capacity.unit}` : "Not published"}</strong><p>${comingSoon ? "Available after registration opens" : `Published after organizer confirmation`}</p></article></div></div></section>
     <section class="section section--surface" id="prizes"><div class="shell"><div class="section-heading section-heading--split" data-reveal><div><p class="kicker">${comingSoon ? "Rewards pending" : "Solo payout"}</p><h2>${comingSoon ? "Coming soon." : "Kills pay. Booyah adds more."}</h2></div><p>${comingSoon ? "No fee or reward amount has been published for this format." : `${formatCurrency(tournament.killReward)} for each organizer-verified elimination, plus an additional ${formatCurrency(tournament.booyahBonus)} for the Booyah winner.`}</p></div><div class="prize-podium prize-podium--rewards">${rewardCards(tournament)}</div></div></section>
-    <section class="section" id="schedule"><div class="shell detail-columns"><div data-reveal><p class="kicker">${comingSoon ? "Schedule" : "How to join"}</p><h2>${comingSoon ? "Announcement pending." : "No closing time."}</h2><p class="section-lead">${comingSoon ? "Follow the match board for the announcement." : "Register anytime; lobby details are announced in the WhatsApp group."}</p></div>${scheduleContent(tournament)}</div></section>
+    <section class="section" id="schedule"><div class="shell detail-columns"><div data-reveal><p class="kicker">${comingSoon ? "Schedule" : "How to join"}</p><h2>${comingSoon ? "Announcement pending." : timeSlots.length ? "Two times. One required choice." : "Follow the published schedule."}</h2><p class="section-lead">${comingSoon ? "Follow the match board for the announcement." : timeSlots.length ? "Select 7:30 PM or 9:00 PM IST during registration. Each lobby holds 50 players." : "Complete registration before the published deadline."}</p></div>${scheduleContent(tournament)}</div></section>
     <section class="section section--surface" id="ruleset"><div class="shell detail-columns"><div data-reveal><p class="kicker">Rules</p><h2>${comingSoon ? "Terms publish before entry." : "Every payout is verified."}</h2><p class="section-lead">${comingSoon ? "Coming-soon formats cannot accept payment or registration." : "The organizer verifies eliminations, Booyah, check-in, disputes, and payouts."}</p><a class="button button--quiet" href="rules.html">Read all rules ${icon("arrow")}</a></div><div><div class="rule-chip-grid">${(tournament.ruleHighlights || []).map((rule, index) => `<article data-reveal><span>0${index + 1}</span><strong>${escapeHtml(rule)}</strong></article>`).join("")}</div><div class="map-list" data-reveal><span>Map</span>${(tournament.maps || [tournament.map]).map((map) => `<strong>${escapeHtml(map)}</strong>`).join("")}</div></div></div></section>
-    <section class="event-final-cta section"><div class="shell event-final-cta__inner" data-reveal><div><p class="kicker">${escapeHtml(tournament.shortCode)}</p><h2>${state.open ? "Ready for Solo?" : "This match is coming soon."}</h2></div>${state.open ? primaryAction : '<a class="button button--primary button--large" href="tournaments.html">View match board</a>'}</div></section>`;
+    <section class="event-final-cta section"><div class="shell event-final-cta__inner" data-reveal><div><p class="kicker">${escapeHtml(tournament.shortCode)}</p><h2>${state.open ? "Choose your Solo lobby." : escapeHtml(state.label)}</h2></div>${state.open ? primaryAction : '<a class="button button--primary button--large" href="tournaments.html">View match board</a>'}</div></section>`;
   initializeMotion(root);
 }
 

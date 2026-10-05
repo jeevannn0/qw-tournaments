@@ -49,6 +49,11 @@ function projectedRegistration(row) {
     reference: normalize(row.reference).slice(0, 40),
     tournamentId: normalize(row.tournament_id).slice(0, 64),
     tournamentName: normalize(row.tournament_name).slice(0, 80),
+    timeSlot: {
+      id: normalize(row.time_slot_id).slice(0, 64),
+      label: normalize(row.time_slot_label).slice(0, 40),
+      startsAt: row.time_slot_at
+    },
     ownerUserId: normalize(row.owner_user_id).slice(0, 128),
     participant: {
       displayName: normalize(row.display_name).slice(0, 32),
@@ -88,6 +93,7 @@ function visibleRegistrations() {
       registration.reference,
       registration.participant.displayName,
       registration.participant.uid,
+      registration.timeSlot.label,
       registration.contactWhatsapp,
       registration.payment.transactionReference
     ].some((value) => value.toLowerCase().includes(query));
@@ -115,6 +121,7 @@ function renderRegistrations() {
     <tr>
       <td data-label="Submitted">${escapeHtml(formatTimestamp(registration.submittedAt))}</td>
       <td data-label="Player"><strong>${escapeHtml(registration.participant.displayName || "Unnamed")}</strong><small>${escapeHtml(registration.participant.uid)}</small></td>
+      <td data-label="Lobby"><strong>${escapeHtml(registration.timeSlot.label)}</strong><small>${escapeHtml(formatTimestamp(registration.timeSlot.startsAt))}</small></td>
       <td data-label="Reference"><code>${escapeHtml(registration.reference)}</code></td>
       <td data-label="Payment">${statusBadge(registration.paymentStatus)}</td>
       <td data-label="Registration">${statusBadge(registration.registrationStatus)}</td>
@@ -143,7 +150,7 @@ function openRegistration(registration) {
   detailContent.innerHTML = `
     <section><h3>Player</h3><dl class="admin-detail-list">${detailPair("In-game name", registration.participant.displayName)}${detailPair("Free Fire UID", registration.participant.uid)}${detailPair("Age", String(registration.participant.age))}${detailPair("Private WhatsApp", registration.contactWhatsapp)}</dl></section>
     <section><h3>Payment</h3><dl class="admin-detail-list">${detailPair("Amount", `₹${registration.payment.amount}`)}${detailPair("Method", paymentMethodLabel(registration.payment.method))}${detailPair("Transaction reference", registration.payment.transactionReference)}${detailPair("File", `${registration.payment.contentType} · ${(registration.payment.size / (1024 * 1024)).toFixed(2)} MB`)}</dl></section>
-    <section><h3>Submission</h3><dl class="admin-detail-list">${detailPair("Tournament", registration.tournamentName)}${detailPair("Submitted", formatTimestamp(registration.submittedAt))}${detailPair("Updated", formatTimestamp(registration.updatedAt))}${detailPair("Database record", registration.id)}</dl></section>`;
+    <section><h3>Submission</h3><dl class="admin-detail-list">${detailPair("Tournament", registration.tournamentName)}${detailPair("Selected lobby", `${registration.timeSlot.label} — ${formatTimestamp(registration.timeSlot.startsAt)}`)}${detailPair("Submitted", formatTimestamp(registration.submittedAt))}${detailPair("Updated", formatTimestamp(registration.updatedAt))}${detailPair("Database record", registration.id)}</dl></section>`;
   document.querySelector("#adminPaymentStatus").value = registration.paymentStatus;
   document.querySelector("#adminRegistrationStatus").value = registration.registrationStatus;
   document.querySelector("#adminSlot").value = registration.slot || "";
@@ -227,9 +234,9 @@ async function saveReview(event) {
     detailStatus.innerHTML = "<strong>Payment must be verified before confirmation.</strong>";
     return;
   }
-  if (registrationStatus === "confirmed" && (!Number.isInteger(slot) || slot < 1 || slot > 48)) {
+  if (registrationStatus === "confirmed" && (!Number.isInteger(slot) || slot < 1 || slot > 50)) {
     detailStatus.hidden = false;
-    detailStatus.innerHTML = "<strong>Assign a Solo slot from 1 to 48 before confirmation.</strong>";
+    detailStatus.innerHTML = "<strong>Assign a player number from 1 to 50 in the selected lobby before confirmation.</strong>";
     return;
   }
 

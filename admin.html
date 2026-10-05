@@ -69,7 +69,7 @@
           <div class="admin-list-meta" id="adminListMeta" role="status" aria-live="polite">Loading registrations…</div>
           <div class="responsive-table admin-table-wrap">
             <table class="admin-table">
-              <thead><tr><th>Submitted</th><th>Player</th><th>Reference</th><th>Payment</th><th>Registration</th><th>Action</th></tr></thead>
+              <thead><tr><th>Submitted</th><th>Player</th><th>Lobby</th><th>Reference</th><th>Payment</th><th>Registration</th><th>Action</th></tr></thead>
               <tbody id="adminRegistrationRows"></tbody>
             </table>
           </div>
@@ -89,7 +89,7 @@
         <div class="form-grid admin-review-grid">
           <div class="field"><label for="adminPaymentStatus">Payment review</label><select id="adminPaymentStatus" required><option value="pending">Pending</option><option value="verified">Verified in organizer account</option><option value="not-found">Payment not found</option><option value="duplicate">Duplicate transaction</option></select></div>
           <div class="field"><label for="adminRegistrationStatus">Registration status</label><select id="adminRegistrationStatus" required><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
-          <div class="field"><label for="adminSlot">Assigned Solo slot</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="48" placeholder="Required for confirmation"></div>
+          <div class="field"><label for="adminSlot">Player number in selected lobby</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="50" placeholder="Required for confirmation"></div>
           <div class="field admin-note-field"><label for="adminOrganizerNote">Private organizer note</label><textarea id="adminOrganizerNote" maxlength="500" rows="4" placeholder="Visible only to approved organizers"></textarea></div>
         </div>
         <div class="wizard-actions"><a class="button button--quiet" id="adminWhatsappPlayer" href="#" target="_blank" rel="noopener noreferrer">Message player</a><button class="button button--primary" id="adminSaveReview" type="submit">Save review</button></div>
@@ -101,6 +101,6 @@
   <script src="data/config.js"></script>
   <script src="data/tournaments.js"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/admin-page.js?v=20261005-delete"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261006-lobbies"></script>
 </body>
 </html>

@@ -17,6 +17,9 @@ create table if not exists public.registrations (
   reference text not null unique,
   tournament_id text not null,
   tournament_name text not null,
+  time_slot_id text not null,
+  time_slot_label text not null,
+  time_slot_at timestamptz not null,
   display_name text not null,
   ff_uid text not null,
   age smallint not null,
@@ -41,6 +44,15 @@ create table if not exists public.registrations (
   constraint registrations_schema check (schema_version = 1),
   constraint registrations_reference check (reference ~ '^QW-SOLO01-[0-9]{4}-[A-F0-9]{6}$'),
   constraint registrations_tournament check (tournament_id = 'solo-survival-01' and tournament_name = 'Solo Survival 01'),
+  constraint registrations_time_slot check (
+    (time_slot_id = 'solo-2026-10-06-1930'
+      and time_slot_label = '7:30 PM lobby'
+      and time_slot_at = '2026-10-06 19:30:00+05:30'::timestamptz)
+    or
+    (time_slot_id = 'solo-2026-10-06-2100'
+      and time_slot_label = '9:00 PM lobby'
+      and time_slot_at = '2026-10-06 21:00:00+05:30'::timestamptz)
+  ),
   constraint registrations_name check (char_length(display_name) between 2 and 32),
   constraint registrations_uid check (ff_uid ~ '^[0-9]{6,12}$'),
   constraint registrations_age check (age between 13 and 80),
@@ -63,7 +75,7 @@ create table if not exists public.registrations (
   ),
   constraint registrations_payment_status check (payment_status in ('pending', 'verified', 'not-found', 'duplicate')),
   constraint registrations_status check (registration_status in ('pending', 'confirmed', 'rejected', 'cancelled')),
-  constraint registrations_slot check (slot is null or slot between 1 and 48),
+  constraint registrations_slot check (slot is null or slot between 1 and 50),
   constraint registrations_confirmation check (
     registration_status <> 'confirmed' or (payment_status = 'verified' and slot is not null)
   ),
@@ -81,6 +93,9 @@ create table if not exists public.public_players (
   id uuid primary key references public.registrations(id) on delete cascade,
   reference text not null unique,
   tournament_id text not null,
+  time_slot_id text not null,
+  time_slot_label text not null,
+  time_slot_at timestamptz not null,
   display_name text not null,
   ff_uid text not null,
   slot smallint not null,
@@ -88,11 +103,20 @@ create table if not exists public.public_players (
   confirmed_at timestamptz not null default now(),
   constraint public_players_reference check (reference ~ '^QW-SOLO01-[0-9]{4}-[A-F0-9]{6}$'),
   constraint public_players_tournament check (tournament_id = 'solo-survival-01'),
+  constraint public_players_time_slot check (
+    (time_slot_id = 'solo-2026-10-06-1930'
+      and time_slot_label = '7:30 PM lobby'
+      and time_slot_at = '2026-10-06 19:30:00+05:30'::timestamptz)
+    or
+    (time_slot_id = 'solo-2026-10-06-2100'
+      and time_slot_label = '9:00 PM lobby'
+      and time_slot_at = '2026-10-06 21:00:00+05:30'::timestamptz)
+  ),
   constraint public_players_name check (char_length(display_name) between 2 and 32),
   constraint public_players_uid check (ff_uid ~ '^[0-9]{6,12}$'),
-  constraint public_players_slot check (slot between 1 and 48),
+  constraint public_players_slot check (slot between 1 and 50),
   constraint public_players_status check (status = 'Confirmed'),
-  constraint public_players_unique_slot unique (tournament_id, slot)
+  constraint public_players_unique_slot unique (tournament_id, time_slot_id, slot)
 );
 
 create or replace function public.set_updated_at()
@@ -263,8 +287,8 @@ begin
   end if;
 
   if p_registration_status = 'confirmed'
-    and (p_payment_status <> 'verified' or p_slot is null or p_slot not between 1 and 48) then
-    raise exception 'Verified payment and a slot from 1 to 48 are required for confirmation';
+    and (p_payment_status <> 'verified' or p_slot is null or p_slot not between 1 and 50) then
+    raise exception 'Verified payment and a player number from 1 to 50 are required for confirmation';
   end if;
 
   update public.registrations
@@ -285,6 +309,9 @@ begin
       id,
       reference,
       tournament_id,
+      time_slot_id,
+      time_slot_label,
+      time_slot_at,
       display_name,
       ff_uid,
       slot,
@@ -295,6 +322,9 @@ begin
       id,
       reference,
       tournament_id,
+      time_slot_id,
+      time_slot_label,
+      time_slot_at,
       display_name,
       ff_uid,
       slot,
@@ -305,6 +335,9 @@ begin
     on conflict (id) do update set
       reference = excluded.reference,
       tournament_id = excluded.tournament_id,
+      time_slot_id = excluded.time_slot_id,
+      time_slot_label = excluded.time_slot_label,
+      time_slot_at = excluded.time_slot_at,
       display_name = excluded.display_name,
       ff_uid = excluded.ff_uid,
       slot = excluded.slot,

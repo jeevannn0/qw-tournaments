@@ -7,7 +7,7 @@ import {
   normalize,
   rosters,
   tournaments
-} from "../shared/data.js";
+} from "../shared/data.js?v=20261006-lobbies";
 import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell } from "../shared/shell.js";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
@@ -24,6 +24,9 @@ function projectedEntry(entry) {
   if (!entry || typeof entry !== "object") return null;
   return {
     registrationId: normalize(entry.registrationId || entry.reference).slice(0, 40),
+    timeSlotId: normalize(entry.timeSlotId).slice(0, 64),
+    timeSlotLabel: normalize(entry.timeSlotLabel).slice(0, 40),
+    timeSlotAt: entry.timeSlotAt || null,
     slot: Number.isFinite(Number(entry.slot)) ? Number(entry.slot) : "—",
     teamName: normalize(entry.teamName).slice(0, 40),
     displayName: normalize(entry.displayName).slice(0, 40),
@@ -38,7 +41,7 @@ function projectedEntry(entry) {
 
 function entryMatches(entry, query) {
   if (!query) return true;
-  const values = [entry.registrationId, entry.teamName, entry.displayName, entry.uid, ...entry.players.flatMap((player) => [player.displayName, player.uid])];
+  const values = [entry.registrationId, entry.timeSlotLabel, entry.teamName, entry.displayName, entry.uid, ...entry.players.flatMap((player) => [player.displayName, player.uid])];
   return values.some((value) => String(value ?? "").toLowerCase().includes(query));
 }
 
@@ -61,8 +64,8 @@ function squadCards(entries) {
 }
 
 function soloTable(entries) {
-  return `<div class="responsive-table"><table><thead><tr><th>Slot</th><th>Player</th><th>Free Fire UID</th><th>Reference</th><th>Status</th></tr></thead><tbody>${entries.map((entry) => `
-    <tr><td data-label="Slot">${escapeHtml(entry.slot)}</td><td data-label="Player"><strong>${escapeHtml(entry.displayName)}</strong></td><td data-label="Free Fire UID"><code>${escapeHtml(entry.uid)}</code></td><td data-label="Reference">${escapeHtml(entry.registrationId)}</td><td data-label="Status">${statusBadge(entry.status)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="responsive-table"><table><thead><tr><th>Lobby</th><th>Player no.</th><th>Player</th><th>Free Fire UID</th><th>Reference</th><th>Status</th></tr></thead><tbody>${entries.map((entry) => `
+    <tr><td data-label="Lobby"><strong>${escapeHtml(entry.timeSlotLabel)}</strong><small>${escapeHtml(formatDateTime(entry.timeSlotAt))}</small></td><td data-label="Player no.">${escapeHtml(entry.slot)}</td><td data-label="Player"><strong>${escapeHtml(entry.displayName)}</strong></td><td data-label="Free Fire UID"><code>${escapeHtml(entry.uid)}</code></td><td data-label="Reference">${escapeHtml(entry.registrationId)}</td><td data-label="Status">${statusBadge(entry.status)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 async function supabaseRoster(tournament) {
@@ -71,13 +74,17 @@ async function supabaseRoster(tournament) {
   const client = await getSupabaseClient();
   const { data, error } = await client
     .from("public_players")
-    .select("reference, slot, display_name, ff_uid, status")
+    .select("reference, time_slot_id, time_slot_label, time_slot_at, slot, display_name, ff_uid, status")
     .eq("tournament_id", tournament.id)
+    .order("time_slot_at", { ascending: true })
     .order("slot", { ascending: true });
   if (error) throw error;
   const entries = (data || [])
     .map((row) => projectedEntry({
       reference: row.reference,
+      timeSlotId: row.time_slot_id,
+      timeSlotLabel: row.time_slot_label,
+      timeSlotAt: row.time_slot_at,
       slot: row.slot,
       displayName: row.display_name,
       uid: row.ff_uid,

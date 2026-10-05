@@ -6,7 +6,7 @@ There is no package manager, compilation, or application server. Browser modules
 
 ## Current release
 
-- **Solo Survival 01:** always-open registration, ₹10 entry per player, ₹6 for each organizer-verified elimination, and an additional ₹30 Booyah bonus.
+- **Solo Survival 01:** two scheduled 50-player lobbies on 6 October 2026 at 7:30 PM and 9:00 PM IST, ₹10 entry, ₹6 for each organizer-verified elimination, and an additional ₹30 Booyah bonus.
 - **Squad Last Circle 01:** Coming soon; registration, payment, schedule, fee, and rewards are unavailable.
 - **Clash Squad Cup 01:** Coming soon under the same restrictions.
 - Only organizer-confirmed, consented game details appear in the public roster.
@@ -50,7 +50,7 @@ Supabase is fail-closed. Until `data/supabase-config.js` contains a valid Projec
 
 Every registration requires:
 
-- The live Solo tournament
+- One required Solo lobby: 6 October 2026 at 7:30 PM or 9:00 PM IST
 - In-game display name
 - Numeric 6–12 digit Free Fire UID
 - Age from 13 through 80
@@ -79,7 +79,7 @@ The dashboard supports:
 - Permanent deletion of cancelled or rejected registrations and their private screenshots
 - Atomic private-status and public-roster updates through `review_registration`
 
-Confirmation requires verified payment and a unique slot from 1 through 48. The public row contains only reference, tournament, display name, UID, slot, status, and confirmation time.
+Confirmation requires verified payment and a unique player number from 1 through 50 within the selected lobby. The public row contains only reference, tournament, lobby, display name, UID, player number, status, and confirmation time.
 
 ## Supabase setup
 

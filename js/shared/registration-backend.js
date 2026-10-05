@@ -1,4 +1,4 @@
-import { normalize } from "./data.js";
+import { getTimeSlot, normalize } from "./data.js?v=20261006-lobbies";
 import { ensureAnonymousPlayer, getSupabaseClient } from "./supabase.js";
 
 export const MAX_PAYMENT_PROOF_BYTES = 2 * 1024 * 1024;
@@ -72,12 +72,17 @@ export async function submitCompleteRegistration({
   tournament,
   registration,
   payment,
+  timeSlot,
   reference,
   consents,
   onProgress
 }) {
   if (!tournament || tournament.id !== "solo-survival-01") {
     throw new Error("Only the live Solo tournament can accept registration.");
+  }
+  const validTimeSlot = getTimeSlot(tournament, timeSlot?.id);
+  if (!validTimeSlot || Date.parse(validTimeSlot.startsAt) <= Date.now() || Number(validTimeSlot.spotsLeft) <= 0) {
+    throw new Error("Choose an available Solo lobby before submitting.");
   }
   if (!registration?.participants?.length || registration.participants.length !== 1) {
     throw new Error("A complete Solo player entry is required.");
@@ -112,6 +117,9 @@ export async function submitCompleteRegistration({
     reference,
     tournament_id: tournament.id,
     tournament_name: tournament.name,
+    time_slot_id: validTimeSlot.id,
+    time_slot_label: validTimeSlot.label,
+    time_slot_at: validTimeSlot.startsAt,
     display_name: normalize(participant.name).slice(0, 32),
     ff_uid: normalize(participant.uid).slice(0, 12),
     age: Number(participant.age),

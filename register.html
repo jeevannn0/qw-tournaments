@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Register — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261005-upi">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-lobbies">
   <link rel="stylesheet" href="css/gaming.css">
   <script src="js/theme-init.js"></script>
 </head>
@@ -24,9 +24,9 @@
         <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Register</span></nav>
         <p class="kicker">Private Supabase submission</p>
         <h1>Register.</h1>
-        <p>Choose the live match, provide every player and payment field, then submit the complete entry for organizer review.</p>
+        <p>Choose one of the two Solo lobbies, provide every player and payment field, then submit the complete entry for organizer review.</p>
         <ol class="wizard-steps" aria-label="Registration progress">
-          <li data-step-item="1"><span>1</span><div><strong>Match</strong><small>Always open</small></div></li>
+          <li data-step-item="1"><span>1</span><div><strong>Match</strong><small>Choose lobby time</small></div></li>
           <li data-step-item="2"><span>2</span><div><strong>Details</strong><small>Player and payment</small></div></li>
           <li data-step-item="3"><span>3</span><div><strong>Review</strong><small>Submit everything</small></div></li>
         </ol>
@@ -39,9 +39,10 @@
           <div class="wizard-error" id="wizardError" role="alert" tabindex="-1" hidden></div>
 
           <section class="wizard-panel" data-step-panel="1">
-            <div class="wizard-panel__heading"><p class="kicker">Step 1</p><h2 tabindex="-1">Choose a match</h2><p>Only the live Solo tournament can accept a registration.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 1</p><h2 tabindex="-1">Choose match and lobby</h2><p>Select one available 50-player Solo lobby on 6 October 2026.</p></div>
             <fieldset class="match-picker-fieldset"><legend>Free Fire match <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></legend><div class="match-picker" id="registrationEvent" aria-label="Available Free Fire matches"></div></fieldset>
             <div class="picker-confirmation" id="registrationEventPreview" aria-live="polite"></div>
+            <fieldset class="lobby-picker-fieldset"><legend>Choose your Solo lobby <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></legend><div class="lobby-picker" id="registrationLobby" aria-label="Available Solo lobby times"></div></fieldset>
             <div class="wizard-actions wizard-actions--end"><a class="button button--text" href="tournaments.html">Match board</a><button class="button button--primary button--large" type="button" data-next-step>Continue <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
           </section>
 
@@ -90,6 +91,7 @@
           <p class="kicker">Complete entry received</p>
           <h2>Await organizer verification</h2>
           <p>Your reference is <strong id="resultReference"></strong>. Your player details and payment proof were stored privately. This is not a confirmed slot.</p>
+          <p class="result-lobby">Selected lobby: <strong id="resultLobby"></strong></p>
           <div class="group-handoff-note"><strong>Match group details ready</strong><p>After joining, paste only the copied reference, in-game name, and UID. Private payment and contact details are not included.</p></div>
           <div class="button-row"><a class="button button--whatsapp" id="resultGroup" href="#" target="_blank" rel="noopener noreferrer" hidden>Join WhatsApp group</a><button class="button button--primary" id="copyRegistrationMessage" type="button">Copy group details</button><a class="button button--quiet" id="resultWhatsApp" href="#" target="_blank" rel="noopener noreferrer">Send private summary</a><button class="button button--text" id="editRegistration" type="button">View submitted fields</button></div>
         </section>
@@ -98,9 +100,9 @@
   </main>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js?v=20261005-upi"></script>
-  <script src="data/tournaments.js"></script>
+  <script src="data/config.js?v=20261006-lobbies"></script>
+  <script src="data/tournaments.js?v=20261006-lobbies"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/register-page.js?v=20261005-upi"></script>
+  <script type="module" src="js/pages/register-page.js?v=20261006-lobbies"></script>
 </body>
 </html>

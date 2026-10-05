@@ -1,4 +1,4 @@
-import { config, formatCurrency, normalize, whatsappUrl } from "./data.js";
+import { config, formatCurrency, formatDateTime, normalize, whatsappUrl } from "./data.js";
 
 export function createRegistrationId(tournament) {
   const now = new Date();
@@ -74,14 +74,14 @@ export function validateRegistration(tournament, registration) {
   return null;
 }
 
-export function buildRegistrationMessage(tournament, registration, reference, payment = null) {
+export function buildRegistrationMessage(tournament, registration, reference, payment = null, timeSlot = null) {
   const lines = [
     `*${config.brandName.toUpperCase()} — SUBMITTED REGISTRATION*`,
     "",
     `*Reference:* ${reference}`,
     `*Tournament:* ${tournament.name}`,
     `*Format:* ${tournament.formatLabel}`,
-    "*Registration:* Always open",
+    `*Selected lobby:* ${timeSlot ? `${timeSlot.label} — ${formatDateTime(timeSlot.startsAt, "long")}` : "Not selected"}`,
     `*Entry:* ${formatCurrency(tournament.entryFee)} ${tournament.feeUnit}`,
     `*Kill reward:* ${formatCurrency(tournament.killReward)} per confirmed kill`,
     `*Booyah bonus:* ${formatCurrency(tournament.booyahBonus)} additional for the match winner`
@@ -130,6 +130,6 @@ export function buildGroupJoinMessage(tournament, registration, reference) {
   ].join("\n");
 }
 
-export function registrationWhatsAppUrl(tournament, registration, reference, payment = null) {
-  return whatsappUrl(buildRegistrationMessage(tournament, registration, reference, payment));
+export function registrationWhatsAppUrl(tournament, registration, reference, payment = null, timeSlot = null) {
+  return whatsappUrl(buildRegistrationMessage(tournament, registration, reference, payment, timeSlot));
 }

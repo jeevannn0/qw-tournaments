@@ -148,3 +148,7 @@ The registration page displays the public UPI ID from `data/config.js`. Keep tha
 ## Organizer delete migration for an existing project
 
 If `supabase-schema.sql` was run before the organizer Delete button was added, run `supabase-migrations/2026-10-05-admin-delete.sql` once in SQL Editor. The `delete_registration` function permits only active organizers and refuses to delete pending or confirmed registrations. The dashboard then removes the associated private Storage object. Cancel or reject an entry before deleting it permanently.
+
+## Two-lobby migration
+
+Before deploying the 6 October 2026 lobby release, run `supabase-migrations/2026-10-05-solo-lobbies.sql` once in SQL Editor. It requires the registration and public roster tables to be empty, adds the mandatory 7:30 PM and 9:00 PM IST lobby fields, changes player numbers to 1–50, and makes player-number uniqueness apply within each lobby.

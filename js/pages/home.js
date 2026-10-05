@@ -3,14 +3,16 @@ import {
   eventMark,
   eventUrl,
   formatCurrency,
+  formatLobbySchedule,
   getCapacity,
   getEventMedia,
   getEventState,
+  getOpenTimeSlots,
   registrationUrl,
   supportUrl,
   tournaments
-} from "../shared/data.js";
-import { eventCard, eventStatusBadge } from "../shared/event-card.js";
+} from "../shared/data.js?v=20261006-lobbies";
+import { eventCard, eventStatusBadge } from "../shared/event-card.js?v=20261006-lobbies";
 import { icon, initializeShell } from "../shared/shell.js";
 import { initializeMotion } from "../shared/motion.js";
 
@@ -28,7 +30,7 @@ function renderFeaturedEvent(tournament) {
     <article class="feature-event">
       <div class="feature-event__content" data-reveal>
         <div class="inline-badges">${eventStatusBadge(tournament)}</div>
-        <p class="kicker">Live solo match · ${escapeHtml(tournament.shortCode)}</p>
+        <p class="kicker">Two scheduled Solo lobbies · ${escapeHtml(tournament.shortCode)}</p>
         <h2>${escapeHtml(tournament.name)}</h2>
         <p class="feature-event__lead">${escapeHtml(tournament.tagline)}</p>
         <div class="reward-strip reward-strip--feature" aria-label="Solo match rewards">
@@ -37,9 +39,9 @@ function renderFeaturedEvent(tournament) {
           <span><strong>${escapeHtml(formatCurrency(tournament.booyahBonus))}</strong><small>Booyah bonus</small></span>
         </div>
         <dl class="feature-event__facts">
-          <div><dt>Registration</dt><dd>Always open</dd></div>
+          <div><dt>Lobbies</dt><dd>${escapeHtml(formatLobbySchedule(tournament))}</dd></div>
           <div><dt>Map</dt><dd>${escapeHtml(tournament.map)}</dd></div>
-          <div><dt>Open</dt><dd>${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}</dd></div>
+          <div><dt>Capacity</dt><dd>50 players per lobby</dd></div>
         </dl>
         <progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress>
         <div class="button-row">${mainAction}<a class="button button--quiet button--large" href="${eventUrl(tournament)}">Rules and how to join</a></div>
@@ -67,7 +69,7 @@ function renderEventPreview() {
 
 function renderLiveFacts() {
   const solo = tournaments.find((tournament) => tournament.type === "solo" && !tournament.comingSoon);
-  document.querySelector("#homeEventCount").textContent = String(tournaments.filter((tournament) => getEventState(tournament).open).length).padStart(2, "0");
+  document.querySelector("#homeEventCount").textContent = String(getOpenTimeSlots(solo).length).padStart(2, "0");
   document.querySelector("#homeKillReward").textContent = formatCurrency(solo?.killReward);
   document.querySelector("#homeBooyahBonus").textContent = formatCurrency(solo?.booyahBonus);
 }

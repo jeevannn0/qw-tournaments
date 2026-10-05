@@ -3,21 +3,26 @@ import {
   escapeHtml,
   eventMark,
   formatCurrency,
+  formatDateTime,
+  formatLobbySchedule,
   formatReward,
   getCapacity,
   getEventMedia,
   getEventState,
+  getEventTimeSlots,
+  getOpenTimeSlots,
   getRequestedTournament,
+  getTimeSlot,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261005-upi";
+} from "../shared/data.js?v=20261006-lobbies";
 import {
   buildGroupJoinMessage,
   collectRegistration,
   createRegistrationId,
   registrationWhatsAppUrl,
   validateRegistration
-} from "../shared/registration.js";
+} from "../shared/registration.js?v=20261006-lobbies";
 import {
   collectPaymentDetails,
   MAX_PAYMENT_PROOF_BYTES,
@@ -25,7 +30,7 @@ import {
   registrationSubmissionError,
   submitCompleteRegistration,
   validatePaymentDetails
-} from "../shared/registration-backend.js";
+} from "../shared/registration-backend.js?v=20261006-lobbies";
 import { isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell, showToast } from "../shared/shell.js";
 import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
@@ -34,12 +39,14 @@ const form = document.querySelector("#registrationWizard");
 const panels = [...form.querySelectorAll("[data-step-panel]")];
 const stepItems = [...document.querySelectorAll("[data-step-item]")];
 const eventPicker = document.querySelector("#registrationEvent");
+const lobbyPicker = document.querySelector("#registrationLobby");
 const lineupMount = document.querySelector("#lineupFields");
 const eventPreview = document.querySelector("#registrationEventPreview");
 const reviewMount = document.querySelector("#registrationReview");
 const errorBox = document.querySelector("#wizardError");
 const result = document.querySelector("#registrationResult");
 const resultReference = document.querySelector("#resultReference");
+const resultLobby = document.querySelector("#resultLobby");
 const resultWhatsApp = document.querySelector("#resultWhatsApp");
 const resultGroup = document.querySelector("#resultGroup");
 const copyButton = document.querySelector("#copyRegistrationMessage");
@@ -54,6 +61,7 @@ const uploadMeter = document.querySelector("#registrationUploadMeter");
 const supabaseWarning = document.querySelector("#supabaseSetupWarning");
 let activeStep = 1;
 let selectedTournament = null;
+let selectedTimeSlot = null;
 let preparedGroupMessage = "";
 let submitted = false;
 let submitting = false;
@@ -92,6 +100,35 @@ function matchPickerCard(tournament, index) {
     </label>`;
 }
 
+function lobbyChoice(timeSlot, index, openTimeSlotIds) {
+  const id = `lobbyPick${index + 1}`;
+  const open = openTimeSlotIds.has(timeSlot.id);
+  return `
+    <input class="visually-hidden lobby-picker__input" id="${id}" name="timeSlot" type="radio" value="${escapeHtml(timeSlot.id)}" ${open ? "" : "disabled"} required>
+    <label class="lobby-choice ${open ? "" : "lobby-choice--disabled"}" for="${id}">
+      <span>Lobby ${index + 1}</span>
+      <strong>${escapeHtml(timeSlot.label)}</strong>
+      <time datetime="${escapeHtml(timeSlot.startsAt)}">${escapeHtml(formatDateTime(timeSlot.startsAt, "long"))}</time>
+      <small>${escapeHtml(`${timeSlot.spotsLeft}/${timeSlot.capacity} places available`)}</small>
+      <i aria-hidden="true">${icon("check")}</i>
+    </label>`;
+}
+
+function renderLobbyChoices(tournament) {
+  selectedTimeSlot = null;
+  const timeSlots = getEventTimeSlots(tournament);
+  const openTimeSlotIds = new Set(getOpenTimeSlots(tournament).map((timeSlot) => timeSlot.id));
+  lobbyPicker.innerHTML = timeSlots.length
+    ? timeSlots.map((timeSlot, index) => lobbyChoice(timeSlot, index, openTimeSlotIds)).join("")
+    : '<div class="inline-empty">No lobby times are available.</div>';
+  lobbyPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
+}
+
+function chooseLobby() {
+  const checked = lobbyPicker.querySelector('input[name="timeSlot"]:checked');
+  selectedTimeSlot = getTimeSlot(selectedTournament, checked?.value);
+}
+
 function renderLineupFields(tournament) {
   if (!tournament) {
     lineupMount.innerHTML = '<div class="inline-empty">Choose an open match first.</div>';
@@ -121,7 +158,7 @@ function renderEventPreview(tournament) {
     return;
   }
   eventPreview.hidden = false;
-  eventPreview.innerHTML = `<span>Selected Solo match</span><strong>${escapeHtml(tournament.name)}</strong><small>Always open · ${escapeHtml(formatCurrency(tournament.entryFee))} entry · ${escapeHtml(formatReward(tournament))}</small>`;
+  eventPreview.innerHTML = `<span>Selected Solo match</span><strong>${escapeHtml(tournament.name)}</strong><small>${escapeHtml(formatLobbySchedule(tournament))} · ${escapeHtml(formatCurrency(tournament.entryFee))} entry · ${escapeHtml(formatReward(tournament))}</small>`;
 }
 
 function centerSelectedBattle(behavior = preferredScrollBehavior()) {
@@ -136,6 +173,7 @@ function chooseTournament(event) {
   const checked = eventPicker.querySelector('input[name="tournament"]:checked');
   selectedTournament = getTournament(checked?.value);
   renderEventPreview(selectedTournament);
+  renderLobbyChoices(selectedTournament);
   renderLineupFields(selectedTournament);
   if (!submitted) result.hidden = true;
   window.requestAnimationFrame(() => centerSelectedBattle(event ? preferredScrollBehavior() : "auto"));
@@ -182,6 +220,12 @@ function validateStep(step) {
   const eventCheck = currentEventIsOpen();
   if (!eventCheck.valid) {
     setError(eventCheck.message, eventPicker.querySelector('input:not([disabled])'));
+    return false;
+  }
+  chooseLobby();
+  const openTimeSlotIds = new Set(getOpenTimeSlots(selectedTournament).map((timeSlot) => timeSlot.id));
+  if (!selectedTimeSlot || !openTimeSlotIds.has(selectedTimeSlot.id)) {
+    setError("Choose one available Solo lobby time before continuing.", lobbyPicker.querySelector('input[name="timeSlot"]:not([disabled])'));
     return false;
   }
   if (step === 1) return true;
@@ -231,7 +275,7 @@ function renderReview() {
   const payment = collectPaymentDetails(formData);
   const screenshotName = payment.screenshot instanceof File ? payment.screenshot.name : "Not selected";
   reviewMount.innerHTML = `
-    <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)} · Always open</p></div>
+    <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)}</p><div class="review-lobby"><small>Selected lobby</small><strong>${escapeHtml(selectedTimeSlot.label)}</strong><time datetime="${escapeHtml(selectedTimeSlot.startsAt)}">${escapeHtml(formatDateTime(selectedTimeSlot.startsAt, "long"))}</time></div></div>
     ${registration.teamName ? `<div class="review-team"><small>Squad</small><strong>${escapeHtml(registration.teamName)}</strong></div>` : ""}
     <div class="review-lineup">${registration.participants.map((participant, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(participant.name)}</strong><small>${escapeHtml(participant.uid)} · Age ${escapeHtml(participant.age)}${participant.captain && selectedTournament.type === "squad" ? " · Captain" : ""}</small></div></article>`).join("")}</div>
     <div class="review-private"><div><small>Private WhatsApp</small><strong>${escapeHtml(payment.contactWhatsapp)}</strong></div><div><small>Payment method</small><strong>${escapeHtml(paymentMethodLabel(payment.paymentMethod))}</strong></div><div><small>Transaction reference</small><strong>${escapeHtml(payment.paymentReference)}</strong></div><div><small>Private screenshot</small><strong>${escapeHtml(screenshotName)}</strong></div></div>
@@ -311,6 +355,7 @@ async function submitRegistration(event) {
       tournament: selectedTournament,
       registration,
       payment,
+      timeSlot: selectedTimeSlot,
       reference,
       consents,
       onProgress: (percent) => {
@@ -320,9 +365,10 @@ async function submitRegistration(event) {
     });
 
     preparedGroupMessage = buildGroupJoinMessage(selectedTournament, registration, reference);
-    const privateUrl = registrationWhatsAppUrl(selectedTournament, registration, reference, payment);
+    const privateUrl = registrationWhatsAppUrl(selectedTournament, registration, reference, payment, selectedTimeSlot);
     const groupUrl = config.whatsappGroupSafe ? config.whatsappGroupUrl : "";
     resultReference.textContent = reference;
+    resultLobby.textContent = `${selectedTimeSlot.label} · ${formatDateTime(selectedTimeSlot.startsAt, "long")}`;
     resultWhatsApp.href = privateUrl;
     resultGroup.hidden = !groupUrl;
     if (groupUrl) resultGroup.href = groupUrl;
@@ -373,6 +419,7 @@ function initializeWizard() {
   }
   chooseTournament();
   eventPicker.addEventListener("change", chooseTournament);
+  lobbyPicker.addEventListener("change", chooseLobby);
   document.querySelectorAll("[data-next-step]").forEach((button) => button.addEventListener("click", () => {
     if (validateStep(activeStep)) transitionUpdate(() => goToStep(activeStep + 1));
   }));

@@ -5035,3 +5035,113 @@ select:disabled {
 .admin-delete-button:disabled {
   opacity: 0.45;
 }
+
+/* Scheduled Solo lobby selection */
+.lobby-picker-fieldset {
+  min-width: 0;
+  margin: var(--space-5) 0 0;
+  border: 0;
+  padding: 0;
+}
+
+.lobby-picker-fieldset > legend {
+  margin-bottom: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.lobby-picker {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.lobby-choice {
+  position: relative;
+  display: grid;
+  min-height: 8rem;
+  align-content: center;
+  gap: var(--space-1);
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: var(--space-4) 3.5rem var(--space-4) var(--space-4);
+}
+
+.lobby-choice:hover {
+  border-color: var(--ring);
+}
+
+.lobby-choice > span {
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lobby-choice > strong {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.lobby-choice > time,
+.lobby-choice > small {
+  color: var(--muted-foreground);
+}
+
+.lobby-choice > i {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: none;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.lobby-picker__input:checked + .lobby-choice {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, var(--card));
+}
+
+.lobby-picker__input:checked + .lobby-choice > i {
+  display: grid;
+}
+
+.lobby-picker__input:focus-visible + .lobby-choice {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.lobby-choice--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.review-lobby {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.review-lobby small {
+  color: var(--primary);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.review-lobby time {
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 43.75rem) {
+  .lobby-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,5 +1,5 @@
-import { getEventState, isTdm, normalize, tournaments } from "../shared/data.js";
-import { eventCard } from "../shared/event-card.js";
+import { getEventState, isTdm, normalize, tournaments } from "../shared/data.js?v=20261006-lobbies";
+import { eventCard } from "../shared/event-card.js?v=20261006-lobbies";
 import { initializeShell } from "../shared/shell.js";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
 

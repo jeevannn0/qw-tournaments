@@ -1,6 +1,6 @@
 /*
  * QW tournament schedule.
- * Keep event IDs stable because detail, registration, and roster URLs use them.
+ * Keep event and lobby IDs stable because registration and roster records use them.
  * Dates use ISO 8601 with the India offset.
  */
 window.QW_TOURNAMENTS = [
@@ -8,12 +8,12 @@ window.QW_TOURNAMENTS = [
     id: "solo-survival-01",
     shortCode: "SOLO-01",
     name: "Solo Survival 01",
-    tagline: "One player. Always open. Every confirmed elimination pays.",
-    description: "An always-open solo Battle Royale queue. Register anytime; each confirmed elimination earns ₹6, the Booyah winner earns an additional ₹30, and lobby details are announced in the WhatsApp group.",
+    tagline: "One player. Two scheduled lobbies. Every confirmed elimination pays.",
+    description: "Choose one of two Solo Battle Royale lobbies on 6 October 2026. Each lobby holds 50 players; every confirmed elimination earns ₹6 and the Booyah winner earns an additional ₹30.",
     type: "solo",
     mode: "Battle Royale",
     formatLabel: "Solo · Full map",
-    stage: "Always open",
+    stage: "6 October 2026",
     server: "India",
     platform: "Mobile",
     map: "Bermuda",
@@ -24,18 +24,34 @@ window.QW_TOURNAMENTS = [
     killReward: 6,
     booyahBonus: 30,
     prizePool: 30,
-    capacity: 48,
-    spotsLeft: 48,
+    capacity: 100,
+    spotsLeft: 100,
     registrationOpen: true,
-    statusLabel: "Live now",
-    alwaysOpen: true,
+    statusLabel: "Registration open",
+    alwaysOpen: false,
     comingSoon: false,
     featured: true,
+    timeSlots: [
+      {
+        id: "solo-2026-10-06-1930",
+        label: "7:30 PM lobby",
+        startsAt: "2026-10-06T19:30:00+05:30",
+        capacity: 50,
+        spotsLeft: 50
+      },
+      {
+        id: "solo-2026-10-06-2100",
+        label: "9:00 PM lobby",
+        startsAt: "2026-10-06T21:00:00+05:30",
+        capacity: 50,
+        spotsLeft: 50
+      }
+    ],
     prizeBreakdown: [
       { place: "Each confirmed kill", amount: 6, variable: true },
       { place: "Booyah bonus", amount: 30 }
     ],
-    ruleHighlights: ["Always open", "₹10 entry", "₹6 per confirmed kill", "₹30 Booyah bonus"]
+    ruleHighlights: ["Two 50-player lobbies", "₹10 entry", "₹6 per confirmed kill", "₹30 Booyah bonus"]
   },
   {
     id: "squad-last-circle-01",

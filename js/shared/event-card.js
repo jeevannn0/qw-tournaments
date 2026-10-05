@@ -4,12 +4,14 @@ import {
   eventUrl,
   formatCurrency,
   formatDateTime,
+  formatLobbySchedule,
   formatReward,
   getCapacity,
   getEventMedia,
   getEventState,
+  getEventTimeSlots,
   registrationUrl
-} from "./data.js";
+} from "./data.js?v=20261006-lobbies";
 import { icon } from "./shell.js";
 
 export function eventStatusBadge(tournament) {
@@ -19,14 +21,21 @@ export function eventStatusBadge(tournament) {
 
 function eventFacts(tournament, capacity) {
   const comingSoon = tournament.comingSoon === true;
+  const timeSlots = getEventTimeSlots(tournament);
   const alwaysOpen = tournament.alwaysOpen === true;
-  const firstLabel = comingSoon ? "Schedule" : alwaysOpen ? "Registration" : "Starts";
+  const firstLabel = comingSoon ? "Schedule" : timeSlots.length ? "Lobbies" : alwaysOpen ? "Registration" : "Starts";
   const firstValue = comingSoon
     ? "Pending"
-    : alwaysOpen
-      ? "Always open"
-      : `<time datetime="${escapeHtml(tournament.matchAt)}">${escapeHtml(formatDateTime(tournament.matchAt))}</time>`;
-  const availability = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
+    : timeSlots.length
+      ? escapeHtml(formatLobbySchedule(tournament))
+      : alwaysOpen
+        ? "Always open"
+        : `<time datetime="${escapeHtml(tournament.matchAt)}">${escapeHtml(formatDateTime(tournament.matchAt))}</time>`;
+  const availability = comingSoon
+    ? `${capacity.capacity} ${capacity.unit} planned`
+    : timeSlots.length
+      ? `${timeSlots.length} × 50-player lobbies`
+      : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
   return `
     <dl class="event-card__facts">
       <div><dt>${firstLabel}</dt><dd>${firstValue}</dd></div>
@@ -52,7 +61,7 @@ export function eventCard(tournament, options = {}) {
   const classes = ["event-card", tournament.featured ? "event-card--featured" : "", compact ? "event-card--compact" : "", comingSoon ? "event-card--coming-soon" : ""].filter(Boolean).join(" ");
   const primaryAction = state.open
     ? `<a class="button button--primary" href="${registrationUrl(tournament)}">Register for ₹10 ${icon("arrow")}</a>`
-    : `<span class="button button--disabled" aria-disabled="true">Coming soon</span>`;
+    : `<span class="button button--disabled" aria-disabled="true">${escapeHtml(state.label)}</span>`;
   const secondaryAction = `<a class="button button--text" href="${eventUrl(tournament)}">${comingSoon ? "Preview" : "Details"}</a>`;
 
   return `
