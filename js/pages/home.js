@@ -12,8 +12,9 @@ import {
   supportUrl,
   tournaments
 } from "../shared/data.js?v=20261006-match-complete";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
 import { eventCard, eventStatusBadge } from "../shared/event-card.js?v=20261006-match-complete";
-import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
+import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261006-winner-toast";
 import { initializeMotion } from "../shared/motion.js";
 
 function renderFeaturedEvent(tournament) {
@@ -100,12 +101,36 @@ function renderLiveFacts() {
   }
 }
 
+async function announcePublishedWinner() {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const client = await getSupabaseClient();
+    const { data, error } = await client
+      .from("match_results")
+      .select("display_name, time_slot_label, published_at")
+      .eq("published", true)
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) return;
+    const winnerName = String(data.display_name || "New winner").trim().slice(0, 32);
+    const lobbyLabel = String(data.time_slot_label || "match").trim().slice(0, 40);
+    showToast(`Booyah winner added: ${winnerName} · ${lobbyLabel}.`, 15000, {
+      label: "Check winner",
+      href: "booyah.html"
+    });
+  } catch {
+    // Winner announcements are optional; Home remains usable if Supabase is unavailable.
+  }
+}
+
 function initializeHome() {
   initializeShell();
   const featured = tournaments.find((tournament) => tournament.featured) || tournaments.find((tournament) => getEventState(tournament).open) || tournaments[0];
   renderEventPreview();
   renderFeaturedEvent(featured);
   renderLiveFacts();
+  announcePublishedWinner();
   const support = document.querySelector("#homeSupportLink");
   const supportHref = supportUrl("joining the Solo Survival match");
   if (support && supportHref) support.href = supportHref;

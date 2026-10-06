@@ -139,18 +139,38 @@ function scheduleToastClose(duration) {
 
 export function hideToast() {
   const toast = document.querySelector("#siteToast");
+  const action = document.querySelector("#siteToastAction");
   if (!toast) return;
   toast.hidden = true;
+  if (action) {
+    action.hidden = true;
+    action.removeAttribute("href");
+  }
   toastMessage = "";
   window.clearTimeout(toastTimer);
 }
 
-export function showToast(message, duration = 4200) {
+export function showToast(message, duration = 4200, actionOptions = null) {
   const toast = document.querySelector("#siteToast");
   const text = document.querySelector("#siteToastText");
+  const action = document.querySelector("#siteToastAction");
   if (!toast || !text) return;
   toastMessage = String(message);
   text.textContent = toastMessage;
+  if (action) {
+    action.hidden = true;
+    action.removeAttribute("href");
+    const href = String(actionOptions?.href || "");
+    const label = String(actionOptions?.label || "").trim();
+    if (href && label) {
+      const url = new URL(href, window.location.href);
+      if (url.origin === window.location.origin) {
+        action.href = href;
+        action.textContent = label;
+        action.hidden = false;
+      }
+    }
+  }
   toast.hidden = false;
   scheduleToastClose(duration);
 }
@@ -208,7 +228,7 @@ export function initializeShell() {
         </div>
         <div class="shell site-footer__bottom"><span>© ${new Date().getFullYear()} ${safeBrand}</span><span>Independent community event · Not affiliated with or endorsed by Garena.</span></div>
       </footer>
-      <div class="toast" id="siteToast" role="status" aria-live="polite" aria-atomic="true" hidden><span id="siteToastText"></span><button type="button" data-toast-close aria-label="Dismiss message">${icon("close")}</button></div>`;
+      <div class="toast" id="siteToast" role="status" aria-live="polite" aria-atomic="true" hidden><span id="siteToastText"></span><a class="toast__action" id="siteToastAction" hidden></a><button type="button" data-toast-close aria-label="Dismiss message">${icon("close")}</button></div>`;
   }
 
   setTheme(document.documentElement.dataset.theme || "dark");

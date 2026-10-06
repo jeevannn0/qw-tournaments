@@ -3274,6 +3274,22 @@ select:disabled {
   flex: 1;
 }
 
+.toast__action {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--primary);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.toast__action:hover,
+.toast__action:focus-visible {
+  color: var(--foreground);
+}
+
 .toast button {
   display: grid;
   width: 2.75rem;
