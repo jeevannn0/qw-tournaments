@@ -1,7 +1,7 @@
-import { escapeHtml, normalize } from "../shared/data.js";
+import { escapeHtml, normalize, tournaments } from "../shared/data.js?v=20261006-lobbies";
 import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
 import { paymentMethodLabel } from "../shared/registration-backend.js";
-import { initializeShell, showToast } from "../shared/shell.js";
+import { initializeShell, showToast } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion } from "../shared/motion.js";
 
 const setup = document.querySelector("#adminSetup");
@@ -25,11 +25,27 @@ const proofImage = document.querySelector("#adminProofImage");
 const loadProofButton = document.querySelector("#adminLoadProof");
 const reviewForm = document.querySelector("#adminReviewForm");
 const loginForm = document.querySelector("#adminLoginForm");
+const winnerForm = document.querySelector("#adminWinnerForm");
+const winnerMatch = document.querySelector("#adminWinnerMatch");
+const winnerPlayer = document.querySelector("#adminWinnerPlayer");
+const winnerKills = document.querySelector("#adminWinnerKills");
+const winnerPrize = document.querySelector("#adminWinnerPrize");
+const winnerImage = document.querySelector("#adminWinnerImage");
+const winnerImageAlt = document.querySelector("#adminWinnerImageAlt");
+const winnerStatus = document.querySelector("#adminWinnerStatus");
+const winnerList = document.querySelector("#adminWinnerList");
+const winnerCount = document.querySelector("#adminWinnerCount");
+const publishWinnerButton = document.querySelector("#adminPublishWinner");
+const WINNER_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+const WINNER_IMAGE_TYPES = new Map([["image/jpeg", "jpg"], ["image/png", "png"], ["image/webp", "webp"]]);
 let client = null;
 let registrations = [];
+let winnerCandidates = [];
+let matchResults = [];
 let activeRegistration = null;
 let refreshTimer = 0;
 let loadingRegistrations = false;
+let loadingWinnerData = false;
 let proofObjectUrl = "";
 
 function timestampDate(value) {
@@ -80,6 +96,239 @@ function projectedRegistration(row) {
     submittedAt: row.submitted_at,
     updatedAt: row.updated_at
   };
+}
+
+function availableWinnerMatches() {
+  return tournaments.flatMap((tournament) => (tournament.comingSoon || !Array.isArray(tournament.timeSlots) ? [] : tournament.timeSlots.map((timeSlot) => ({
+    key: `${tournament.id}|${timeSlot.id}`,
+    tournamentId: tournament.id,
+    tournamentName: tournament.name,
+    timeSlotId: timeSlot.id,
+    timeSlotLabel: timeSlot.label,
+    startsAt: timeSlot.startsAt,
+    killReward: Number(tournament.killReward) || 0,
+    booyahBonus: Number(tournament.booyahBonus) || 0
+  }))));
+}
+
+function selectedWinnerMatch() {
+  return availableWinnerMatches().find((match) => match.key === winnerMatch.value) || null;
+}
+
+function projectedWinnerCandidate(row) {
+  return {
+    id: normalize(row.id).slice(0, 50),
+    tournamentId: normalize(row.tournament_id).slice(0, 64),
+    timeSlotId: normalize(row.time_slot_id).slice(0, 64),
+    timeSlotLabel: normalize(row.time_slot_label).slice(0, 40),
+    displayName: normalize(row.display_name).slice(0, 32),
+    uid: normalize(row.ff_uid).slice(0, 12),
+    slot: Number(row.slot)
+  };
+}
+
+function projectedMatchResult(row) {
+  return {
+    id: normalize(row.id).slice(0, 50),
+    tournamentId: normalize(row.tournament_id).slice(0, 64),
+    timeSlotId: normalize(row.time_slot_id).slice(0, 64),
+    timeSlotLabel: normalize(row.time_slot_label).slice(0, 40),
+    displayName: normalize(row.display_name).slice(0, 32),
+    uid: normalize(row.ff_uid).slice(0, 12),
+    kills: row.kills === null ? null : Number(row.kills),
+    prizeAmount: Number(row.prize_amount),
+    imagePath: normalize(row.image_path).slice(0, 400),
+    imageAlt: normalize(row.image_alt).slice(0, 180),
+    publishedAt: row.published_at
+  };
+}
+
+function activeMatchResult(match = selectedWinnerMatch()) {
+  return matchResults.find((result) => result.tournamentId === match?.tournamentId && result.timeSlotId === match?.timeSlotId) || null;
+}
+
+function calculatedPrize(match = selectedWinnerMatch()) {
+  const kills = Number(winnerKills.value);
+  return match ? match.booyahBonus + (Number.isInteger(kills) && kills >= 0 ? kills * match.killReward : 0) : 0;
+}
+
+function setWinnerStatus(title, message = "") {
+  winnerStatus.hidden = false;
+  winnerStatus.innerHTML = `<strong>${escapeHtml(title)}</strong>${message ? `<p>${escapeHtml(message)}</p>` : ""}`;
+}
+
+function renderWinnerResults() {
+  winnerCount.textContent = `${matchResults.length} ${matchResults.length === 1 ? "card" : "cards"} published`;
+  winnerList.innerHTML = matchResults.length ? matchResults.map((result) => `
+    <article class="admin-winner-result">
+      <div><span>${escapeHtml(result.timeSlotLabel)}</span><strong>${escapeHtml(result.displayName)}</strong><code>${escapeHtml(result.uid)}</code></div>
+      <div><span>${result.kills === null ? "Kills not recorded" : `${escapeHtml(result.kills)} verified kills`}</span><strong>₹${escapeHtml(result.prizeAmount)}</strong><small>${escapeHtml(formatTimestamp(result.publishedAt))}</small></div>
+      <button class="button admin-delete-button" type="button" data-remove-winner="${escapeHtml(result.id)}">Remove card</button>
+    </article>`).join("") : '<p class="admin-winner-empty">No winner cards published yet.</p>';
+}
+
+function syncWinnerEditor({ preserveValues = false } = {}) {
+  const match = selectedWinnerMatch();
+  const result = activeMatchResult(match);
+  const candidates = winnerCandidates
+    .filter((player) => player.tournamentId === match?.tournamentId && player.timeSlotId === match?.timeSlotId)
+    .sort((a, b) => a.slot - b.slot);
+
+  winnerPlayer.innerHTML = candidates.length
+    ? `<option value="">Choose confirmed player</option>${candidates.map((player) => `<option value="${escapeHtml(player.id)}">No. ${escapeHtml(player.slot)} · ${escapeHtml(player.displayName)} · ${escapeHtml(player.uid)}</option>`).join("")}`
+    : '<option value="">No confirmed players in this lobby</option>';
+  winnerPlayer.disabled = !candidates.length;
+  if (result && candidates.some((player) => player.id === result.winnerPublicPlayerId)) {
+    winnerPlayer.value = result.winnerPublicPlayerId;
+  }
+
+  winnerImage.required = !result;
+  winnerImage.setAttribute("aria-required", String(!result));
+  publishWinnerButton.textContent = result ? "Update winner card" : "Publish winner card";
+  document.querySelector("#adminWinnerImageHelp").textContent = result
+    ? "Optional when updating. Choose a new JPG, PNG, or WebP to replace the current image; maximum 2 MB."
+    : "Required for a new card. JPG, PNG, or WebP; maximum 2 MB.";
+
+  if (!preserveValues) {
+    winnerKills.value = result?.kills ?? 0;
+    winnerPrize.value = result?.prizeAmount ?? calculatedPrize(match);
+    winnerImageAlt.value = result?.imageAlt || "";
+  }
+  if (result) {
+    const currentWinner = candidates.find((player) => player.displayName === result.displayName && player.uid === result.uid);
+    if (currentWinner) winnerPlayer.value = currentWinner.id;
+  }
+}
+
+async function loadWinnerData() {
+  if (!client || loadingWinnerData || dashboard.hidden) return;
+  loadingWinnerData = true;
+  try {
+    const [playersResponse, resultsResponse] = await Promise.all([
+      client.from("public_players").select("id, tournament_id, time_slot_id, time_slot_label, display_name, ff_uid, slot").order("time_slot_at", { ascending: true }).order("slot", { ascending: true }),
+      client.from("match_results").select("id, tournament_id, time_slot_id, time_slot_label, winner_public_player_id, display_name, ff_uid, kills, prize_amount, image_path, image_alt, published_at").order("time_slot_at", { ascending: false })
+    ]);
+    if (playersResponse.error) throw playersResponse.error;
+    if (resultsResponse.error) throw resultsResponse.error;
+    winnerCandidates = (playersResponse.data || []).map(projectedWinnerCandidate);
+    matchResults = (resultsResponse.data || []).map((row) => ({ ...projectedMatchResult(row), winnerPublicPlayerId: normalize(row.winner_public_player_id).slice(0, 50) }));
+    winnerStatus.hidden = true;
+    renderWinnerResults();
+    syncWinnerEditor();
+  } catch (error) {
+    setWinnerStatus("Booyah publisher unavailable", error?.message || "Apply the Booyah results migration in Supabase.");
+    winnerCandidates = [];
+    matchResults = [];
+    renderWinnerResults();
+    syncWinnerEditor();
+  } finally {
+    loadingWinnerData = false;
+  }
+}
+
+async function publishWinner(event) {
+  event.preventDefault();
+  const match = selectedWinnerMatch();
+  const player = winnerCandidates.find((candidate) => candidate.id === winnerPlayer.value);
+  const existing = activeMatchResult(match);
+  const kills = Number(winnerKills.value);
+  const prizeAmount = Number(winnerPrize.value);
+  const image = winnerImage.files?.[0];
+
+  if (!match || !player || player.tournamentId !== match.tournamentId || player.timeSlotId !== match.timeSlotId) {
+    setWinnerStatus("Choose a confirmed winner", "The player must belong to the selected lobby.");
+    return;
+  }
+  if (!Number.isInteger(kills) || kills < 0 || kills > 99) {
+    setWinnerStatus("Check verified kills", "Enter a whole number from 0 to 99.");
+    winnerKills.focus();
+    return;
+  }
+  if (!Number.isInteger(prizeAmount) || prizeAmount < 0 || prizeAmount > 1000000) {
+    setWinnerStatus("Check the prize", "Enter a whole rupee amount from ₹0 to ₹10,00,000.");
+    winnerPrize.focus();
+    return;
+  }
+  if (!existing && !image) {
+    setWinnerStatus("Winner image required", "Choose a JPG, PNG, or WebP image no larger than 2 MB.");
+    winnerImage.focus();
+    return;
+  }
+  if (image && (!WINNER_IMAGE_TYPES.has(image.type) || image.size === 0 || image.size > WINNER_IMAGE_MAX_BYTES)) {
+    setWinnerStatus("Winner image rejected", "Use a JPG, PNG, or WebP image no larger than 2 MB.");
+    winnerImage.focus();
+    return;
+  }
+
+  publishWinnerButton.disabled = true;
+  publishWinnerButton.textContent = image ? "Uploading and publishing…" : "Updating winner…";
+  winnerStatus.hidden = true;
+  let uploadedPath = "";
+  let imagePath = existing?.imagePath || "";
+
+  try {
+    if (image) {
+      const { data: userData, error: userError } = await client.auth.getUser();
+      if (userError || !userData.user) throw userError || new Error("Organizer session expired.");
+      const imageId = window.crypto?.randomUUID?.();
+      if (!imageId) throw new Error("This browser cannot create a secure image identifier.");
+      imagePath = `${userData.user.id}/${imageId}.${WINNER_IMAGE_TYPES.get(image.type)}`;
+      const { error: uploadError } = await client.storage.from("winner-images").upload(imagePath, image, {
+        contentType: image.type,
+        cacheControl: "0",
+        upsert: false
+      });
+      if (uploadError) throw uploadError;
+      uploadedPath = imagePath;
+    }
+
+    const imageAlt = normalize(winnerImageAlt.value).slice(0, 180)
+      || `${player.displayName} celebrates winning ${match.timeSlotLabel}`;
+    const { error: publishError } = await client.rpc("publish_match_result", {
+      p_tournament_id: match.tournamentId,
+      p_time_slot_id: match.timeSlotId,
+      p_winner_public_player_id: player.id,
+      p_kills: kills,
+      p_prize_amount: prizeAmount,
+      p_image_path: imagePath,
+      p_image_alt: imageAlt
+    });
+    if (publishError) throw publishError;
+
+    if (uploadedPath && existing?.imagePath && existing.imagePath !== uploadedPath) {
+      const { error: cleanupError } = await client.storage.from("winner-images").remove([existing.imagePath]);
+      if (cleanupError) showToast("Winner updated, but the previous image needs manual Storage cleanup.", 7000);
+    }
+    showToast(existing ? "Winner card updated on the Booyah page." : "Winner card published on the Booyah page.");
+    winnerImage.value = "";
+    await loadWinnerData();
+    winnerMatch.value = match.key;
+    syncWinnerEditor();
+  } catch (error) {
+    if (uploadedPath) await client.storage.from("winner-images").remove([uploadedPath]);
+    setWinnerStatus("Winner card not published", error?.message || "Supabase rejected the result.");
+  } finally {
+    publishWinnerButton.disabled = false;
+    publishWinnerButton.textContent = activeMatchResult(match) ? "Update winner card" : "Publish winner card";
+  }
+}
+
+async function removeWinner(result, button) {
+  if (!result || !window.confirm(`Remove ${result.displayName}'s ${result.timeSlotLabel} winner card?`)) return;
+  button.disabled = true;
+  button.textContent = "Removing…";
+  try {
+    const { data: imagePath, error } = await client.rpc("remove_match_result", { p_result_id: result.id });
+    if (error) throw error;
+    const { error: storageError } = await client.storage.from("winner-images").remove([imagePath]);
+    if (storageError) showToast("Winner card removed, but its image needs manual Storage cleanup.", 7000);
+    else showToast("Winner card removed from the Booyah page.");
+    await loadWinnerData();
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = "Remove card";
+    setWinnerStatus("Winner card not removed", error?.message || "Supabase rejected the request.");
+  }
 }
 
 function statusBadge(value) {
@@ -375,13 +624,21 @@ function stopRegistrationFeed() {
   window.clearInterval(refreshTimer);
   refreshTimer = 0;
   registrations = [];
+  winnerCandidates = [];
+  matchResults = [];
   renderRegistrations();
+  renderWinnerResults();
+}
+
+function refreshAdminData() {
+  loadRegistrations();
+  loadWinnerData();
 }
 
 function startRegistrationFeed() {
   stopRegistrationFeed();
-  loadRegistrations();
-  refreshTimer = window.setInterval(loadRegistrations, 30000);
+  refreshAdminData();
+  refreshTimer = window.setInterval(refreshAdminData, 30000);
 }
 
 async function showAuthenticatedState(user) {
@@ -459,6 +716,19 @@ async function initializeAdmin() {
   }
   try {
     client = await getSupabaseClient();
+    const winnerMatches = availableWinnerMatches();
+    winnerMatch.innerHTML = winnerMatches.map((match) => `<option value="${escapeHtml(match.key)}">${escapeHtml(match.tournamentName)} · ${escapeHtml(match.timeSlotLabel)} · ${escapeHtml(formatTimestamp(match.startsAt))}</option>`).join("");
+    winnerMatch.disabled = !winnerMatches.length;
+    syncWinnerEditor();
+    winnerMatch.addEventListener("change", () => syncWinnerEditor());
+    winnerKills.addEventListener("input", () => { winnerPrize.value = String(calculatedPrize()); });
+    winnerForm.addEventListener("submit", publishWinner);
+    winnerList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-winner]");
+      if (!button) return;
+      const result = matchResults.find((item) => item.id === button.dataset.removeWinner);
+      if (result) removeWinner(result, button);
+    });
     loginForm.addEventListener("submit", signIn);
     document.querySelector("#adminSignOut").addEventListener("click", signOutAdmin);
     document.querySelector("#adminDeniedSignOut").addEventListener("click", signOutAdmin);

@@ -22,7 +22,7 @@ There is no package manager, compilation, or application server. Browser modules
 | `players.html?tournament=<id>` | Public organizer-confirmed player roster |
 | `booyah.html` | Public organizer-verified match-winner board |
 | `rules.html` | Eligibility, payment, verification, privacy, and competition rules |
-| `admin.html` | Private organizer dashboard protected by Supabase Auth and database policies |
+| `admin.html` | Private organizer dashboard for registration review and Booyah winner publishing, protected by Supabase Auth and database policies |
 
 ## Architecture
 

@@ -11,6 +11,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css?v=20261006-booyah">
   <link rel="stylesheet" href="css/gaming.css?v=20261006-booyah">
+  <link rel="stylesheet" href="css/booyah-admin.css?v=20261006-booyah-admin-v1">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="booyah">
@@ -25,8 +26,8 @@
         <div data-reveal>
           <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Booyah</span></nav>
           <p class="kicker">Hall of victory</p>
-          <h1>Last one standing.</h1>
-          <p>Every card marks an organizer-verified QW match winner. Results appear only after the lobby outcome has been checked.</p>
+          <h1>Booyah winners.</h1>
+          <p>Organizer-verified match winners appear here after each result is checked.</p>
         </div>
         <div class="booyah-crown" aria-hidden="true" data-reveal>
           <svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 11H5L3 7Z"/><path d="M5 21h14"/></svg>
@@ -41,7 +42,7 @@
           <div><p class="kicker">Winner board</p><h2 id="winnerBoardTitle">Match champions</h2></div>
           <p id="winnerCount" role="status" aria-live="polite">Loading verified results…</p>
         </div>
-        <div class="winner-grid" id="winnerGrid" tabindex="-1" aria-live="polite"></div>
+        <div class="winner-grid" id="winnerGrid" tabindex="-1"></div>
       </div>
     </section>
 
@@ -56,7 +57,7 @@
   <div id="siteFooter"></div>
   <script src="data/config.js?v=20261006-upi-ybl"></script>
   <script src="data/tournaments.js?v=20261006-lobbies"></script>
-  <script src="data/winners.js?v=20261006-booyah"></script>
-  <script type="module" src="js/pages/booyah-page.js?v=20261006-booyah"></script>
+  <script src="data/winners.js?v=20261006-booyah-admin-v1"></script>
+  <script type="module" src="js/pages/booyah-page.js?v=20261006-booyah-admin-v1"></script>
 </body>
 </html>

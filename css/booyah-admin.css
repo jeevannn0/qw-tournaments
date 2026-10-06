@@ -1,0 +1,168 @@
+/* Organizer-managed Booyah results */
+.admin-winner-panel {
+  margin-block: var(--space-6);
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+  background: var(--card);
+  padding: var(--space-4);
+}
+
+.admin-winner-panel__heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-4);
+}
+
+.admin-winner-panel__heading h2,
+.admin-winner-panel__heading p {
+  margin-bottom: 0;
+}
+
+.admin-winner-panel__heading > div > p:last-child {
+  max-width: 68ch;
+  color: var(--muted-foreground);
+}
+
+.admin-winner-form {
+  margin-top: var(--space-4);
+}
+
+.admin-winner-form .field:nth-child(5),
+.admin-winner-form .field:nth-child(6) {
+  grid-column: 1 / -1;
+}
+
+.admin-winner-results {
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-4);
+}
+
+.admin-winner-results > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.admin-winner-results h3 {
+  margin: 0;
+}
+
+.admin-winner-results > div:first-child span,
+.admin-winner-result span,
+.admin-winner-result small {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+#adminWinnerList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.admin-winner-result {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  padding: var(--space-3);
+}
+
+.admin-winner-result > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.admin-winner-result code {
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.admin-winner-result > div:nth-child(2) strong {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.admin-winner-empty {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.winner-card__body {
+  padding: 0;
+}
+
+.winner-card__content {
+  min-width: 0;
+  padding: var(--space-4);
+}
+
+.winner-card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.winner-card__media::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, color-mix(in oklab, var(--background) 32%, transparent), transparent 45%);
+  content: "";
+  pointer-events: none;
+}
+
+.winner-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.winner-loading {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: var(--space-4);
+}
+
+.winner-loading span {
+  display: block;
+  min-height: 24rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+@media (min-width: 43.75rem) {
+  .admin-winner-panel__heading {
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .admin-winner-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-winner-result {
+    grid-template-columns: minmax(12rem, 1fr) minmax(9rem, 0.6fr) auto;
+    align-items: center;
+  }
+}
+
+@media (max-width: 43.74rem) {
+  .admin-winner-panel {
+    padding: var(--space-3);
+  }
+
+  .winner-card__content {
+    padding: var(--space-3);
+  }
+}

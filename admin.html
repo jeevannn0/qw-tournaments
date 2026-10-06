@@ -12,6 +12,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css?v=20261006-admin-review">
   <link rel="stylesheet" href="css/gaming.css">
+  <link rel="stylesheet" href="css/booyah-admin.css?v=20261006-booyah-admin-v1">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="admin">
@@ -22,7 +23,7 @@
   <main id="adminContent">
     <section class="page-intro page-intro--admin">
       <div class="shell page-intro__layout">
-        <div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Organizer</span></nav><p class="kicker">Restricted operations</p><h1>Registration control.</h1><p>Review complete player submissions, verify payments in the organizer-controlled account, and publish only confirmed public roster fields.</p></div>
+        <div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Organizer</span></nav><p class="kicker">Private organizer tools</p><h1>Organizer dashboard.</h1><p>Review registrations, verify payments, and confirm player numbers.</p></div>
         <div class="page-intro__index" aria-hidden="true"><span>QW</span><strong>ADM</strong><small>private</small></div>
       </div>
     </section>
@@ -62,13 +63,30 @@
             <article class="admin-metric--danger"><span>Duplicate UTRs</span><strong id="adminDuplicates">0</strong></article>
           </div>
 
+          <section class="admin-winner-panel" aria-labelledby="adminWinnerTitle">
+            <div class="admin-winner-panel__heading"><div><p class="kicker">Booyah publisher</p><h2 id="adminWinnerTitle">Publish a match winner</h2><p>Select a scheduled lobby and one of its confirmed players. Publishing creates or replaces that lobby’s public winner card.</p></div><a class="button button--quiet" href="booyah.html" target="_blank" rel="noopener noreferrer">View Booyah page</a></div>
+            <form id="adminWinnerForm">
+              <div class="form-grid admin-winner-form">
+                <div class="field"><label for="adminWinnerMatch">Available match</label><select id="adminWinnerMatch" required></select></div>
+                <div class="field"><label for="adminWinnerPlayer">Confirmed winner</label><select id="adminWinnerPlayer" required><option value="">Choose a match first</option></select><small>Name and Free Fire UID come from the confirmed public roster.</small></div>
+                <div class="field"><label for="adminWinnerKills">Verified kills</label><input id="adminWinnerKills" type="number" inputmode="numeric" min="0" max="99" value="0" required></div>
+                <div class="field"><label for="adminWinnerPrize">Prize paid (₹)</label><input id="adminWinnerPrize" type="number" inputmode="numeric" min="0" max="1000000" value="30" required><small>Defaults to the Booyah bonus plus verified kill rewards.</small></div>
+                <div class="field"><label for="adminWinnerImage">Winner image</label><input id="adminWinnerImage" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="adminWinnerImageHelp"><small id="adminWinnerImageHelp">Required for a new card. JPG, PNG, or WebP; maximum 2 MB.</small></div>
+                <div class="field"><label for="adminWinnerImageAlt">Image description</label><input id="adminWinnerImageAlt" type="text" maxlength="180" placeholder="Example: Player celebrating after the 7:30 PM lobby"><small>Describe what is visible for players using screen readers.</small></div>
+              </div>
+              <div class="backend-status" id="adminWinnerStatus" role="status" aria-live="polite" hidden></div>
+              <div class="wizard-actions"><button class="button button--primary" id="adminPublishWinner" type="submit">Publish winner card</button></div>
+            </form>
+            <div class="admin-winner-results"><div><h3>Published winner cards</h3><span id="adminWinnerCount">0 published</span></div><div id="adminWinnerList"></div></div>
+          </section>
+
           <div class="admin-controls">
             <div class="field search-field"><label for="adminSearch">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Reference, name, UID, phone, or UTR" autocomplete="off"></div></div>
             <div class="field"><label for="adminLobbyFilter">Lobby</label><select id="adminLobbyFilter"><option value="all">Both lobbies</option><option value="solo-2026-10-06-1930">7:30 PM lobby</option><option value="solo-2026-10-06-2100">9:00 PM lobby</option></select></div>
             <div class="field"><label for="adminPaymentFilter">Payment</label><select id="adminPaymentFilter"><option value="all">All payment states</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="not-found">Not found</option><option value="duplicate">Marked duplicate</option></select></div>
             <div class="field"><label for="adminRegistrationFilter">Registration</label><select id="adminRegistrationFilter"><option value="all">All registration states</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
-            <div class="field"><label for="adminDuplicateFilter">UTR check</label><select id="adminDuplicateFilter"><option value="all">All transaction IDs</option><option value="duplicates">Duplicates only</option><option value="unique">Unique only</option></select></div>
-            <div class="field"><label for="adminSort">Sort</label><select id="adminSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="lobby">Lobby then player</option><option value="player">Player name</option><option value="transaction">Transaction ID</option></select></div>
+            <div class="field admin-filter-secondary"><label for="adminDuplicateFilter">UTR check</label><select id="adminDuplicateFilter"><option value="all">All transaction IDs</option><option value="duplicates">Duplicates only</option><option value="unique">Unique only</option></select></div>
+            <div class="field admin-filter-secondary"><label for="adminSort">Sort</label><select id="adminSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="lobby">Lobby then player</option><option value="player">Player name</option><option value="transaction">Transaction ID</option></select></div>
           </div>
 
           <div class="admin-export-actions"><button class="button button--quiet" id="adminExportFiltered" type="button">Export filtered PDF</button><button class="button button--primary" id="adminExportAll" type="button">Export all PDF</button></div>
@@ -105,8 +123,8 @@
 
   <div id="siteFooter"></div>
   <script src="data/config.js"></script>
-  <script src="data/tournaments.js"></script>
+  <script src="data/tournaments.js?v=20261006-lobbies"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/admin-page.js?v=20261006-admin-review"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261006-booyah-admin-v1"></script>
 </body>
 </html>

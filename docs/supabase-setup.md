@@ -133,7 +133,7 @@ Before accepting real payments:
 - **Bucket not found:** rerun the schema and verify `payment-proofs` exists and is private.
 - **Admin sign-in works but access is denied:** insert the Auth user into `admin_users` with `active = true`.
 - **Screenshot upload fails:** verify JPG/PNG/WebP, maximum 2 MB, and Storage policies.
-- **Confirmation fails:** payment must be Verified and the slot must be unique from 1 through 48.
+- **Confirmation fails:** payment must be Verified and the player number must be unique from 1 through 50 in the selected lobby.
 
 The site pins `@supabase/supabase-js` 2.116.0 and loads its ESM build from jsDelivr. Supabase’s official client repository documents browser CDN use: [supabase-js](https://github.com/supabase/supabase-js).
 
@@ -156,6 +156,14 @@ Before deploying the 6 October 2026 lobby release, run `supabase-migrations/2026
 ## Duplicate UTR detection migration
 
 Before using automatic duplicate-payment marking, run `supabase-migrations/2026-10-05-duplicate-utr.sql` once in SQL Editor. The trigger marks a new registration as duplicate when its normalized UTR already exists and marks matching non-confirmed registrations for review. Confirmed payments are not overwritten. The admin dashboard also calculates duplicate groups independently, so all matching records receive a visible warning and can be filtered.
+
+## Booyah result publishing migration
+
+For an existing Supabase project, run `supabase-migrations/2026-10-06-booyah-results.sql` once in SQL Editor before using the Admin **Booyah publisher**. It creates the sanitized `match_results` table, private `winner-images` bucket, public-read policies for published cards, and organizer-only publish/remove RPCs. Fresh projects should run the complete `supabase-schema.sql` instead.
+
+An organizer selects a scheduled lobby and one of its confirmed public players, records verified kills and the prize, and uploads a JPG, PNG, or WebP image no larger than 2 MB. The database independently verifies that the selected player belongs to that lobby. Only the winner name, Free Fire UID, lobby, match time, kills, prize, image, and publication time can reach the public Booyah page. Registration, contact, and payment information remain private.
+
+Replacing a winner card uploads the new image first and removes the previous image after the database update. Removing a card revokes public image access immediately, then deletes its Storage object. If Storage cleanup reports an error, remove the orphan manually from the private `winner-images` bucket.
 
 ## PDF reconciliation
 
