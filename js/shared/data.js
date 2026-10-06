@@ -172,11 +172,32 @@ export function getEventTimeSlots(tournament) {
   return Array.isArray(tournament?.timeSlots) ? tournament.timeSlots : [];
 }
 
+export function getTimeSlotState(tournament, timeSlot, now = Date.now()) {
+  if (tournament?.comingSoon === true) {
+    return { key: "scheduled", label: "Coming soon", open: false };
+  }
+
+  const startsAt = Date.parse(timeSlot?.startsAt);
+  if (!Number.isFinite(startsAt)) {
+    return { key: "unavailable", label: "Lobby unavailable", open: false };
+  }
+  if (startsAt <= now) {
+    return { key: "complete", label: "Completed", open: false };
+  }
+  if (tournament?.registrationOpen !== true) {
+    return { key: "closed", label: "Registration closed", open: false };
+  }
+  if (!config.registrationSafe) {
+    return { key: "unavailable", label: "Registration unavailable", open: false };
+  }
+  if (Number(timeSlot?.spotsLeft) <= 0) {
+    return { key: "full", label: "Lobby full", open: false };
+  }
+  return { key: "open", label: "Registration open", open: true };
+}
+
 export function getOpenTimeSlots(tournament, now = Date.now()) {
-  return getEventTimeSlots(tournament).filter((timeSlot) => {
-    const startsAt = Date.parse(timeSlot?.startsAt);
-    return Number.isFinite(startsAt) && startsAt > now && Number(timeSlot?.spotsLeft) > 0;
-  });
+  return getEventTimeSlots(tournament).filter((timeSlot) => getTimeSlotState(tournament, timeSlot, now).open);
 }
 
 export function getTimeSlot(tournament, id) {
@@ -273,19 +294,21 @@ export function getEventState(tournament, now = Date.now()) {
 
   const health = getEventHealth(tournament);
   if (!health.valid) return { key: "unavailable", label: "Event unavailable", open: false, action: "View event", reason: health.reason };
+
+  const timeSlots = getEventTimeSlots(tournament);
+  const timeSlotStates = timeSlots.map((timeSlot) => getTimeSlotState(tournament, timeSlot, now));
+  if (timeSlotStates.length && timeSlotStates.every((state) => state.key === "complete")) {
+    return { key: "complete", label: "Completed", open: false, action: "View event", reason: "All scheduled lobbies have started." };
+  }
   if (tournament.registrationOpen !== true) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
   if (!config.registrationSafe) return { key: "unavailable", label: "Registration unavailable", open: false, action: "View event", reason: "Organizer contact unavailable" };
 
-  const timeSlots = getEventTimeSlots(tournament);
   if (timeSlots.length) {
-    const openTimeSlots = getOpenTimeSlots(tournament, now);
+    const openTimeSlots = timeSlots.filter((_timeSlot, index) => timeSlotStates[index].open);
     if (openTimeSlots.length) {
       return { key: "open", label: "Registration open", open: true, action: "Choose lobby", reason: `${openTimeSlots.length} scheduled ${openTimeSlots.length === 1 ? "lobby is" : "lobbies are"} available.` };
     }
-    const allStarted = timeSlots.every((timeSlot) => Date.parse(timeSlot.startsAt) <= now);
-    return allStarted
-      ? { key: "complete", label: "Completed", open: false, action: "View event", reason: "Both Solo lobbies have started." }
-      : { key: "full", label: "Lobbies full", open: false, action: "View event", reason: "Both scheduled lobbies are full." };
+    return { key: "full", label: "Lobbies full", open: false, action: "View event", reason: "All future scheduled lobbies are full." };
   }
 
   if (Number(tournament.spotsLeft) <= 0) return { key: "full", label: "Slots full", open: false, action: "View event" };

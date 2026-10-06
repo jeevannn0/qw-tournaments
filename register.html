@@ -9,8 +9,8 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Register — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-upi-manual">
-  <link rel="stylesheet" href="css/gaming.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-mobile-compact-v2">
+  <link rel="stylesheet" href="css/gaming.css?v=20261006-mobile-compact-v2">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="register">
@@ -39,7 +39,7 @@
           <div class="wizard-error" id="wizardError" role="alert" tabindex="-1" hidden></div>
 
           <section class="wizard-panel" data-step-panel="1">
-            <div class="wizard-panel__heading"><p class="kicker">Step 1</p><h2 tabindex="-1">Choose match and lobby</h2><p>Select one available 50-player Solo lobby on 6 October 2026.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 1</p><h2 tabindex="-1">Choose your lobby</h2><p>Pick 7:30 PM or 9:00 PM. Each Solo lobby has 50 places.</p></div>
             <fieldset class="match-picker-fieldset"><legend>Free Fire match <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></legend><div class="match-picker" id="registrationEvent" aria-label="Available Free Fire matches"></div></fieldset>
             <div class="picker-confirmation" id="registrationEventPreview" aria-live="polite"></div>
             <fieldset class="lobby-picker-fieldset"><legend>Choose your Solo lobby <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></legend><div class="lobby-picker" id="registrationLobby" aria-label="Available Solo lobby times"></div></fieldset>
@@ -47,23 +47,23 @@
           </section>
 
           <section class="wizard-panel" data-step-panel="2" hidden>
-            <div class="wizard-panel__heading"><p class="kicker">Step 2</p><h2 tabindex="-1">Player and payment</h2><p>Every field and the payment screenshot are required. Nothing is submitted at this step.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 2</p><h2 tabindex="-1">Your details</h2><p>Add the player details, pay ₹10, and upload the payment proof.</p></div>
             <div id="lineupFields"></div>
 
             <section class="payment-proof" aria-labelledby="paymentProofTitle">
               <div class="lineup-heading"><div><span class="kicker">Private details</span><h2 id="paymentProofTitle">Payment proof</h2></div><span class="lineup-count">Required</span></div>
-              <p class="payment-proof__intro"><strong>Pay manually to avoid the false bank-limit error.</strong> Copy the UPI ID below, open your payment app, paste the ID, verify the recipient, and enter exactly ₹10. Then upload the screenshot; it does not confirm payment.</p>
+              <p class="payment-proof__intro"><strong>Three steps:</strong> Copy the UPI ID, pay exactly ₹10 in any UPI app, then enter the transaction reference and upload the screenshot.</p>
               <div class="upi-payment-card">
                 <span>Pay ₹10 to this UPI ID</span>
                 <strong id="paymentUpiId">Loading verified UPI ID…</strong>
                 <div class="button-row"><button class="button button--whatsapp" id="copyUpiId" type="button">Copy UPI ID</button></div>
-                <small id="upiAppHelp">After copying, open any UPI app, paste the ID, verify the recipient name, and enter ₹10 manually. Never enter your UPI PIN on this website.</small>
+                <small id="upiAppHelp">Open any UPI app, paste this ID, check the recipient, and pay ₹10. Never enter your UPI PIN here.</small>
               </div>
               <input type="hidden" id="paymentMethod" name="paymentMethod" value="upi">
               <div class="form-grid payment-form-grid">
                 <div class="field"><label for="contactWhatsapp">WhatsApp number <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="contactWhatsapp" name="contactWhatsapp" type="tel" inputmode="numeric" autocomplete="tel" pattern="[6-9][0-9]{9}" minlength="10" maxlength="10" placeholder="10-digit Indian number" required><small>Used privately for registration updates.</small></div>
                 <div class="field"><label for="paymentReference">UTR or transaction reference <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="paymentReference" name="paymentReference" type="text" autocomplete="off" minlength="6" maxlength="40" pattern="[A-Za-z0-9\-]{6,40}" placeholder="Example: 123456789012" required><small>Copy the reference from your payment app.</small></div>
-                <div class="field payment-screenshot-field"><label for="paymentScreenshot">Payment screenshot <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="paymentScreenshot" name="paymentScreenshot" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="paymentScreenshotHelp paymentScreenshotState" required><small id="paymentScreenshotHelp">JPG, PNG, or WebP; maximum 2 MB. Do not upload an OTP, PIN, password, or identity document.</small><span id="paymentScreenshotState" class="file-state" aria-live="polite">No screenshot selected.</span></div>
+                <div class="field payment-screenshot-field"><label for="paymentScreenshot">Payment screenshot <span aria-hidden="true">*</span><span class="visually-hidden"> required</span></label><input id="paymentScreenshot" name="paymentScreenshot" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="paymentScreenshotHelp paymentScreenshotState" required><small id="paymentScreenshotHelp">JPG, PNG, or WebP; maximum 2 MB.</small><span id="paymentScreenshotState" class="file-state" aria-live="polite">No screenshot selected.</span></div>
               </div>
             </section>
 
@@ -71,14 +71,14 @@
           </section>
 
           <section class="wizard-panel" data-step-panel="3" hidden>
-            <div class="wizard-panel__heading"><p class="kicker">Step 3</p><h2 tabindex="-1">Review everything</h2><p>The player record is created only after validation and the private screenshot upload both succeed.</p></div>
+            <div class="wizard-panel__heading"><p class="kicker">Step 3</p><h2 tabindex="-1">Check and submit</h2><p>Confirm the details below before sending them for organizer verification.</p></div>
             <div class="backend-status" id="supabaseSetupWarning" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration and deploy the security rules before accepting registrations.</p></div>
             <div class="registration-review" id="registrationReview"></div>
             <div class="consent-stack">
-              <label><input type="checkbox" name="rulesAccepted" data-consent required><span>I accept the <a href="rules.html" target="_blank" rel="noopener noreferrer">tournament rules</a>, including kill verification, Booyah verification, lobby instructions, and dispute deadlines.</span></label>
-              <label><input type="checkbox" name="guardianApproved" data-consent required><span>I am 18+, or my parent or guardian approved participation and payment.</span></label>
-              <label><input type="checkbox" name="paymentConfirmed" data-consent required><span>I made the ₹10 payment, entered the correct transaction reference, and uploaded the matching screenshot.</span></label>
-              <label><input type="checkbox" name="publicRosterApproved" data-consent required><span>I understand that my in-game name, UID, slot, and registration reference can appear in the public confirmed-player roster; my age, number, and payment proof stay private.</span></label>
+              <label><input type="checkbox" name="rulesAccepted" data-consent required><span>I accept the <a href="rules.html" target="_blank" rel="noopener noreferrer">tournament rules</a> and result checks.</span></label>
+              <label><input type="checkbox" name="guardianApproved" data-consent required><span>I am 18+, or I have parent or guardian approval.</span></label>
+              <label><input type="checkbox" name="paymentConfirmed" data-consent required><span>I paid ₹10 and attached the matching UTR and screenshot.</span></label>
+              <label><input type="checkbox" name="publicRosterApproved" data-consent required><span>My game name, UID, slot, and reference may be public. Personal and payment details stay private.</span></label>
             </div>
             <div class="payment-handoff"><div class="payment-handoff__icon" aria-hidden="true">₹</div><div><strong>Submission is not confirmation</strong><p>The organizer checks the incoming ₹10 payment in the organizer-controlled account. A screenshot or successful upload does not confirm a slot.</p></div></div>
             <div class="upload-progress" id="registrationUploadProgress" role="status" aria-live="polite" hidden><span id="registrationUploadLabel">Preparing secure upload…</span><progress id="registrationUploadMeter" max="100" value="0">0%</progress></div>
@@ -103,6 +103,6 @@
   <script src="data/config.js?v=20261006-upi-ybl"></script>
   <script src="data/tournaments.js?v=20261006-upi-manual"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/register-page.js?v=20261006-upi-copy-only"></script>
+  <script type="module" src="js/pages/register-page.js?v=20261006-match-complete"></script>
 </body>
 </html>

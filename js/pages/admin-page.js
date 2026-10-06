@@ -1,4 +1,4 @@
-import { escapeHtml, normalize, tournaments } from "../shared/data.js?v=20261006-lobbies";
+import { escapeHtml, getTimeSlotState, normalize, tournaments } from "../shared/data.js?v=20261006-match-complete";
 import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
 import { paymentMethodLabel } from "../shared/registration-backend.js";
 import { initializeShell, showToast } from "../shared/shell.js?v=20261006-mobile-compact-v2";
@@ -98,6 +98,15 @@ function projectedRegistration(row) {
   };
 }
 
+function registrationMatchState(registration) {
+  const tournament = tournaments.find((item) => item.id === registration?.tournamentId);
+  return getTimeSlotState(tournament, {
+    id: registration?.timeSlot?.id,
+    startsAt: registration?.timeSlot?.startsAt,
+    spotsLeft: 1
+  });
+}
+
 function availableWinnerMatches() {
   return tournaments.flatMap((tournament) => (tournament.comingSoon || !Array.isArray(tournament.timeSlots) ? [] : tournament.timeSlots.map((timeSlot) => ({
     key: `${tournament.id}|${timeSlot.id}`,
@@ -106,6 +115,7 @@ function availableWinnerMatches() {
     timeSlotId: timeSlot.id,
     timeSlotLabel: timeSlot.label,
     startsAt: timeSlot.startsAt,
+    state: getTimeSlotState(tournament, timeSlot),
     killReward: Number(tournament.killReward) || 0,
     booyahBonus: Number(tournament.booyahBonus) || 0
   }))));
@@ -395,7 +405,7 @@ function renderRegistrations() {
     <tr>
       <td data-label="Submitted">${escapeHtml(formatTimestamp(registration.submittedAt))}</td>
       <td data-label="Player"><strong>${escapeHtml(registration.participant.displayName || "Unnamed")}</strong><small>${escapeHtml(registration.participant.uid)}</small></td>
-      <td data-label="Lobby"><strong>${escapeHtml(registration.timeSlot.label)}</strong><small>${escapeHtml(formatTimestamp(registration.timeSlot.startsAt))}</small></td>
+      <td data-label="Lobby"><strong>${escapeHtml(registration.timeSlot.label)}</strong><small>${escapeHtml(formatTimestamp(registration.timeSlot.startsAt))} · ${escapeHtml(registrationMatchState(registration).label)}</small></td>
       <td data-label="Reference"><code>${escapeHtml(registration.reference)}</code></td>
       <td data-label="Payment / UTR"><div class="admin-payment-cell">${statusBadge(registration.paymentStatus)}<code>${escapeHtml(registration.payment.transactionReference)}</code>${registration.duplicateCount > 1 ? `<span class="duplicate-warning">Duplicate ×${registration.duplicateCount}</span>` : ""}</div></td>
       <td data-label="Registration">${statusBadge(registration.registrationStatus)}</td>
@@ -423,7 +433,7 @@ function exportPaymentReport(items, scopeLabel) {
     <tr class="${item.duplicateCount > 1 ? "duplicate" : ""}">
       <td class="check">☐</td>
       <td>${escapeHtml(formatTimestamp(item.submittedAt))}</td>
-      <td><strong>${escapeHtml(item.timeSlot.label)}</strong><br>${escapeHtml(formatTimestamp(item.timeSlot.startsAt))}</td>
+      <td><strong>${escapeHtml(item.timeSlot.label)}</strong><br>${escapeHtml(formatTimestamp(item.timeSlot.startsAt))}<br><small>${escapeHtml(registrationMatchState(item).label)}</small></td>
       <td>${escapeHtml(item.participant.displayName)}<br><small>${escapeHtml(item.participant.uid)}</small></td>
       <td>${escapeHtml(item.contactWhatsapp)}</td>
       <td><code>${escapeHtml(item.payment.transactionReference)}</code>${item.duplicateCount > 1 ? `<br><b>Duplicate ×${item.duplicateCount}</b>` : ""}</td>
@@ -485,7 +495,7 @@ function openRegistration(registration) {
   detailContent.innerHTML = `
     <section><h3>Player</h3><dl class="admin-detail-list">${detailPair("In-game name", registration.participant.displayName)}${detailPair("Free Fire UID", registration.participant.uid)}${detailPair("Age", String(registration.participant.age))}${detailPair("Private WhatsApp", registration.contactWhatsapp)}</dl></section>
     <section><h3>Payment</h3><dl class="admin-detail-list">${detailPair("Amount", `₹${registration.payment.amount}`)}${detailPair("Method", paymentMethodLabel(registration.payment.method))}${detailPair("Transaction reference", registration.payment.transactionReference)}${detailPair("Automatic UTR check", registration.duplicateCount > 1 ? `Duplicate across ${registration.duplicateCount} registrations` : "Unique in current registrations")}${detailPair("File", `${registration.payment.contentType} · ${(registration.payment.size / (1024 * 1024)).toFixed(2)} MB`)}</dl></section>
-    <section><h3>Submission</h3><dl class="admin-detail-list">${detailPair("Tournament", registration.tournamentName)}${detailPair("Selected lobby", `${registration.timeSlot.label} — ${formatTimestamp(registration.timeSlot.startsAt)}`)}${detailPair("Submitted", formatTimestamp(registration.submittedAt))}${detailPair("Updated", formatTimestamp(registration.updatedAt))}${detailPair("Database record", registration.id)}</dl></section>`;
+    <section><h3>Submission</h3><dl class="admin-detail-list">${detailPair("Tournament", registration.tournamentName)}${detailPair("Selected lobby", `${registration.timeSlot.label} — ${formatTimestamp(registration.timeSlot.startsAt)} — ${registrationMatchState(registration).label}`)}${detailPair("Submitted", formatTimestamp(registration.submittedAt))}${detailPair("Updated", formatTimestamp(registration.updatedAt))}${detailPair("Database record", registration.id)}</dl></section>`;
   document.querySelector("#adminPaymentStatus").value = registration.paymentStatus;
   document.querySelector("#adminRegistrationStatus").value = registration.registrationStatus;
   document.querySelector("#adminSlot").value = registration.slot || "";
@@ -717,7 +727,7 @@ async function initializeAdmin() {
   try {
     client = await getSupabaseClient();
     const winnerMatches = availableWinnerMatches();
-    winnerMatch.innerHTML = winnerMatches.map((match) => `<option value="${escapeHtml(match.key)}">${escapeHtml(match.tournamentName)} · ${escapeHtml(match.timeSlotLabel)} · ${escapeHtml(formatTimestamp(match.startsAt))}</option>`).join("");
+    winnerMatch.innerHTML = winnerMatches.map((match) => `<option value="${escapeHtml(match.key)}">${escapeHtml(match.tournamentName)} · ${escapeHtml(match.timeSlotLabel)} · ${escapeHtml(match.state.label)} · ${escapeHtml(formatTimestamp(match.startsAt))}</option>`).join("");
     winnerMatch.disabled = !winnerMatches.length;
     syncWinnerEditor();
     winnerMatch.addEventListener("change", () => syncWinnerEditor());

@@ -13,9 +13,10 @@ import {
   getOpenTimeSlots,
   getRequestedTournament,
   getTimeSlot,
+  getTimeSlotState,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261006-upi-manual";
+} from "../shared/data.js?v=20261006-match-complete";
 import {
   buildGroupJoinMessage,
   collectRegistration,
@@ -32,7 +33,7 @@ import {
   validatePaymentDetails
 } from "../shared/registration-backend.js?v=20261006-upi-manual";
 import { isSupabaseConfigured } from "../shared/supabase.js";
-import { icon, initializeShell, showToast } from "../shared/shell.js";
+import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
 
 const form = document.querySelector("#registrationWizard");
@@ -100,16 +101,16 @@ function matchPickerCard(tournament, index) {
     </label>`;
 }
 
-function lobbyChoice(timeSlot, index, openTimeSlotIds) {
+function lobbyChoice(tournament, timeSlot, index) {
   const id = `lobbyPick${index + 1}`;
-  const open = openTimeSlotIds.has(timeSlot.id);
+  const state = getTimeSlotState(tournament, timeSlot);
   return `
-    <input class="visually-hidden lobby-picker__input" id="${id}" name="timeSlot" type="radio" value="${escapeHtml(timeSlot.id)}" ${open ? "" : "disabled"} required>
-    <label class="lobby-choice ${open ? "" : "lobby-choice--disabled"}" for="${id}">
+    <input class="visually-hidden lobby-picker__input" id="${id}" name="timeSlot" type="radio" value="${escapeHtml(timeSlot.id)}" ${state.open ? "" : "disabled"} required>
+    <label class="lobby-choice ${state.open ? "" : "lobby-choice--disabled"}" for="${id}">
       <span>Lobby ${index + 1}</span>
       <strong>${escapeHtml(timeSlot.label)}</strong>
       <time datetime="${escapeHtml(timeSlot.startsAt)}">${escapeHtml(formatDateTime(timeSlot.startsAt, "long"))}</time>
-      <small>${escapeHtml(`${timeSlot.spotsLeft}/${timeSlot.capacity} places available`)}</small>
+      <small>${escapeHtml(state.open ? `${timeSlot.spotsLeft}/${timeSlot.capacity} places available` : state.label)}</small>
       <i aria-hidden="true">${icon("check")}</i>
     </label>`;
 }
@@ -117,9 +118,8 @@ function lobbyChoice(timeSlot, index, openTimeSlotIds) {
 function renderLobbyChoices(tournament) {
   selectedTimeSlot = null;
   const timeSlots = getEventTimeSlots(tournament);
-  const openTimeSlotIds = new Set(getOpenTimeSlots(tournament).map((timeSlot) => timeSlot.id));
   lobbyPicker.innerHTML = timeSlots.length
-    ? timeSlots.map((timeSlot, index) => lobbyChoice(timeSlot, index, openTimeSlotIds)).join("")
+    ? timeSlots.map((timeSlot, index) => lobbyChoice(tournament, timeSlot, index)).join("")
     : '<div class="inline-empty">No lobby times are available.</div>';
   lobbyPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
 }
@@ -448,7 +448,7 @@ function initializeWizard() {
         showToast(`Copy unavailable. Enter ${config.upiId} in your UPI app and pay ₹10.`, 7000);
       }
     });
-    upiAppHelp.textContent = "After copying, open any UPI app, paste the ID, verify the recipient name, and enter ₹10 manually.";
+    upiAppHelp.textContent = "Open any UPI app, paste this ID, check the recipient, and pay ₹10. Never enter your UPI PIN here.";
   } else {
     upiIdMount.textContent = "UPI payment unavailable";
     copyUpiButton.disabled = true;

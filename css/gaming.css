@@ -1098,3 +1098,244 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Keep the gaming identity on phones without competing with the task. */
+@media (max-width: 43.74rem) {
+  .home-hero__layout {
+    min-height: 20.5rem;
+    padding-block: 1.5rem;
+  }
+
+  .home-hero__copy {
+    width: min(100%, 22rem);
+  }
+
+  .home-hero h1 {
+    max-width: 13ch;
+    margin-bottom: 0.5rem;
+    font-size: clamp(2.4rem, 11vw, 2.8rem);
+    line-height: 0.84;
+  }
+
+  .home-hero__copy > p {
+    max-width: 30ch;
+    margin-bottom: 0.85rem;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .home-hero .button-row {
+    width: min(100%, 18rem);
+  }
+
+  .home-hero .button--quiet {
+    display: none;
+  }
+
+  .hero-label {
+    margin-bottom: 0.65rem;
+  }
+
+  .hero-proof {
+    gap: 0.3rem;
+    margin-top: 0.65rem;
+  }
+
+  .hero-proof span {
+    min-height: 1.5rem;
+    padding: 0.15rem 0.35rem;
+    font-size: 0.62rem;
+  }
+
+  .battle-poster__scan,
+  .battle-poster__glitch,
+  .battle-poster__reticle,
+  .battle-poster__corner,
+  .hero-hud,
+  .glitch-word::before,
+  .glitch-word::after {
+    display: none;
+  }
+
+  .battle-poster__image {
+    animation: none;
+    object-position: 73% center;
+  }
+
+  .event-card__art::before,
+  .event-card::after,
+  .feature-event::after {
+    display: none;
+  }
+
+  .status-badge--open > span,
+  .status-badge--open > i {
+    animation: none;
+    box-shadow: none;
+  }
+
+  .reward-strip,
+  .reward-strip--feature {
+    margin-block: 0.75rem;
+  }
+
+  .reward-strip > span {
+    padding: 0.55rem;
+  }
+
+  .reward-strip strong,
+  .review-rewards strong {
+    font-size: 1.15rem;
+  }
+
+  .prize-podium--rewards .prize-place {
+    min-height: 4rem;
+  }
+}
+
+@media (max-width: 22rem) {
+  .home-hero__layout {
+    min-height: 22rem;
+  }
+
+  .home-hero h1 {
+    font-size: 2.55rem;
+  }
+
+  .wordmark__text {
+    display: none;
+  }
+}
+
+@media (max-width: 43.74rem) {
+  .review-rewards {
+    display: none;
+  }
+}
+
+/* Mobile Solo hero: compact official match artwork with a clean reading zone. */
+@media (max-width: 43.74rem) {
+  .home-hero__layout {
+    min-height: 18.5rem;
+    padding-block: 1.1rem;
+  }
+
+  .home-hero__layout::after {
+    background:
+      linear-gradient(0deg, rgba(4, 7, 13, 0.98) 0%, rgba(4, 7, 13, 0.88) 48%, rgba(4, 7, 13, 0.24) 100%),
+      linear-gradient(90deg, rgba(4, 7, 13, 0.78), transparent 76%);
+  }
+
+  .home-hero__copy {
+    width: min(100%, 22rem);
+  }
+
+  .home-hero h1 {
+    max-width: 15ch;
+    font-size: clamp(2.2rem, 10vw, 2.6rem);
+    line-height: 0.88;
+  }
+
+  .home-hero__copy > p {
+    max-width: none;
+    margin-bottom: 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  .hero-label {
+    margin-bottom: 0.45rem;
+  }
+
+  .hero-proof {
+    margin-top: 0.5rem;
+  }
+
+  .battle-poster__image {
+    width: 100%;
+    height: 100%;
+    transform: none;
+    object-position: 58% center;
+    filter: saturate(1.04) contrast(1.08);
+  }
+}
+
+@media (max-width: 22rem) {
+  .home-hero__layout {
+    min-height: 18rem;
+  }
+}
+
+/* Selected Free Fire hero: bounded artwork panel on the right, readable copy on the left. */
+.home-hero .battle-poster {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: min(64vw, 64rem);
+  transform: none;
+}
+
+.home-hero .battle-poster__image {
+  width: 100%;
+  height: 100%;
+  transform: none;
+  object-fit: cover;
+  object-position: 58% center;
+}
+
+.home-hero__layout::after {
+  background:
+    linear-gradient(90deg, rgba(4, 7, 13, 1) 0%, rgba(4, 7, 13, 0.98) 30%, rgba(4, 7, 13, 0.76) 52%, rgba(4, 7, 13, 0.12) 78%, rgba(4, 7, 13, 0) 100%),
+    linear-gradient(0deg, rgba(4, 7, 13, 0.55), transparent 55%);
+}
+
+@media (min-width: 43.75rem) {
+  .home-hero__layout {
+    min-height: min(40rem, calc(100svh - var(--header-stack)));
+  }
+}
+
+@media (max-width: 43.74rem) {
+  .home-hero__layout {
+    min-height: 18rem;
+    padding-block: 1rem;
+  }
+
+  .home-hero .battle-poster {
+    right: calc(-1 * var(--gutter));
+    width: 58vw;
+  }
+
+  .home-hero .battle-poster__image {
+    object-position: 67% center;
+  }
+
+  .home-hero__layout::after {
+    background:
+      linear-gradient(90deg, rgba(4, 7, 13, 1) 0%, rgba(4, 7, 13, 0.98) 43%, rgba(4, 7, 13, 0.76) 61%, rgba(4, 7, 13, 0.08) 100%),
+      linear-gradient(0deg, rgba(4, 7, 13, 0.88), transparent 58%);
+  }
+
+  .home-hero__copy {
+    width: 72%;
+    padding-right: 0;
+  }
+
+  .home-hero h1 {
+    max-width: 11ch;
+    font-size: clamp(2rem, 9.5vw, 2.35rem);
+  }
+
+  .home-hero__copy > p {
+    max-width: 26ch;
+    font-size: 0.76rem;
+  }
+
+  .home-hero .button-row {
+    width: min(100%, 13.5rem);
+  }
+
+  .hero-proof {
+    display: none;
+  }
+}

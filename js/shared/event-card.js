@@ -11,8 +11,8 @@ import {
   getEventState,
   getEventTimeSlots,
   registrationUrl
-} from "./data.js?v=20261006-lobbies";
-import { icon } from "./shell.js";
+} from "./data.js?v=20261006-match-complete";
+import { icon } from "./shell.js?v=20261006-mobile-compact-v2";
 
 export function eventStatusBadge(tournament) {
   const state = getEventState(tournament);

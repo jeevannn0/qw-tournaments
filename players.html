@@ -9,8 +9,8 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Confirmed Players — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-roster-board">
-  <link rel="stylesheet" href="css/gaming.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-mobile-compact-v2">
+  <link rel="stylesheet" href="css/gaming.css?v=20261006-mobile-compact-v2">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="players">
@@ -22,7 +22,7 @@
     <section class="page-intro page-intro--players">
       <div class="page-intro__mesh" aria-hidden="true"></div>
       <div class="shell page-intro__layout">
-        <div data-reveal><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Players</span></nav><p class="kicker">Confirmed roster</p><h1>Find your place in the lobby.</h1><p>Check your player number, lobby, in-game name, UID, and registration reference. Personal and payment details stay private.</p></div>
+        <div data-reveal><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Players</span></nav><p class="kicker">Confirmed roster</p><h1>Confirmed players.</h1><p>Find your lobby, player number, in-game name, and UID.</p></div>
         <div class="roster-orbit" aria-hidden="true" data-reveal><span></span><span></span><strong>02</strong><small>scheduled lobbies</small></div>
       </div>
     </section>
@@ -31,7 +31,7 @@
       <div class="shell">
         <div class="roster-controls" data-reveal>
           <div class="roster-controls__heading"><div><p class="kicker">Match board</p><h2 id="rosterBoardTitle">Confirmed players</h2></div><p>Filter by lobby or search the public roster.</p></div>
-          <div class="field"><label for="rosterEvent">Tournament</label><select id="rosterEvent"></select></div>
+          <div class="field roster-event-field"><label for="rosterEvent">Tournament</label><select id="rosterEvent"></select></div>
           <div class="field"><label for="rosterLobby">Lobby</label><select id="rosterLobby"><option value="all">All lobbies</option></select></div>
           <div class="field search-field"><label for="rosterSearch">Find a player</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="rosterSearch" type="search" placeholder="Player, UID, or reference" autocomplete="off"></div></div>
         </div>
@@ -56,6 +56,6 @@
   <script src="data/tournaments.js?v=20261006-lobbies"></script>
   <script src="data/players.js"></script>
   <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/players-page.js?v=20261006-roster-board"></script>
+  <script type="module" src="js/pages/players-page.js?v=20261006-match-complete"></script>
 </body>
 </html>

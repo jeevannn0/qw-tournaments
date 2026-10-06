@@ -2,11 +2,13 @@ import {
   escapeHtml,
   formatCurrency,
   formatDateTime,
+  getEventState,
   getTimeSlot,
+  getTimeSlotState,
   getTournament,
   normalize,
   winners
-} from "../shared/data.js?v=20261006-booyah-admin-v1";
+} from "../shared/data.js?v=20261006-match-complete";
 import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
 import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion } from "../shared/motion.js";
@@ -45,6 +47,7 @@ function projectWinner(entry) {
     tournamentName: normalize(tournament.name).slice(0, 80),
     matchLabel: normalize(timeSlot?.label || entry.matchLabel || tournament.formatLabel || "Match").slice(0, 60),
     matchAt: timeSlot?.startsAt || entry.matchAt || tournament.matchAt || null,
+    matchState: timeSlot ? getTimeSlotState(tournament, timeSlot) : getEventState(tournament),
     totalReward: Number.isInteger(prizeAmount) && prizeAmount >= 0 ? prizeAmount : calculatedReward,
     imagePath: normalize(entry.imagePath).slice(0, 400),
     imageUrl: normalize(entry.imageUrl).slice(0, 1000),
@@ -77,7 +80,7 @@ function winnerCard(winner, index) {
           <div><p>${escapeHtml(winner.matchLabel)}</p><h2>${escapeHtml(winner.displayName)}</h2>${playerCode}</div>
           <span class="winner-card__badge">${icon("trophy")} Booyah</span>
         </header>
-        <div class="winner-card__match"><strong>${escapeHtml(winner.tournamentName)}</strong>${date}</div>
+        <div class="winner-card__match"><strong>${escapeHtml(winner.tournamentName)}</strong>${date}<span class="status-badge status-badge--${escapeHtml(winner.matchState.key)}"><i aria-hidden="true"></i>${escapeHtml(winner.matchState.label)}</span></div>
         ${kills || reward ? `<div class="winner-card__facts">${kills}${reward}</div>` : ""}
       </div>
     </div>

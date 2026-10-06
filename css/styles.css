@@ -5810,3 +5810,1495 @@ select:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* Compact mobile UX: prioritize the next action and progressively disclose detail. */
+@media (max-width: 43.74rem) {
+  :root {
+    --gutter: 0.875rem;
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 10.5vw, 2.8rem);
+    line-height: 0.92;
+  }
+
+  h2 {
+    font-size: clamp(1.55rem, 7.5vw, 2rem);
+    line-height: 1;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  .section {
+    padding-block: 2rem;
+  }
+
+  .section-heading {
+    margin-bottom: 1rem;
+  }
+
+  .section-lead,
+  .section-heading--split > p,
+  .page-intro__layout > div:first-child > p:last-child {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .kicker,
+  .eyebrow-label {
+    font-size: 0.6875rem;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  .page-intro__layout {
+    gap: 0;
+    padding-block: 1.25rem 1.5rem;
+  }
+
+  .page-intro h1 {
+    margin-bottom: 0.4rem;
+    font-size: clamp(2rem, 9.5vw, 2.55rem);
+    line-height: 0.95;
+  }
+
+  .page-intro__index,
+  .roster-orbit,
+  .rules-seal,
+  .booyah-crown {
+    display: none;
+  }
+
+  .empty-state {
+    min-height: 11rem;
+    padding: 1.25rem;
+  }
+
+  .empty-state__mark {
+    font-size: 2.75rem;
+  }
+
+  .empty-state__icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state h2 {
+    font-size: 1.5rem;
+  }
+
+  .app-header__inner {
+    min-height: 3.5rem;
+  }
+
+  .wordmark__symbol,
+  .icon-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .header-register {
+    min-height: 2.75rem;
+  }
+
+  .nav-drawer__panel {
+    width: min(88vw, 21rem);
+  }
+
+  .nav-drawer__header h2 {
+    font-size: 1.5rem;
+  }
+
+  .drawer-nav__link {
+    min-height: 3.25rem;
+    font-size: 1rem;
+  }
+
+  .signal-strip__grid > div,
+  .signal-strip__grid > div:nth-child(even),
+  .signal-strip__grid > div:nth-last-child(-n + 2) {
+    min-height: 3.75rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .signal-strip__grid strong {
+    font-size: 1.25rem;
+  }
+
+  .signal-strip__grid span,
+  .signal-strip__grid small {
+    font-size: 0.58rem;
+    line-height: 1.2;
+  }
+
+  .signal-strip__message {
+    min-height: 2.35rem !important;
+  }
+
+  .signal-strip__message p {
+    font-size: 0.7rem;
+  }
+
+  .mobile-event-section {
+    padding-block: 1.5rem 2rem;
+  }
+
+  #homeEventGrid {
+    gap: 0.75rem;
+  }
+
+  #homeEventGrid .event-card {
+    width: min(74vw, 17rem);
+    flex-basis: min(74vw, 17rem);
+  }
+
+  .event-card__art {
+    aspect-ratio: 2.2 / 1;
+  }
+
+  .event-card__body {
+    padding: 0.75rem;
+  }
+
+  .event-card__format {
+    font-size: 0.7rem;
+  }
+
+  .event-card h3 {
+    margin-bottom: 0.35rem;
+    font-size: 1.35rem;
+  }
+
+  .event-card .reward-strip {
+    margin-block: 0.65rem;
+  }
+
+  .event-card .reward-strip > span {
+    padding: 0.5rem;
+  }
+
+  .event-card .reward-strip strong {
+    font-size: 1.15rem;
+  }
+
+  .event-card__facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 0.65rem;
+  }
+
+  .event-card__facts > div:nth-child(2),
+  .event-card__facts > div:nth-child(3) {
+    display: none;
+  }
+
+  .event-card--coming-soon .event-card__facts,
+  .event-card--coming-soon .button--disabled,
+  .event-card__body > .media-credit,
+  .mobile-event-section .event-card__facts > div:nth-child(4),
+  .event-grid--catalog .event-card__facts > div:nth-child(4) {
+    display: none;
+  }
+
+  .mobile-event-section .event-card__facts,
+  .event-grid--catalog .event-card__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .event-card__actions {
+    gap: 0.35rem;
+    padding-top: 0.65rem;
+  }
+
+  .event-card__actions .button {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.8125rem;
+  }
+
+  .coming-soon-strip {
+    margin-block: 0.65rem;
+    padding: 0.6rem;
+  }
+
+  .coming-soon-strip strong {
+    font-size: 1.1rem;
+  }
+
+  .coming-soon-strip span {
+    display: none;
+  }
+
+  .feature-section {
+    padding-block: 2rem;
+  }
+
+  .feature-section .section-heading > p,
+  .feature-event__lead,
+  .feature-event__facts,
+  .feature-event__visual,
+  .feature-event__content > .media-credit {
+    display: none;
+  }
+
+  .feature-event__content {
+    padding: 1rem;
+  }
+
+  .feature-event__content h2 {
+    font-size: 1.75rem;
+  }
+
+  .feature-event .reward-strip--feature {
+    margin-block: 0.75rem;
+  }
+
+  .process-section {
+    padding-block: 2rem;
+  }
+
+  .process-layout {
+    gap: 1rem;
+  }
+
+  .process-intro > p:not(.kicker) {
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .process-steps li {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+  }
+
+  .process-steps small,
+  .process-steps p {
+    display: none;
+  }
+
+  .process-steps h3 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .trust-cta {
+    padding-block: 0 2rem;
+  }
+
+  .trust-cta__panel {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .trust-cta__icon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .trust-cta__panel h2 {
+    margin-bottom: 0.25rem;
+    font-size: 1.5rem;
+  }
+
+  .trust-cta__panel p:not(.kicker) {
+    font-size: 0.8rem;
+  }
+
+  .trust-cta__panel > .button {
+    grid-column: 1 / -1;
+  }
+
+  .catalog-section {
+    padding-top: 1rem;
+  }
+
+  .catalog-layout {
+    gap: 1.25rem;
+  }
+
+  .catalog-controls {
+    padding: 0.75rem;
+  }
+
+  .catalog-controls__heading {
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .catalog-controls__heading h2 {
+    font-size: 1.4rem;
+  }
+
+  .catalog-controls .search-field,
+  .catalog-controls .segment-field,
+  .catalog-controls .control-note {
+    display: none;
+  }
+
+  .catalog-controls .field {
+    margin-bottom: 0;
+  }
+
+  .catalog-main__heading {
+    margin-bottom: 0.75rem;
+  }
+
+  .catalog-main__heading .button {
+    min-height: 2.75rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .event-grid--catalog {
+    gap: 0.75rem;
+  }
+
+  .board-cta {
+    display: none;
+  }
+
+  .registration-page {
+    padding-block: 0.75rem 1.5rem;
+  }
+
+  .registration-page__layout {
+    gap: 0.5rem;
+  }
+
+  .wizard-sidebar .breadcrumb,
+  .wizard-steps,
+  .wizard-safety,
+  .match-picker-fieldset,
+  .picker-confirmation > span {
+    display: none;
+  }
+
+  .wizard-card__progress {
+    padding: 0.6rem 0.75rem 0;
+  }
+
+  .wizard-panel {
+    padding: 0.75rem;
+  }
+
+  .wizard-panel__heading {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .wizard-panel__heading .kicker {
+    margin-bottom: 0.2rem;
+  }
+
+  .wizard-panel__heading h2 {
+    margin-bottom: 0.25rem;
+    font-size: 1.55rem;
+  }
+
+  .wizard-panel__heading p:last-child {
+    font-size: 0.8rem;
+  }
+
+  .picker-confirmation {
+    margin-top: 0;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    padding: 0 0 0.75rem;
+  }
+
+  .picker-confirmation > strong {
+    font-size: 0.9rem;
+  }
+
+  .picker-confirmation > small {
+    font-size: 0.72rem;
+  }
+
+  .lobby-picker-fieldset {
+    margin-top: 0.85rem;
+  }
+
+  .lobby-picker {
+    gap: 0.5rem;
+  }
+
+  .lobby-choice {
+    min-height: 4.75rem;
+    padding: 0.65rem 2.75rem 0.65rem 0.75rem;
+  }
+
+  .lobby-choice > strong {
+    font-size: 1.25rem;
+  }
+
+  .lobby-choice > time {
+    display: none;
+  }
+
+  .lobby-choice > small {
+    font-size: 0.7rem;
+  }
+
+  .lineup-heading {
+    margin-bottom: 0.65rem;
+  }
+
+  .lineup-heading h2 {
+    font-size: 1.4rem;
+  }
+
+  .player-entry,
+  .team-name-field {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .field {
+    margin-bottom: 0.75rem;
+  }
+
+  .field label,
+  .segment-field legend,
+  .match-picker-fieldset > legend {
+    margin-bottom: 0.35rem;
+  }
+
+  .payment-proof {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+  }
+
+  .payment-proof__intro {
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .upi-payment-card {
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .payment-form-grid {
+    gap: 0;
+    margin-top: 0.75rem;
+  }
+
+  .payment-screenshot-field {
+    padding: 0.75rem;
+  }
+
+  .wizard-actions {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+  }
+
+  .wizard-actions--end {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-actions--end .button--text {
+    display: none;
+  }
+
+  .review-event,
+  .review-team,
+  .review-price,
+  .review-private > div,
+  .review-rewards > span {
+    padding: 0.75rem;
+  }
+
+  .review-event h2 {
+    font-size: 1.4rem;
+  }
+
+  .consent-stack {
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+  }
+
+  .consent-stack label {
+    gap: 0.65rem;
+    padding: 0.55rem 0;
+    font-size: 0.8rem;
+  }
+
+  .payment-handoff {
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+    padding: 0.65rem;
+  }
+
+  .payment-handoff__icon {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .registration-success {
+    margin: 0.75rem;
+    padding: 1rem;
+  }
+
+  .registration-success h2 {
+    font-size: 1.65rem;
+  }
+
+  .event-hero .breadcrumb,
+  .event-poster,
+  .event-local-nav,
+  .event-overview > div:first-child,
+  .event-info-grid,
+  .rule-chip-grid,
+  .map-list,
+  .event-final-cta {
+    display: none;
+  }
+
+  .event-hero__layout {
+    padding: 1rem 0;
+  }
+
+  .event-hero__copy h1 {
+    margin-bottom: 0.4rem;
+    font-size: clamp(2.1rem, 10vw, 2.7rem);
+  }
+
+  .event-hero__copy > p:not(.kicker) {
+    display: none;
+  }
+
+  .event-hero__copy .inline-badges {
+    margin-bottom: 0.65rem;
+  }
+
+  .event-hero__copy .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .event-hero__copy .button--quiet {
+    display: none;
+  }
+
+  .event-fact-bar > div {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .event-fact-bar > div:nth-child(4),
+  .event-fact-bar > div:nth-child(5) {
+    display: none;
+  }
+
+  .event-fact-bar > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .event-fact-bar dd {
+    font-size: 0.8rem;
+  }
+
+  .event-overview,
+  .detail-columns {
+    gap: 1rem;
+  }
+
+  .event-status-panel {
+    padding: 0.85rem;
+  }
+
+  .event-status-panel__top {
+    margin-bottom: 0.5rem;
+  }
+
+  .event-status-panel__top h3 {
+    margin-top: 0.5rem;
+    font-size: 1.35rem;
+  }
+
+  .event-status-panel__index {
+    display: none;
+  }
+
+  .event-status-panel > p {
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .capacity-block {
+    margin: 0.75rem 0;
+    padding-block: 0.65rem;
+  }
+
+  .mini-checks {
+    font-size: 0.8rem;
+  }
+
+  .prize-place,
+  .prize-podium--rewards .prize-place {
+    min-height: 4rem;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .prize-place strong {
+    font-size: 1.5rem;
+  }
+
+  .timeline li {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: 0.65rem;
+    padding-block: 0.75rem;
+  }
+
+  .timeline li > span {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .timeline p {
+    display: none;
+  }
+
+  .rules-page-section,
+  .roster-section {
+    padding-top: 1rem;
+  }
+
+  .rules-page-layout {
+    gap: 0;
+  }
+
+  .rules-sidebar {
+    display: none;
+  }
+
+  .rules-content__intro {
+    margin-bottom: 0.75rem;
+  }
+
+  .rules-content__intro > p:last-child {
+    display: none;
+  }
+
+  .rule-disclosure summary {
+    min-height: 3.5rem;
+    grid-template-columns: 1.5rem minmax(0, 1fr) 2.75rem;
+    padding: 0.5rem 0;
+  }
+
+  .rule-disclosure summary small {
+    font-size: 0.65rem;
+  }
+
+  .rule-disclosure summary strong {
+    font-size: 1.1rem;
+  }
+
+  .rule-body {
+    padding: 0 0 1rem;
+    font-size: 0.875rem;
+  }
+
+  .rule-body ul {
+    gap: 0.45rem;
+  }
+
+  .score-table,
+  .score-table tbody,
+  .score-table tr,
+  .score-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .score-table thead {
+    display: none;
+  }
+
+  .score-table tr {
+    border-bottom: 1px solid var(--border);
+    padding: 0.55rem 0.65rem;
+  }
+
+  .score-table td {
+    border: 0;
+    padding: 0.1rem 0;
+  }
+
+  .score-table td:first-child {
+    font-weight: 800;
+  }
+
+  .score-table td:nth-child(2) {
+    color: var(--primary);
+    font-weight: 800;
+  }
+
+  .rules-accept {
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding: 1rem;
+  }
+
+  .privacy-explainer {
+    display: none;
+  }
+
+  .roster-controls {
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .roster-controls__heading {
+    padding-bottom: 0.65rem;
+  }
+
+  .roster-controls__heading > p,
+  .roster-event-field {
+    display: none;
+  }
+
+  .roster-controls .field {
+    margin-bottom: 0;
+  }
+
+  .roster-meta {
+    min-height: 0;
+    gap: 0.5rem;
+    padding-block: 0.65rem;
+  }
+
+  .roster-meta > div:first-child {
+    display: none;
+  }
+
+  .roster-meta__end {
+    gap: 0.35rem 0.65rem;
+  }
+
+  .roster-refresh {
+    min-height: 2.75rem;
+  }
+
+  .roster-content {
+    min-height: 10rem;
+    margin-top: 0.75rem;
+  }
+
+  .lobby-board-list {
+    gap: 0.75rem;
+  }
+
+  .lobby-board__header {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .lobby-board__header h2 {
+    font-size: 1.25rem;
+  }
+
+  .lobby-board__header time {
+    font-size: 0.7rem;
+  }
+
+  .lobby-board__capacity strong {
+    font-size: 1.65rem;
+  }
+
+  .roster-player {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: 0.4rem 0.65rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .roster-player__number {
+    min-height: 2.75rem;
+  }
+
+  .admin-access-section {
+    min-height: 0;
+    padding-top: 1rem;
+  }
+
+  .page-intro--admin .kicker,
+  .page-intro--admin .page-intro__layout > div:first-child > p:last-child {
+    display: none;
+  }
+
+  .page-intro--admin .page-intro__layout {
+    padding-block: 1rem;
+  }
+
+  .admin-access-card {
+    padding: 1rem;
+  }
+
+  .admin-access-card__icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .admin-access-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .admin-session-bar {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 0.75rem;
+  }
+
+  .admin-metrics article {
+    min-height: 4.25rem;
+    padding: 0.65rem;
+  }
+
+  .admin-metrics strong {
+    font-size: 1.65rem;
+  }
+
+  .admin-metric--danger {
+    grid-column: 1 / -1;
+  }
+
+  .admin-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .admin-controls .field {
+    margin-bottom: 0;
+  }
+
+  .admin-controls .search-field {
+    grid-column: 1 / -1;
+  }
+
+  .admin-controls label {
+    font-size: 0.75rem;
+  }
+
+  .admin-export-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-block: 0.75rem;
+  }
+
+  .admin-export-actions .button {
+    padding-inline: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .admin-table td:nth-child(1),
+  .admin-table td:nth-child(4),
+  .admin-delete-button {
+    display: none;
+  }
+
+  .responsive-table tr {
+    margin-bottom: 0.65rem;
+  }
+
+  .responsive-table td {
+    grid-template-columns: 6.2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .admin-detail-dialog__panel {
+    padding-inline: 0.75rem;
+  }
+
+  .admin-detail-dialog__panel > header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .admin-detail-dialog__panel > header h2 {
+    font-size: 1.45rem;
+  }
+
+  .admin-detail-content {
+    gap: 0.65rem;
+  }
+
+  .admin-detail-content section,
+  .admin-proof-panel {
+    padding: 0.75rem;
+  }
+
+  .admin-proof-panel {
+    gap: 0.65rem;
+    margin-block: 0.75rem;
+  }
+
+  body[data-page="booyah"] .section--surface {
+    display: none;
+  }
+
+  .booyah-heading {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .winner-grid {
+    min-height: 11rem;
+    gap: 0.75rem;
+  }
+
+  .winner-card {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+  }
+
+  .winner-card__rank,
+  .winner-card__body {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .winner-card header {
+    gap: 0.5rem;
+  }
+
+  .winner-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .winner-card__badge {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .winner-card__match {
+    margin-top: 0.75rem;
+    padding-block: 0.65rem;
+  }
+
+  .winner-card__facts {
+    margin-top: 0.5rem;
+  }
+
+  .winner-card__fact {
+    padding: 0.6rem;
+  }
+
+  .site-footer {
+    padding-top: 1.5rem;
+  }
+
+  .site-footer__grid {
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .site-footer__brand p {
+    display: none;
+  }
+
+  .footer-link {
+    min-height: 2.75rem;
+    font-size: 0.8rem;
+  }
+
+  .site-footer__bottom {
+    gap: 0.35rem;
+    padding-block: 0.75rem;
+    font-size: 0.68rem;
+  }
+}
+
+/* Ultra-compact phone pass: remove repetition and shorten every task path. */
+@media (max-width: 43.74rem) {
+  h1 {
+    font-size: clamp(1.9rem, 9vw, 2.25rem);
+  }
+
+  h2 {
+    font-size: clamp(1.4rem, 6.5vw, 1.7rem);
+  }
+
+  .page-intro__layout {
+    padding-block: 0.85rem 1rem;
+  }
+
+  .page-intro h1 {
+    font-size: clamp(1.8rem, 8.5vw, 2.1rem);
+  }
+
+  .page-intro__layout > div:first-child > p:last-child {
+    font-size: 0.8rem;
+  }
+
+  .section {
+    padding-block: 1.5rem;
+  }
+
+  .mobile-event-section {
+    padding-block: 1.1rem 1.4rem;
+  }
+
+  .mobile-event-section .section-heading {
+    margin-bottom: 0.65rem;
+  }
+
+  .mobile-event-section .text-link {
+    min-height: 2.5rem;
+    font-size: 0.8rem;
+  }
+
+  #homeEventGrid .event-card {
+    width: min(72vw, 16.5rem);
+    flex-basis: min(72vw, 16.5rem);
+  }
+
+  #homeEventGrid .event-card__art {
+    aspect-ratio: 2.35 / 1;
+  }
+
+  #homeEventGrid .reward-strip,
+  #homeEventGrid .event-card__facts,
+  #homeEventGrid .capacity-meter {
+    display: none;
+  }
+
+  #homeEventGrid .event-card__body {
+    padding: 0.65rem;
+  }
+
+  #homeEventGrid .event-card__identity {
+    min-height: 3.5rem;
+  }
+
+  #homeEventGrid .event-card__actions {
+    padding-top: 0.4rem;
+  }
+
+  .feature-section {
+    display: none;
+  }
+
+  .process-section {
+    padding-block: 1.4rem;
+  }
+
+  .process-intro > p:not(.kicker),
+  .process-intro > .button {
+    display: none;
+  }
+
+  .process-steps li {
+    min-height: 2.75rem;
+    align-items: center;
+  }
+
+  .trust-cta {
+    padding-block: 0 1.4rem;
+  }
+
+  .trust-cta__panel {
+    padding: 0.75rem;
+  }
+
+  .trust-cta__panel .kicker,
+  .trust-cta__panel > .button {
+    display: none;
+  }
+
+  .trust-cta__panel h2 {
+    font-size: 1.25rem;
+  }
+
+  .trust-cta__panel p:not(.kicker) {
+    margin: 0;
+    font-size: 0.75rem;
+  }
+
+  .catalog-controls {
+    display: none;
+  }
+
+  .catalog-section {
+    padding-top: 0.85rem;
+  }
+
+  .catalog-main__heading {
+    align-items: center;
+    margin-bottom: 0.65rem;
+  }
+
+  .catalog-main__heading .kicker {
+    display: none;
+  }
+
+  .event-grid--catalog {
+    gap: 0.6rem;
+  }
+
+  .event-grid--catalog .event-card {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    min-height: 10.25rem;
+  }
+
+  .event-grid--catalog .event-card__art {
+    height: 100%;
+    aspect-ratio: auto;
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .event-grid--catalog .event-card__image {
+    position: absolute;
+    inset: 0;
+  }
+
+  .event-grid--catalog .event-card__mark {
+    font-size: 2.4rem;
+  }
+
+  .event-grid--catalog .event-card__code {
+    display: none;
+  }
+
+  .event-grid--catalog .event-card__topline {
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .event-grid--catalog .event-card__body {
+    padding: 0.65rem;
+  }
+
+  .event-grid--catalog .event-card h3 {
+    font-size: 1.15rem;
+  }
+
+  .event-grid--catalog .reward-strip,
+  .event-grid--catalog .event-card__facts,
+  .event-grid--catalog .capacity-meter,
+  .event-grid--catalog .coming-soon-strip {
+    display: none;
+  }
+
+  .event-grid--catalog .event-card__actions {
+    grid-template-columns: 1fr;
+    padding-top: 0.4rem;
+  }
+
+  .event-grid--catalog .event-card__actions .button--text {
+    display: none;
+  }
+
+  .event-grid--catalog .event-card--coming-soon .event-card__actions .button--text {
+    display: inline-flex;
+    border-color: var(--border);
+  }
+
+  body[data-page="register"] #siteFooter {
+    display: none;
+  }
+
+  #overview {
+    display: none;
+  }
+
+  #prizes .section-heading > p,
+  #schedule .section-lead,
+  #ruleset .section-lead {
+    display: none;
+  }
+
+  #prizes .section-heading,
+  #schedule .detail-columns > div:first-child,
+  #ruleset .detail-columns > div:first-child {
+    margin-bottom: 0;
+  }
+
+  .prize-place small {
+    display: none;
+  }
+
+  .timeline strong {
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .rules-accept {
+    display: none;
+  }
+
+  .rules-content__intro h2 {
+    margin-bottom: 0;
+  }
+
+  .rule-disclosure summary {
+    min-height: 3rem;
+  }
+
+  .roster-controls {
+    grid-template-columns: minmax(7rem, 0.75fr) minmax(0, 1.25fr);
+    gap: 0.5rem;
+  }
+
+  .roster-controls__heading {
+    display: none;
+  }
+
+  .roster-controls .field {
+    min-width: 0;
+  }
+
+  .roster-controls .field label {
+    font-size: 0.7rem;
+  }
+
+  .roster-controls input,
+  .roster-controls select {
+    min-height: 2.75rem;
+    padding-block: 0.5rem;
+  }
+
+  .roster-meta {
+    margin-top: 0.5rem;
+  }
+
+  .roster-meta__end {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .roster-meta__end > span {
+    display: none;
+  }
+
+  .roster-meta__end strong {
+    font-size: 0.72rem;
+  }
+
+  .roster-player {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    padding-block: 0.5rem;
+  }
+
+  .roster-player__number {
+    grid-row: auto;
+    min-height: 2.5rem;
+  }
+
+  .roster-player__reference {
+    display: none;
+  }
+
+  .lobby-board__header {
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .lobby-board__header time {
+    display: none;
+  }
+
+  .lobby-board__capacity span {
+    display: none;
+  }
+
+  .admin-filter-secondary {
+    display: none;
+  }
+
+  .booyah-section {
+    padding-block: 1rem;
+  }
+
+  .empty-state--booyah {
+    min-height: 0;
+  }
+
+  .site-footer {
+    padding-top: 1rem;
+  }
+
+  .site-footer__grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .site-footer__brand {
+    grid-column: auto;
+  }
+
+  .site-footer__grid > div:nth-child(2),
+  .site-footer__grid > div:nth-child(3) h2,
+  .site-footer__grid > div:nth-child(3) > span {
+    display: none;
+  }
+
+  .site-footer__grid > div:nth-child(3) {
+    gap: 0;
+  }
+
+  .site-footer__bottom span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 22rem) {
+  .event-grid--catalog .event-card {
+    grid-template-columns: 6.25rem minmax(0, 1fr);
+  }
+
+  .page-intro__layout > div:first-child > p:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 43.74rem) {
+  #homeEventGrid .coming-soon-strip {
+    display: none;
+  }
+
+  .roster-player__identity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.1rem 0.5rem;
+  }
+
+  .roster-player__identity > strong {
+    line-height: 1.15;
+  }
+
+  .roster-player__identity > span {
+    font-size: 0.65rem;
+    line-height: 1.2;
+    text-transform: none;
+  }
+}
+
+@media (max-width: 43.74rem) {
+  [data-step-panel="2"] > .wizard-panel__heading p:last-child,
+  [data-step-panel="3"] > .wizard-panel__heading p:last-child,
+  #lineupFields > .lineup-heading {
+    display: none;
+  }
+
+  .form-grid--player {
+    grid-template-columns: minmax(0, 1fr) 5.5rem;
+    gap: 0.6rem;
+  }
+
+  .form-grid--player .field:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .form-grid--player .field--age {
+    grid-column: auto;
+  }
+
+  .payment-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .payment-form-grid .field {
+    margin-bottom: 0;
+  }
+
+  .payment-screenshot-field {
+    grid-column: 1 / -1;
+  }
+
+  .review-event > .kicker,
+  .review-event > p,
+  .review-lobby time,
+  .review-rewards {
+    display: none;
+  }
+
+  .review-event h2 {
+    margin-bottom: 0;
+  }
+
+  .review-lobby {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .review-private {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .review-private > div {
+    border-right: 1px solid var(--border);
+  }
+
+  .review-private > div:nth-child(even) {
+    border-right: 0;
+  }
+
+  .review-private small {
+    font-size: 0.65rem;
+  }
+
+  .review-private strong {
+    font-size: 0.75rem;
+  }
+
+  .review-price strong {
+    font-size: 1.4rem;
+  }
+
+  .payment-handoff p {
+    display: none;
+  }
+
+  .payment-handoff {
+    align-items: center;
+  }
+}
+
+@media (max-width: 43.74rem) {
+  .payment-proof__intro {
+    display: none;
+  }
+
+  .review-private > div:nth-child(2),
+  .review-private > div:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 43.74rem) {
+  .mobile-event-section .event-card__actions .button--text {
+    display: none;
+  }
+
+  .mobile-event-section .event-card__actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,6 @@
-import { getEventState, isTdm, normalize, tournaments } from "../shared/data.js?v=20261006-lobbies";
-import { eventCard } from "../shared/event-card.js?v=20261006-lobbies";
-import { initializeShell } from "../shared/shell.js";
+import { getEventState, isTdm, normalize, tournaments } from "../shared/data.js?v=20261006-match-complete";
+import { eventCard } from "../shared/event-card.js?v=20261006-match-complete";
+import { initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
 
 const grid = document.querySelector("#eventCatalog");

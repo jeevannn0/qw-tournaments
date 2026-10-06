@@ -10,15 +10,16 @@ import {
   getEventState,
   getEventTimeSlots,
   getRequestedTournament,
+  getTimeSlotState,
   getTournament,
   registrationUrl,
   rosterUrl,
   rosters,
   setDocumentTitle,
   tournaments
-} from "../shared/data.js?v=20261006-lobbies";
-import { eventStatusBadge } from "../shared/event-card.js?v=20261006-lobbies";
-import { icon, initializeShell } from "../shared/shell.js";
+} from "../shared/data.js?v=20261006-match-complete";
+import { eventStatusBadge } from "../shared/event-card.js?v=20261006-match-complete";
+import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion } from "../shared/motion.js";
 
 const root = document.querySelector("#eventDetail");
@@ -40,7 +41,13 @@ function scheduleContent(tournament) {
   }
   const timeSlots = getEventTimeSlots(tournament);
   if (timeSlots.length) {
-    return `<ol class="timeline" data-reveal>${timeSlots.map((timeSlot, index) => `<li><span>0${index + 1}</span><div><small>${escapeHtml(timeSlot.label)}</small><strong>${escapeHtml(formatDateTime(timeSlot.startsAt, "long"))}</strong><p>Choose this 50-player lobby during registration and use the player number assigned by the organizer.</p></div></li>`).join("")}</ol>`;
+    return `<ol class="timeline" data-reveal>${timeSlots.map((timeSlot, index) => {
+      const timeSlotState = getTimeSlotState(tournament, timeSlot);
+      const instruction = timeSlotState.key === "complete"
+        ? "This lobby has finished accepting players. View the confirmed roster or Booyah results."
+        : "Choose this 50-player lobby during registration and use the player number assigned by the organizer.";
+      return `<li><span>0${index + 1}</span><div><small>${escapeHtml(timeSlot.label)} · ${escapeHtml(timeSlotState.label)}</small><strong>${escapeHtml(formatDateTime(timeSlot.startsAt, "long"))}</strong><p>${escapeHtml(instruction)}</p></div></li>`;
+    }).join("")}</ol>`;
   }
   if (tournament.alwaysOpen) {
     return '<ol class="timeline" data-reveal><li><span>01</span><div><small>Register anytime</small><strong>No closing time</strong><p>Complete the Solo entry whenever registration is available.</p></div></li><li><span>02</span><div><small>Join the match group</small><strong>Group opens after registration</strong><p>Paste the copied in-game name, UID, and reference.</p></div></li><li><span>03</span><div><small>Receive lobby details</small><strong>Announcement in WhatsApp</strong><p>The organizer shares the lobby and check-in instructions in the group.</p></div></li></ol>';

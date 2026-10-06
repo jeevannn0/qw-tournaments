@@ -3,13 +3,14 @@ import {
   escapeHtml,
   formatDateTime,
   getRequestedTournament,
+  getTimeSlotState,
   getTournament,
   normalize,
   rosters,
   tournaments
-} from "../shared/data.js?v=20261006-lobbies";
+} from "../shared/data.js?v=20261006-match-complete";
 import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
-import { icon, initializeShell } from "../shared/shell.js";
+import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
 
 const eventSelect = document.querySelector("#rosterEvent");
@@ -92,6 +93,7 @@ function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, 
 
   return `<div class="lobby-board-list">${shownSlots.map((slot, index) => {
     const lobbyNumber = Math.max(1, slots.findIndex((candidate) => candidate.id === slot.id) + 1);
+    const matchState = getTimeSlotState(tournament, slot);
     const confirmed = allEntries.filter((entry) => entry.timeSlotId === slot.id);
     const visible = visibleEntries.filter((entry) => entry.timeSlotId === slot.id);
     const emptyMessage = query
@@ -99,7 +101,7 @@ function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, 
       : "No players have been confirmed for this lobby yet.";
     return `<section class="lobby-board" aria-labelledby="lobbyBoardTitle${index}" data-reveal>
       <header class="lobby-board__header">
-        <div><span class="lobby-board__signal">Lobby ${String(lobbyNumber).padStart(2, "0")}</span><h2 id="lobbyBoardTitle${index}">${escapeHtml(slot.label)}</h2><time datetime="${escapeHtml(slot.startsAt || "")}">${escapeHtml(formatDateTime(slot.startsAt, "long"))}</time></div>
+        <div><span class="lobby-board__signal">Lobby ${String(lobbyNumber).padStart(2, "0")}</span><span class="status-badge status-badge--${escapeHtml(matchState.key)}"><i aria-hidden="true"></i>${escapeHtml(matchState.label)}</span><h2 id="lobbyBoardTitle${index}">${escapeHtml(slot.label)}</h2><time datetime="${escapeHtml(slot.startsAt || "")}">${escapeHtml(formatDateTime(slot.startsAt, "long"))}</time></div>
         <div class="lobby-board__capacity"><strong>${confirmed.length}</strong><span>of ${Number(slot.capacity) || 50}<br>confirmed</span></div>
       </header>
       <div class="roster-player__head" aria-hidden="true"><span>Player no.</span><span>Player identity</span><span>Registration reference</span></div>
@@ -110,8 +112,11 @@ function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, 
 
 function syncLobbyOptions(tournament) {
   const slots = Array.isArray(tournament?.timeSlots) ? tournament.timeSlots : [];
-  lobbySelect.innerHTML = `<option value="all">All lobbies</option>${slots.map((slot) => `<option value="${escapeHtml(slot.id)}">${escapeHtml(slot.label)}</option>`).join("")}`;
-  lobbySelect.value = "all";
+  lobbySelect.innerHTML = `<option value="all">All lobbies</option>${slots.map((slot) => {
+    const state = getTimeSlotState(tournament, slot);
+    return `<option value="${escapeHtml(slot.id)}">${escapeHtml(slot.label)} · ${escapeHtml(state.label)}</option>`;
+  }).join("")}`;
+  lobbySelect.value = window.matchMedia("(max-width: 43.74rem)").matches && slots.length ? slots[0].id : "all";
   lobbySelect.disabled = !slots.length;
 }
 

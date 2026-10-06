@@ -11,9 +11,9 @@ import {
   registrationUrl,
   supportUrl,
   tournaments
-} from "../shared/data.js?v=20261006-lobbies";
-import { eventCard, eventStatusBadge } from "../shared/event-card.js?v=20261006-lobbies";
-import { icon, initializeShell } from "../shared/shell.js";
+} from "../shared/data.js?v=20261006-match-complete";
+import { eventCard, eventStatusBadge } from "../shared/event-card.js?v=20261006-match-complete";
+import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
 import { initializeMotion } from "../shared/motion.js";
 
 function renderFeaturedEvent(tournament) {
@@ -69,9 +69,35 @@ function renderEventPreview() {
 
 function renderLiveFacts() {
   const solo = tournaments.find((tournament) => tournament.type === "solo" && !tournament.comingSoon);
-  document.querySelector("#homeEventCount").textContent = String(getOpenTimeSlots(solo).length).padStart(2, "0");
+  const openTimeSlots = getOpenTimeSlots(solo);
+  const state = getEventState(solo);
+  document.querySelector("#homeEventCount").textContent = String(openTimeSlots.length).padStart(2, "0");
   document.querySelector("#homeKillReward").textContent = formatCurrency(solo?.killReward);
   document.querySelector("#homeBooyahBonus").textContent = formatCurrency(solo?.booyahBonus);
+
+  const heroSchedule = document.querySelector("#homeHeroSchedule");
+  const matchStatusCopy = document.querySelector("#homeMatchStatusCopy");
+  const heroSignal = document.querySelector("#homeHeroSignal");
+  if (state.key === "complete") {
+    heroSchedule.textContent = "Both scheduled Solo lobbies are completed.";
+    matchStatusCopy.textContent = "Solo Survival 01 is completed. Check confirmed players and published Booyah winners.";
+    heroSignal.innerHTML = "<i></i> MATCH COMPLETED";
+  } else if (openTimeSlots.length === 1) {
+    heroSchedule.textContent = `${openTimeSlots[0].label} remains open · 50-player lobby.`;
+    matchStatusCopy.textContent = `${openTimeSlots[0].label} is the remaining open Solo lobby.`;
+    heroSignal.innerHTML = "<i></i> 1 LOBBY OPEN";
+  }
+
+  if (!state.open) {
+    const registerAction = document.querySelector("#homeHeroActions .button--primary");
+    if (registerAction) {
+      const completedAction = document.createElement("span");
+      completedAction.className = "button button--disabled button--large";
+      completedAction.setAttribute("aria-disabled", "true");
+      completedAction.textContent = state.label;
+      registerAction.replaceWith(completedAction);
+    }
+  }
 }
 
 function initializeHome() {

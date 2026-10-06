@@ -187,7 +187,7 @@ export function initializeShell() {
       </header>
       <dialog class="nav-drawer" id="navDrawer" aria-labelledby="navDrawerTitle">
         <div class="nav-drawer__panel">
-          <div class="nav-drawer__header"><div><span class="kicker">Menu</span><h2 id="navDrawerTitle">Match control</h2></div><button class="icon-button" id="navDrawerClose" type="button" aria-label="Close navigation">${icon("close")}</button></div>
+          <div class="nav-drawer__header"><div><span class="kicker">Navigation</span><h2 id="navDrawerTitle">Menu</h2></div><button class="icon-button" id="navDrawerClose" type="button" aria-label="Close navigation">${icon("close")}</button></div>
           <nav class="drawer-nav" aria-label="Mobile navigation">${navLinks(activePage, "drawer-nav__link")}</nav>
           <div class="drawer-theme-row"><span>Appearance</span><button class="button button--quiet" type="button" data-theme-toggle></button></div>
           <div class="nav-drawer__footer">

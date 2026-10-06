@@ -6,13 +6,12 @@ The tournament UI uses locally stored images sourced from Garena’s [official F
 
 | Runtime file | UI role | Official source |
 |---|---|---|
-| `assets/free-fire-hero-1920.jpg` | Desktop/tablet Home hero | [2880×1020 Garena source](https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/img/20226/8912a8052c3c736ac49e836a7947fd4f.png) |
-| `assets/free-fire-hero-960.jpg` | Phone Home hero | Same 2880×1020 Garena source above |
+| `assets/free-fire-right-hero.jpg` | Home hero artwork, positioned on the right | [Garena CDN source](https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/img/20228/adee99d5bf44006f6b1af10e1d03ae13.jpg) |
 | `assets/free-fire-solo.jpg` | Solo event identity | [Garena CDN source](https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/202210/3339313cfb446d61ce907b5efc2b4fd7.jpg) |
 | `assets/free-fire-squad.jpg` | Squad Battle Royale identity | [Garena CDN source](https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/202210/82fe305f7dbb9f25e68996f8f719e576.jpg) |
 | `assets/free-fire-clash.jpg` | Clash Squad / TDM event identity | [Garena CDN source](https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/202210/aa959aa3d8790d3a44f7f20f16adfa01.jpg) |
 
-The uncompressed `assets/free-fire-hero-hd.png` is the retained 2880×1020 source used to generate the two responsive hero variants. Provenance stays in this document rather than being overlaid on the artwork. Garena’s [brand-asset guidance](https://ff.garena.com/en/brand/) says its assets should retain their original form. Before operating a public paid tournament, the site owner should independently confirm that the intended artwork use and tournament operation comply with Garena’s current policies.
+The prior `assets/free-fire-hero-hd.png`, `assets/free-fire-hero-1920.jpg`, and `assets/free-fire-hero-960.jpg` files are retained as unused legacy assets. They came from Garena’s [2880×1020 source](https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/img/20226/8912a8052c3c736ac49e836a7947fd4f.png). Provenance stays in this document rather than being overlaid on the artwork. Garena’s [brand-asset guidance](https://ff.garena.com/en/brand/) says its assets should retain their original form. Before operating a public paid tournament, the site owner should independently confirm that the intended artwork use and tournament operation comply with Garena’s current policies.
 
 ## Original QW artwork
 
