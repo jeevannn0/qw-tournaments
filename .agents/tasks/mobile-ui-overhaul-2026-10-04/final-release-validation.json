@@ -1,0 +1,185 @@
+{
+  "generatedAt": "2026-10-04T10:27:38.159Z",
+  "passed": true,
+  "totals": {
+    "checks": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "name": "home-320-final-state",
+      "passed": true,
+      "details": {
+        "width": 320,
+        "scrollWidth": 320,
+        "demo": false,
+        "cards": 3,
+        "cardNames": [
+          "Solo Survival 01",
+          "Squad Last Circle 01",
+          "Clash Squad Cup 01"
+        ],
+        "comingSoon": 2,
+        "registerLinks": 1,
+        "facts": [
+          "01",
+          "₹6",
+          "₹30"
+        ],
+        "rewardText": true,
+        "oldMoney": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "home-390-final-state",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "demo": false,
+        "cards": 3,
+        "cardNames": [
+          "Solo Survival 01",
+          "Squad Last Circle 01",
+          "Clash Squad Cup 01"
+        ],
+        "comingSoon": 2,
+        "registerLinks": 1,
+        "facts": [
+          "01",
+          "₹6",
+          "₹30"
+        ],
+        "rewardText": true,
+        "oldMoney": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "home-1440-final-state",
+      "passed": true,
+      "details": {
+        "width": 1425,
+        "scrollWidth": 1425,
+        "demo": false,
+        "cards": 3,
+        "cardNames": [
+          "Solo Survival 01",
+          "Squad Last Circle 01",
+          "Clash Squad Cup 01"
+        ],
+        "comingSoon": 2,
+        "registerLinks": 1,
+        "facts": [
+          "01",
+          "₹6",
+          "₹30"
+        ],
+        "rewardText": true,
+        "oldMoney": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "board-final-state",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "cards": 3,
+        "comingSoon": 2,
+        "disabled": 2,
+        "registerLinks": 1,
+        "tba": 4,
+        "demo": false
+      }
+    },
+    {
+      "name": "registration-only-solo-enabled",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "choices": 3,
+        "enabled": 1,
+        "disabled": 2,
+        "selected": "solo-survival-01",
+        "comingSoon": 2
+      }
+    },
+    {
+      "name": "solo-review-and-message-terms",
+      "passed": true,
+      "details": {
+        "step": "3",
+        "reviewText": "SOLO-01 · SELECTED\nSOLO SURVIVAL 01\n\nSolo · Full map · Sun, 4 Oct, 7:00 pm IST\n\n1\nFinal Player\n123456789 · Age 20\nENTRY\n₹10\nper player\n₹6\nPER CONFIRMED KILL\n₹30\nADDITIONAL BOOYAH BONUS",
+        "message": "*QW TOURNAMENTS — NEW REGISTRATION*\n\n*Reference:* QW-VERIFY\n*Tournament:* Solo Survival 01\n*Format:* Solo · Full map\n*Match:* Sunday, 4 October 2026 at 7:00 pm IST\n*Entry:* ₹10 per player\n*Kill reward:* ₹6 per confirmed kill\n*Booyah bonus:* ₹30 additional for the match winner\n\n*Player*\nSolo player\n• Name: Final Player\n• Free Fire UID: 123456789\n• Age: 20\n\n*Entrant confirmations*\n• Rules and payout verification terms accepted: Yes\n• Every player is 18+ or has guardian approval: Yes\n• Payment-proof process understood: Yes\n\nI understand that eliminations and the Booyah result must be verified by the organizer. I will attach payment proof in this chat only after receiving payment instructions, and I understand that this message does not confirm my slot.",
+        "teamField": false
+      }
+    },
+    {
+      "name": "solo-detail-final-terms",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "status": "Closing soon",
+        "text": "Skip to event details\nQW\nQW\nTOURNAMENTS\nJOIN\nMatch board\n/\nSOLO-01\nCLOSING SOON\n\nOPEN MATCH · INDIA\n\nSOLO SURVIVAL 01\n\nA one-match solo Battle Royale. Each confirmed elimination earns ₹6, and the Booyah winner earns an additional ₹30 bonus.\n\nREGISTER FOR ₹10\nPLAYER ROSTER\nSOLO\nSOLO-01\nSolo · Full map\nSTARTS\nSun, 4 Oct, 7:00 pm IST\nENTRY\n₹10\nREWARD\n₹6 / kill + ₹30 Booyah\nFORMAT\n1 match\nOPEN\n48/48 players\nOverview\nRewards\nSchedule\nRules\n\nCURRENT STATUS\n\nKNOW THE MATCH BEFORE JOINING.\n\nCheck the payout and availability, then register before the deadline.\n\nCLOSING SOON\nSOLO REGISTRATION OPEN\n01\n\nRegister before Sun, 4 Oct, 5:00 pm IST. Each verified kill pays ₹6, and Booyah adds ₹30.\n\nLobby occupancy\n0 filled · 48 open\nOrganizer verifies kills and Booyah\nWritten reply confirms the slot\nRoom credentials stay private\nMODE\nBattle Royale\n\nMobile · India\n\nENTRY UNIT\n1 player\n\nIndividual check-in\n",
+        "registerLinks": 5
+      }
+    },
+    {
+      "name": "squad-last-circle-01-coming-soon",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "status": "Coming soon",
+        "registerLinks": 0,
+        "text": "Skip to event details\nQW\nQW\nTOURNAMENTS\nJOIN\nMatch board\n/\nBR-01\nCOMING SOON\n\nCOMING SOON · INDIA\n\nSQUAD LAST CIRCLE 01\n\nSquad registration, schedule, entry fee, and rewards will be announced before this event opens.\n\nCOMING SOON\nMATCH BOARD\nSQUAD\nBR-01\nSquad · Full map\nSTARTS\nSchedule pending\nENTRY\nTo be announced\nREWARD\nTo be announced\nFORMAT\nTo be announced\nCAPACITY\n12 teams planned\nOverview\nRewards\nSchedule\nRules\n\nCURRENT STATUS\n\nTHIS FORMAT IS PREPARING.\n\nNo registration or payment is available for this event yet.\n\nCOMING SOON\nCOMING SOON\n01\n\nSchedule, entry fee, and rewards will be announced before registration opens.\n\nOrganizer verifies all published terms\nWritten reply confirms the s"
+      }
+    },
+    {
+      "name": "clash-squad-cup-01-coming-soon",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "status": "Coming soon",
+        "registerLinks": 0,
+        "text": "Skip to event details\nQW\nQW\nTOURNAMENTS\nJOIN\nMatch board\n/\nTDM-01\nCOMING SOON\n\nCOMING SOON · INDIA\n\nCLASH SQUAD CUP 01\n\nClash Squad registration, schedule, entry fee, and rewards will be announced before this event opens.\n\nCOMING SOON\nMATCH BOARD\nTDM\nTDM-01\nSquad · TDM\nSTARTS\nSchedule pending\nENTRY\nTo be announced\nREWARD\nTo be announced\nFORMAT\nTo be announced\nCAPACITY\n16 teams planned\nOverview\nRewards\nSchedule\nRules\n\nCURRENT STATUS\n\nTHIS FORMAT IS PREPARING.\n\nNo registration or payment is available for this event yet.\n\nCOMING SOON\nCOMING SOON\n01\n\nSchedule, entry fee, and rewards will be announced before registration opens.\n\nOrganizer verifies all published terms\nWritten reply confirms the sl"
+      }
+    },
+    {
+      "name": "rules-final-rewards",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "open": true,
+        "text": "04\nSolo payout\nKill and Booyah rewards\n\nThese published amounts apply only to Solo Survival 01.\n\nTERM\tAMOUNT\tCONDITION\nEntry fee\t₹10\tPer confirmed player\nKill reward\t₹6\tEach organizer-verified elimination\nBooyah bonus\t₹30\tAdditional reward for the match winner\n\nThe Booyah bonus stacks with kill rewards. Only eliminations and results accepted through the organizer’s match record and dispute process qualify for payout.",
+        "rows": 3
+      }
+    },
+    {
+      "name": "roster-clean-production-state",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "sample": false,
+        "publishedCards": 0
+      }
+    },
+    {
+      "name": "no-runtime-or-http-errors",
+      "passed": true,
+      "details": {
+        "exceptions": [],
+        "badLocal": []
+      }
+    }
+  ]
+}

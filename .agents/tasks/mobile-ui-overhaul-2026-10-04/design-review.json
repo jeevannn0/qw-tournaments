@@ -1,0 +1,69 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "MEDIUM",
+      "where": "Shared Shell and Progressive Baseline; dialog failure matrix; shell.js change map; Acceptance Gate 14",
+      "problem": "The fixed open-dialog fallback promises close routes but does not define background inertness, Tab containment, document-level Escape, focus restoration, or complete cleanup, even though acceptance requires those behaviors.",
+      "fix": "Specify and test a complete fallback algorithm that records prior inert states/opener, catches missing or throwing showModal, applies modal ARIA and inert siblings, traps Tab and Shift+Tab, handles Escape, and restores listeners, inert states, body lock, and opener focus in one close-finally path."
+    },
+    {
+      "id": 2,
+      "severity": "MEDIUM",
+      "where": "Imagery and Licensing Plan; gameplay Commons row; retained favicon/icon assets; Acceptance Gates 25-26",
+      "problem": "The gameplay frame is marked approved even though its Commons source separately relies on a de-minimis assertion for copyrighted game imagery, the planned crop can increase that imagery's prominence, required retrieval checks remain unfinished, and retained favicon/icon assets have no provenance rows.",
+      "fix": "Keep both Commons rows pending until retrieval metadata and SHA-256 are complete; keep the gameplay frame pending for third-party-rights review and use the image-free detail mode plate meanwhile; add complete provenance/license rows for the favicon and retained icon set before runtime use."
+    },
+    {
+      "id": 3,
+      "severity": "MEDIUM",
+      "where": "Performance Plan; Imagery and Licensing Plan; assets change map; Acceptance Gates 25 and 28",
+      "problem": "Responsive WebP/JPEG outputs have no exact crop rectangles, encoder/settings, metadata rule, or repeatable generation tool, and this workspace currently has no Pillow, ImageMagick, cwebp, or FFmpeg.",
+      "fix": "Lock a dependency-free browser-canvas authoring tool or one pinned authoring-only encoder; record source-pixel crops, dimensions, quality, metadata handling, tool version, and source/output hashes, then verify committed outputs against the ledger."
+    },
+    {
+      "id": 4,
+      "severity": "MEDIUM",
+      "where": "Testability and Verification; fixture paragraph; query, failure, state, and media acceptance gates",
+      "problem": "The srcdoc harness does not specify how it sets location.pathname/search, prevents production data scripts from overwriting fixtures, represents a missing global, or substitutes the module-local media manifest, so key branches can remain untested.",
+      "fix": "Define the fetched-HTML rewrite order: remove production data/route tags, inject base and a prelude that sets exact history URL, time/theme/APIs and only requested globals, then restore scripts in production order and assert location/fixture identity; exercise media failure through a real missing-path error or an explicit import-map test module."
+    },
+    {
+      "id": 5,
+      "severity": "MEDIUM",
+      "where": "Shared Shell and Progressive Baseline; route failure matrix; render.js change map; verification plan",
+      "problem": "mountRegion names parameters but does not define their types, mutation rules, result shape, commit semantics, or the boundary of a post-commit failure; route render/enhance/commit failures are not independently tested.",
+      "fix": "Define render and fallback as detached DocumentFragment factories, an optional detached enhancer, a discriminated RegionResult with render/enhance/commit phases, one atomic replaceChildren commit, prior-content/fallback rules, and independent failure fixtures proving sibling regions continue."
+    },
+    {
+      "id": 6,
+      "severity": "MEDIUM",
+      "where": "Authoritative config assumptions; static shell baseline; config failure matrix; verify-static.py; Must-Preserve Contracts",
+      "problem": "Six static baselines duplicate authoritative brand, WhatsApp, support, timezone, and demo values, but only data-demo is explicitly synchronized, allowing no-script/shell-failure content to become stale or target the wrong contact.",
+      "fix": "Define the exact static mirror set and make verify-static.py parse config.js and compare every corresponding value/link on all six pages; fail on mismatch and document an atomic config-plus-baseline update procedure."
+    },
+    {
+      "id": 7,
+      "severity": "MEDIUM",
+      "where": "Roster direction; Roster schema; roster empty states; Acceptance Gate 23",
+      "problem": "Metadata requires total confirmed units while valid entries can be Confirmed, Checked in, Withdrawn, or Disqualified; the count and zero-active behavior therefore have multiple incompatible interpretations.",
+      "fix": "Keep valid records visible, count only Confirmed and Checked in as active confirmations, display both active-confirmation and total-record counts, reserve published-empty for zero records, and add a no-active-confirmations state plus mixed-status tests."
+    },
+    {
+      "id": 8,
+      "severity": "NIT",
+      "where": "Roster schema",
+      "problem": "updatedAt is called an ISO timestamp but only required to be parseable, permitting date-only or timezone-less values with environment-dependent interpretation.",
+      "fix": "Require the same offset-bearing ISO syntax used for tournament timestamps and test date-only, timezone-less, impossible, and trailing-junk rejections."
+    },
+    {
+      "id": 9,
+      "severity": "NIT",
+      "where": "Configuration contract and health rules",
+      "problem": "All listed config fields are called launch-critical, but the next paragraph makes only a subset registration-critical and leaves some required display strings without nonempty minimums.",
+      "fix": "Use a field table that states required status, normalization/limits, fallback, and health effect; explicitly separate registration-critical fields from display-only fields and define rosterLeadHours behavior."
+    }
+  ],
+  "reviewDoc": ".agents/tasks/mobile-ui-overhaul-2026-10-04/design-review.md"
+}

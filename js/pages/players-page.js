@@ -13,11 +13,13 @@ import { icon, initializeShell } from "../shared/shell.js";
 import { initializeMotion, transitionUpdate } from "../shared/motion.js";
 
 const eventSelect = document.querySelector("#rosterEvent");
+const lobbySelect = document.querySelector("#rosterLobby");
 const search = document.querySelector("#rosterSearch");
 const content = document.querySelector("#rosterContent");
 const meta = document.querySelector("#rosterMeta");
 const activeStatuses = new Set(["confirmed", "checked in"]);
 const supabaseRosterCache = new Map();
+const supabaseRosterRequests = new Map();
 let renderRequest = 0;
 
 function projectedEntry(entry) {
@@ -45,8 +47,12 @@ function entryMatches(entry, query) {
   return values.some((value) => String(value ?? "").toLowerCase().includes(query));
 }
 
-function emptyState(title, message) {
-  return `<div class="empty-state empty-state--roster"><span class="empty-state__icon">${icon("team")}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(message)}</p></div>`;
+function emptyState(title, message, action = "") {
+  const actions = {
+    clear: '<button class="button button--quiet" type="button" data-roster-action="clear">Clear filters</button>',
+    retry: '<button class="button button--quiet" type="button" data-roster-action="retry">Retry loading</button>'
+  };
+  return `<div class="empty-state empty-state--roster"><span class="empty-state__icon">${icon("team")}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(message)}</p>${actions[action] || ""}</div>`;
 }
 
 function statusBadge(status) {
@@ -63,37 +69,95 @@ function squadCards(entries) {
     </article>`).join("")}</div>`;
 }
 
-function soloTable(entries) {
-  return `<div class="responsive-table"><table><thead><tr><th>Lobby</th><th>Player no.</th><th>Player</th><th>Free Fire UID</th><th>Reference</th><th>Status</th></tr></thead><tbody>${entries.map((entry) => `
-    <tr><td data-label="Lobby"><strong>${escapeHtml(entry.timeSlotLabel)}</strong><small>${escapeHtml(formatDateTime(entry.timeSlotAt))}</small></td><td data-label="Player no.">${escapeHtml(entry.slot)}</td><td data-label="Player"><strong>${escapeHtml(entry.displayName)}</strong></td><td data-label="Free Fire UID"><code>${escapeHtml(entry.uid)}</code></td><td data-label="Reference">${escapeHtml(entry.registrationId)}</td><td data-label="Status">${statusBadge(entry.status)}</td></tr>`).join("")}</tbody></table></div>`;
+function playerRow(entry) {
+  const playerNumber = typeof entry.slot === "number" ? String(entry.slot).padStart(2, "0") : entry.slot;
+  return `<li class="roster-player">
+    <div class="roster-player__number"><small>No.</small><strong>${escapeHtml(playerNumber)}</strong></div>
+    <div class="roster-player__identity"><strong>${escapeHtml(entry.displayName || "Player")}</strong><span>Free Fire UID <code>${escapeHtml(entry.uid || "Unavailable")}</code></span></div>
+    <div class="roster-player__reference"><small>Registration</small><code>${escapeHtml(entry.registrationId)}</code></div>
+  </li>`;
+}
+
+function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, query) {
+  const configuredSlots = Array.isArray(tournament.timeSlots) ? tournament.timeSlots : [];
+  const slots = configuredSlots.length
+    ? configuredSlots
+    : [...new Map(allEntries.map((entry) => [entry.timeSlotId, {
+      id: entry.timeSlotId,
+      label: entry.timeSlotLabel,
+      startsAt: entry.timeSlotAt,
+      capacity: 50
+    }])).values()];
+  const shownSlots = selectedLobby === "all" ? slots : slots.filter((slot) => slot.id === selectedLobby);
+
+  return `<div class="lobby-board-list">${shownSlots.map((slot, index) => {
+    const lobbyNumber = Math.max(1, slots.findIndex((candidate) => candidate.id === slot.id) + 1);
+    const confirmed = allEntries.filter((entry) => entry.timeSlotId === slot.id);
+    const visible = visibleEntries.filter((entry) => entry.timeSlotId === slot.id);
+    const emptyMessage = query
+      ? "No confirmed player in this lobby matches your search."
+      : "No players have been confirmed for this lobby yet.";
+    return `<section class="lobby-board" aria-labelledby="lobbyBoardTitle${index}" data-reveal>
+      <header class="lobby-board__header">
+        <div><span class="lobby-board__signal">Lobby ${String(lobbyNumber).padStart(2, "0")}</span><h2 id="lobbyBoardTitle${index}">${escapeHtml(slot.label)}</h2><time datetime="${escapeHtml(slot.startsAt || "")}">${escapeHtml(formatDateTime(slot.startsAt, "long"))}</time></div>
+        <div class="lobby-board__capacity"><strong>${confirmed.length}</strong><span>of ${Number(slot.capacity) || 50}<br>confirmed</span></div>
+      </header>
+      <div class="roster-player__head" aria-hidden="true"><span>Player no.</span><span>Player identity</span><span>Registration reference</span></div>
+      ${visible.length ? `<ol class="roster-player-list">${visible.map(playerRow).join("")}</ol>` : `<p class="lobby-board__empty">${escapeHtml(emptyMessage)}</p>`}
+    </section>`;
+  }).join("")}</div>`;
+}
+
+function syncLobbyOptions(tournament) {
+  const slots = Array.isArray(tournament?.timeSlots) ? tournament.timeSlots : [];
+  lobbySelect.innerHTML = `<option value="all">All lobbies</option>${slots.map((slot) => `<option value="${escapeHtml(slot.id)}">${escapeHtml(slot.label)}</option>`).join("")}`;
+  lobbySelect.value = "all";
+  lobbySelect.disabled = !slots.length;
 }
 
 async function supabaseRoster(tournament) {
   if (!isSupabaseConfigured() || tournament.comingSoon) return null;
   if (supabaseRosterCache.has(tournament.id)) return supabaseRosterCache.get(tournament.id);
-  const client = await getSupabaseClient();
-  const { data, error } = await client
-    .from("public_players")
-    .select("reference, time_slot_id, time_slot_label, time_slot_at, slot, display_name, ff_uid, status")
-    .eq("tournament_id", tournament.id)
-    .order("time_slot_at", { ascending: true })
-    .order("slot", { ascending: true });
-  if (error) throw error;
-  const entries = (data || [])
-    .map((row) => projectedEntry({
-      reference: row.reference,
-      timeSlotId: row.time_slot_id,
-      timeSlotLabel: row.time_slot_label,
-      timeSlotAt: row.time_slot_at,
-      slot: row.slot,
-      displayName: row.display_name,
-      uid: row.ff_uid,
-      status: row.status
-    }))
-    .filter(Boolean);
-  const roster = { published: true, updatedAt: null, entries, live: true };
-  supabaseRosterCache.set(tournament.id, roster);
-  return roster;
+  if (supabaseRosterRequests.has(tournament.id)) return supabaseRosterRequests.get(tournament.id);
+
+  const request = (async () => {
+    const client = await getSupabaseClient();
+    const { data, error } = await client
+      .from("public_players")
+      .select("reference, time_slot_id, time_slot_label, time_slot_at, slot, display_name, ff_uid, status")
+      .eq("tournament_id", tournament.id)
+      .order("time_slot_at", { ascending: true })
+      .order("slot", { ascending: true });
+    if (error) throw error;
+    const entries = (data || [])
+      .map((row) => projectedEntry({
+        reference: row.reference,
+        timeSlotId: row.time_slot_id,
+        timeSlotLabel: row.time_slot_label,
+        timeSlotAt: row.time_slot_at,
+        slot: row.slot,
+        displayName: row.display_name,
+        uid: row.ff_uid,
+        status: row.status
+      }))
+      .filter(Boolean);
+    const roster = { published: true, updatedAt: null, entries, live: true };
+    supabaseRosterCache.set(tournament.id, roster);
+    return roster;
+  })();
+
+  supabaseRosterRequests.set(tournament.id, request);
+  try {
+    return await request;
+  } finally {
+    supabaseRosterRequests.delete(tournament.id);
+  }
+}
+
+function renderLoading(tournament) {
+  meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><span class="roster-meta__loading">Loading public roster…</span>`;
+  content.setAttribute("aria-busy", "true");
+  content.innerHTML = '<div class="roster-loading" aria-hidden="true"><span></span><span></span><span></span></div>';
 }
 
 async function renderRoster() {
@@ -107,46 +171,49 @@ async function renderRoster() {
 
   let roster = rosters[tournament.id] || { published: false, entries: [] };
   if (isSupabaseConfigured() && !tournament.comingSoon && !supabaseRosterCache.has(tournament.id)) {
-    meta.textContent = `Loading confirmed players for ${tournament.name}…`;
+    renderLoading(tournament);
   }
+
   try {
     roster = await supabaseRoster(tournament) || roster;
   } catch {
     if (request !== renderRequest) return;
-    meta.textContent = "The live confirmed-player roster is temporarily unavailable.";
-    content.innerHTML = emptyState("Roster unavailable", "Please try again later or contact the organizer with your registration reference.");
+    content.removeAttribute("aria-busy");
+    meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><span>Roster unavailable</span>`;
+    content.innerHTML = emptyState("Could not load the roster", "Check your connection and retry. Your registration data is not affected.", "retry");
     return;
   }
   if (request !== renderRequest) return;
+  content.removeAttribute("aria-busy");
 
   const allEntries = (Array.isArray(roster.entries) ? roster.entries : []).map(projectedEntry).filter(Boolean);
   const query = normalize(search.value).slice(0, 80).toLowerCase();
-  const entries = allEntries.filter((entry) => entryMatches(entry, query));
+  const selectedLobby = lobbySelect.value || "all";
+  const visibleEntries = allEntries.filter((entry) => (selectedLobby === "all" || entry.timeSlotId === selectedLobby) && entryMatches(entry, query));
   const unit = tournament.type === "solo" ? "players" : "teams";
-  const activeCount = allEntries.filter((entry) => activeStatuses.has(entry.status.toLowerCase())).length;
 
   const update = () => {
-    const updateLabel = roster.live ? "Live Supabase roster" : roster.updatedAt ? formatDateTime(roster.updatedAt, "long") : "Not published";
-    meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><div class="roster-meta__end"><span>${escapeHtml(updateLabel)}</span><span>${activeCount} active · ${allEntries.length} total ${unit}</span></div>`;
+    const sourceLabel = roster.live ? "Public roster" : roster.updatedAt ? formatDateTime(roster.updatedAt, "long") : "Not published";
+    meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><div class="roster-meta__end"><span>${escapeHtml(sourceLabel)}</span><strong>${visibleEntries.length} shown · ${allEntries.length} confirmed ${unit}</strong><button class="button button--quiet roster-refresh" type="button" data-roster-action="refresh">Refresh</button></div>`;
 
     if (!roster.published) {
       content.innerHTML = tournament.comingSoon
         ? emptyState("Match coming soon", "Registration and roster publication are not open for this format yet.")
-        : tournament.alwaysOpen
-          ? emptyState("Roster not published", "Confirmed players appear here after the organizer publishes the Solo roster.")
-          : emptyState("Roster not published", `Confirmed ${unit} are normally posted about ${config.rosterLeadHours} hours before ${formatDateTime(tournament.matchAt, "long")}.`);
+        : emptyState("Roster not published", `Confirmed ${unit} appear here after organizer verification.`);
       return;
     }
     if (!allEntries.length) {
-      content.innerHTML = emptyState("No confirmed players yet", "Complete registrations appear here only after the organizer verifies payment and assigns a slot.");
+      content.innerHTML = emptyState("No confirmed players yet", "Complete registrations appear here only after the organizer verifies payment and assigns a player number.");
       return;
     }
-    if (!entries.length) {
-      content.innerHTML = emptyState("No matching entry", "Try another squad name, player name, UID, or registration reference.");
+    if (!visibleEntries.length && (query || selectedLobby !== "all")) {
+      content.innerHTML = emptyState("No matching player", "Clear the search or show all lobbies to return to the confirmed roster.", "clear");
       return;
     }
 
-    content.innerHTML = tournament.type === "solo" ? soloTable(entries) : squadCards(entries);
+    content.innerHTML = tournament.type === "solo"
+      ? soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, query)
+      : squadCards(visibleEntries);
     initializeMotion(content);
   };
 
@@ -156,14 +223,42 @@ async function renderRoster() {
   window.history.replaceState({}, "", `${url.pathname}${url.search}`);
 }
 
+function clearRosterFilters() {
+  search.value = "";
+  lobbySelect.value = "all";
+  search.focus();
+  renderRoster();
+}
+
+function refreshRoster() {
+  const tournament = getTournament(eventSelect.value);
+  if (tournament) supabaseRosterCache.delete(tournament.id);
+  renderRoster();
+}
+
+function handleRosterAction(event) {
+  const action = event.target.closest("[data-roster-action]")?.dataset.rosterAction;
+  if (action === "clear") clearRosterFilters();
+  if (action === "retry" || action === "refresh") refreshRoster();
+}
+
 function initializePlayers() {
   initializeShell();
   eventSelect.innerHTML = tournaments.map((tournament) => `<option value="${escapeHtml(tournament.id)}">${escapeHtml(tournament.name)} · ${escapeHtml(tournament.formatLabel)}</option>`).join("");
   const requested = getRequestedTournament();
   const firstPublished = tournaments.find((tournament) => rosters[tournament.id]?.published);
   eventSelect.value = (requested || firstPublished || tournaments[0])?.id || "";
-  eventSelect.addEventListener("change", () => { search.value = ""; renderRoster(); });
+  syncLobbyOptions(getTournament(eventSelect.value));
+
+  eventSelect.addEventListener("change", () => {
+    search.value = "";
+    syncLobbyOptions(getTournament(eventSelect.value));
+    renderRoster();
+  });
+  lobbySelect.addEventListener("change", renderRoster);
   search.addEventListener("input", renderRoster);
+  meta.addEventListener("click", handleRosterAction);
+  content.addEventListener("click", handleRosterAction);
   renderRoster();
   initializeMotion();
 }

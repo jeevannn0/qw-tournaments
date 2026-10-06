@@ -5212,3 +5212,601 @@ select:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* Confirmed-player lobby board */
+.roster-controls {
+  max-width: none;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: var(--space-4);
+}
+
+.roster-controls__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-3);
+}
+
+.roster-controls__heading h2,
+.roster-controls__heading p {
+  margin: 0;
+}
+
+.roster-controls__heading > p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.roster-meta {
+  min-height: 5rem;
+}
+
+.roster-meta__end {
+  width: 100%;
+  align-items: center;
+}
+
+.roster-meta__end strong {
+  color: var(--foreground);
+  font-size: 0.8125rem;
+}
+
+.roster-meta__loading {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.roster-refresh {
+  min-height: 2.35rem;
+  margin-left: auto;
+  padding: 0.4rem 0.75rem;
+}
+
+.roster-loading {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.roster-loading span {
+  display: block;
+  height: 5.5rem;
+  border: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--card) 0%, var(--muted) 50%, var(--card) 100%);
+  background-size: 200% 100%;
+  animation: roster-loading 1.2s ease-in-out infinite;
+}
+
+.lobby-board-list {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.lobby-board {
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--primary) 28%, var(--border));
+  background: var(--card);
+}
+
+.lobby-board__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--primary) 7%, var(--card));
+  padding: var(--space-4);
+}
+
+.lobby-board__signal {
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lobby-board__header h2 {
+  margin: var(--space-1) 0;
+  font-size: clamp(1.55rem, 7vw, 2.25rem);
+}
+
+.lobby-board__header time {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.lobby-board__capacity {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  text-align: right;
+}
+
+.lobby-board__capacity strong {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  line-height: 0.9;
+}
+
+.lobby-board__capacity span {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.roster-player__head {
+  display: none;
+}
+
+.roster-player-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roster-player {
+  display: grid;
+  grid-template-columns: 3.35rem minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-3) var(--space-4);
+}
+
+.roster-player:last-child {
+  border-bottom: 0;
+}
+
+.roster-player__number {
+  grid-row: span 2;
+  display: grid;
+  min-height: 3.35rem;
+  align-content: center;
+  justify-items: center;
+  border: 1px solid color-mix(in oklab, var(--primary) 45%, var(--border));
+}
+
+.roster-player__number small,
+.roster-player__reference small {
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.roster-player__number strong {
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+
+.roster-player__identity,
+.roster-player__reference {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.roster-player__identity > strong {
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+
+.roster-player__identity > span {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+}
+
+.roster-player code {
+  overflow-wrap: anywhere;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.roster-player__identity code {
+  color: var(--foreground);
+}
+
+.lobby-board__empty {
+  margin: 0;
+  padding: var(--space-5) var(--space-4);
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+@keyframes roster-loading {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (min-width: 43.75rem) {
+  .roster-controls {
+    grid-template-columns: minmax(14rem, 0.85fr) minmax(12rem, 0.65fr) minmax(18rem, 1.2fr);
+    gap: var(--space-4);
+  }
+
+  .roster-controls__heading {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .roster-meta__end {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  .roster-player__head,
+  .roster-player {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(14rem, 1fr) minmax(15rem, 0.8fr);
+    align-items: center;
+  }
+
+  .roster-player__head {
+    gap: var(--space-4);
+    border-bottom: 1px solid var(--border);
+    background: var(--muted);
+    padding: var(--space-2) var(--space-4);
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .roster-player {
+    gap: var(--space-4);
+  }
+
+  .roster-player__number {
+    grid-row: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roster-loading span {
+    animation: none;
+  }
+}
+
+/* Booyah winner board */
+.page-intro--booyah {
+  overflow: hidden;
+}
+
+.booyah-crown {
+  position: relative;
+  display: grid;
+  min-height: 12rem;
+  place-items: center;
+  align-content: center;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 18%, transparent), transparent 58%),
+    var(--card);
+  text-align: center;
+}
+
+.booyah-crown::before,
+.booyah-crown::after {
+  position: absolute;
+  content: "";
+}
+
+.booyah-crown::before {
+  inset: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  clip-path: polygon(0 0, 3rem 0, 3rem 1px, 1px 1px, 1px 3rem, 0 3rem, 0 100%, 100% 100%, 100% calc(100% - 3rem), calc(100% - 1px) calc(100% - 3rem), calc(100% - 1px) calc(100% - 1px), calc(100% - 3rem) calc(100% - 1px), calc(100% - 3rem) 100%, 0 100%);
+}
+
+.booyah-crown::after {
+  width: 8rem;
+  height: 8rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, transparent);
+  border-radius: 50%;
+}
+
+.booyah-crown svg {
+  z-index: 1;
+  width: 4.5rem;
+  color: var(--primary);
+  fill: none;
+  filter: drop-shadow(0 0 1rem color-mix(in oklab, var(--primary) 55%, transparent));
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.booyah-crown strong,
+.booyah-crown small {
+  z-index: 1;
+}
+
+.booyah-crown strong {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 8vw, 3rem);
+  font-style: italic;
+  letter-spacing: 0.06em;
+}
+
+.booyah-crown small {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.booyah-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-4);
+}
+
+.booyah-heading h2,
+.booyah-heading p {
+  margin-bottom: 0;
+}
+
+.booyah-heading > p {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.winner-grid {
+  display: grid;
+  min-height: 18rem;
+  gap: var(--space-4);
+}
+
+.winner-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-top-color: color-mix(in oklab, var(--primary) 65%, var(--border));
+  background: var(--card);
+}
+
+.winner-card::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5rem;
+  height: 5rem;
+  background: linear-gradient(135deg, transparent 50%, color-mix(in oklab, var(--primary) 10%, transparent) 50%);
+  content: "";
+  pointer-events: none;
+}
+
+.winner-card__rank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  border-right: 1px solid var(--border);
+  background: color-mix(in oklab, var(--primary) 8%, var(--muted));
+  padding: var(--space-4) var(--space-2);
+}
+
+.winner-card__rank span {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  color: var(--primary);
+}
+
+.winner-card__rank strong {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  writing-mode: vertical-rl;
+}
+
+.winner-card__body {
+  min-width: 0;
+  padding: var(--space-4);
+}
+
+.winner-card header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.winner-card header > div {
+  min-width: 0;
+}
+
+.winner-card header p {
+  margin: 0;
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.winner-card h2 {
+  margin: var(--space-1) 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  text-transform: uppercase;
+}
+
+.winner-card header > div > span,
+.winner-card__match time,
+.winner-card__date {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.winner-card code {
+  color: var(--foreground);
+  font-family: var(--font-mono);
+}
+
+.winner-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, var(--card));
+  padding: 0.45rem 0.65rem;
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.winner-card__badge .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.winner-card__match {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+  border-block: 1px solid var(--border);
+  padding-block: var(--space-3);
+}
+
+.winner-card__match strong {
+  overflow-wrap: anywhere;
+}
+
+.winner-card__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.winner-card__fact {
+  min-width: 0;
+  background: var(--muted);
+  padding: var(--space-3);
+}
+
+.winner-card__fact span,
+.winner-card__fact strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.winner-card__fact span {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.winner-card__fact strong {
+  margin-top: 0.15rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.winner-card__reward {
+  color: var(--primary);
+}
+
+.empty-state--booyah .button {
+  margin-top: var(--space-4);
+}
+
+.booyah-proof {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.booyah-proof__icon {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border: 1px solid var(--success);
+  color: var(--success);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.booyah-proof h2 {
+  margin-bottom: var(--space-2);
+}
+
+.booyah-proof p:last-child {
+  max-width: 60ch;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 43.75rem) {
+  .booyah-heading {
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .winner-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .winner-card header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .booyah-proof {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 22rem) {
+  .winner-card {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+  }
+
+  .winner-card__body {
+    padding: var(--space-3);
+  }
+
+  .winner-card__facts {
+    grid-template-columns: 1fr;
+  }
+}

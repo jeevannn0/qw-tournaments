@@ -60,6 +60,7 @@ export const config = Object.freeze({
 
 export const tournaments = Array.isArray(window.QW_TOURNAMENTS) ? window.QW_TOURNAMENTS : [];
 export const rosters = window.QW_ROSTERS && typeof window.QW_ROSTERS === "object" ? window.QW_ROSTERS : {};
+export const winners = Array.isArray(window.QW_WINNERS) ? window.QW_WINNERS : [];
 
 const eventMedia = Object.freeze({
   "solo-survival-01": {

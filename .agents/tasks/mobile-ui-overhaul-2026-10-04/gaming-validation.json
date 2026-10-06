@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-10-04T10:01:38.173Z",
+  "passed": true,
+  "totals": {
+    "checks": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "name": "mobile-hd-gaming-hero",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "src": "http://127.0.0.1:4173/assets/free-fire-hero-960.jpg",
+        "naturalWidth": 960,
+        "imageAnimation": "hero-image-signal",
+        "textAnimation": "text-signal-a",
+        "scanAnimation": "vertical-scan",
+        "reticleAnimation": "reticle-lock",
+        "hud": 2,
+        "cards": 3,
+        "creditText": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "reduced-motion-disables-effects",
+      "passed": true,
+      "details": {
+        "imageAnimation": "none",
+        "textLayerDisplay": "none",
+        "tearDisplay": "none",
+        "scanSweepDisplay": "none"
+      }
+    },
+    {
+      "name": "route-tournaments.html",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "creditText": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "route-tournament.html",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "creditText": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "detail-gaming-effects",
+      "passed": true,
+      "details": {
+        "scan": "block",
+        "tear": "image-tear"
+      }
+    },
+    {
+      "name": "route-register.html",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "creditText": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "route-players.html",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "creditText": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "route-rules.html",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "creditText": false,
+        "broken": 0
+      }
+    },
+    {
+      "name": "desktop-hd-gaming-hero",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "clientWidth": 1425,
+        "scrollWidth": 1425,
+        "src": "http://127.0.0.1:4173/assets/free-fire-hero-1920.jpg",
+        "naturalWidth": 1920,
+        "broken": 0
+      }
+    },
+    {
+      "name": "no-http-or-runtime-errors",
+      "passed": true,
+      "details": {
+        "badLocalResponses": [],
+        "exceptions": []
+      }
+    }
+  ]
+}

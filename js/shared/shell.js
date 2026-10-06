@@ -25,6 +25,7 @@ const navItems = [
   { key: "home", label: "Home", href: "index.html" },
   { key: "tournaments", label: "Tournaments", href: "tournaments.html" },
   { key: "players", label: "Players", href: "players.html" },
+  { key: "booyah", label: "Booyah", href: "booyah.html" },
   { key: "rules", label: "Rules", href: "rules.html" }
 ];
 

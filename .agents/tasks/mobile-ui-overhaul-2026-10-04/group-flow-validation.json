@@ -1,0 +1,149 @@
+{
+  "generatedAt": "2026-10-04T10:59:44.532Z",
+  "passed": true,
+  "totals": {
+    "checks": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "name": "exact-final-match-states",
+      "passed": true,
+      "details": {
+        "statuses": [
+          "Live now",
+          "Coming soon",
+          "Coming soon"
+        ],
+        "registerLinks": 1,
+        "values": [
+          "01",
+          "₹6",
+          "₹30"
+        ],
+        "solo": {
+          "entry": 10,
+          "kill": 6,
+          "booyah": 30,
+          "live": true
+        },
+        "squad": {
+          "comingSoon": true,
+          "registrationOpen": false,
+          "entry": null
+        },
+        "tdm": {
+          "comingSoon": true,
+          "registrationOpen": false,
+          "entry": null
+        },
+        "demo": false,
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "group-link-configuration",
+      "passed": true,
+      "details": {
+        "configuredGroup": "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
+        "groupSafe": true,
+        "generated": "*QW TOURNAMENTS — MATCH GROUP CHECK-IN*\n\n*Reference:* QW-GROUP-VERIFY\n*Tournament:* Solo Survival 01\n*Player:* Final Player\n*Free Fire UID:* 123456789\n\nAge and payment information stay private. Send them only through the organizer chat if requested.",
+        "copied": "*QW TOURNAMENTS — MATCH GROUP CHECK-IN*\n\n*Reference:* QW-SOLO01-1004-1CE8F3\n*Tournament:* Solo Survival 01\n*Player:* Final Player\n*Free Fire UID:* 123456789\n\nAge and payment information stay private. Send them only through the organizer chat if requested.",
+        "clicks": [
+          "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD"
+        ],
+        "resultHidden": false,
+        "formHidden": true,
+        "groupHidden": false,
+        "groupHref": "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
+        "privateMessage": "*QW TOURNAMENTS — NEW REGISTRATION*\n\n*Reference:* QW-SOLO01-1004-1CE8F3\n*Tournament:* Solo Survival 01\n*Format:* Solo · Full map\n*Match:* Sunday, 4 October 2026 at 7:00 pm IST\n*Entry:* ₹10 per player\n*Kill reward:* ₹6 per confirmed kill\n*Booyah bonus:* ₹30 additional for the match winner\n\n*Player*\nSolo player\n• Name: Final Player\n• Free Fire UID: 123456789\n• Age: 20\n\n*Entrant confirmations*\n• Rules and payout verification terms accepted: Yes\n• Every player is 18+ or has guardian approval: Yes\n• Payment-proof process understood: Yes\n\nI understand that eliminations and the Booyah result must be verified by the organizer. I will attach payment proof in this chat only after receiving payment instructions, and I understand that this message does not confirm my slot.",
+        "consentCount": 4,
+        "actions": [
+          "Join WhatsApp group",
+          "Copy group details",
+          "Send private details",
+          "Edit lineup"
+        ],
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "automatic-group-redirect-target",
+      "passed": true,
+      "details": [
+        "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD"
+      ]
+    },
+    {
+      "name": "copied-group-message-is-public-safe",
+      "passed": true,
+      "details": {
+        "generated": "*QW TOURNAMENTS — MATCH GROUP CHECK-IN*\n\n*Reference:* QW-GROUP-VERIFY\n*Tournament:* Solo Survival 01\n*Player:* Final Player\n*Free Fire UID:* 123456789\n\nAge and payment information stay private. Send them only through the organizer chat if requested.",
+        "copied": "*QW TOURNAMENTS — MATCH GROUP CHECK-IN*\n\n*Reference:* QW-SOLO01-1004-1CE8F3\n*Tournament:* Solo Survival 01\n*Player:* Final Player\n*Free Fire UID:* 123456789\n\nAge and payment information stay private. Send them only through the organizer chat if requested."
+      }
+    },
+    {
+      "name": "private-message-retains-private-registration",
+      "passed": true,
+      "details": "*QW TOURNAMENTS — NEW REGISTRATION*\n\n*Reference:* QW-SOLO01-1004-1CE8F3\n*Tournament:* Solo Survival 01\n*Format:* Solo · Full map\n*Match:* Sunday, 4 October 2026 at 7:00 pm IST\n*Entry:* ₹10 per player\n*Kill reward:* ₹6 per confirmed kill\n*Booyah bonus:* ₹30 additional for the match winner\n\n*Player*\nSolo player\n• Name: Final Player\n• Free Fire UID: 123456789\n• Age: 20\n\n*Entrant confirmations*\n• Rules and payout verification terms accepted: Yes\n• Every player is 18+ or has guardian approval: Yes\n• Payment-proof process understood: Yes\n\nI understand that eliminations and the Booyah result must be verified by the organizer. I will attach payment proof in this chat only after receiving payment instructions, and I understand that this message does not confirm my slot."
+    },
+    {
+      "name": "result-panel-and-fallback-actions",
+      "passed": true,
+      "details": {
+        "configuredGroup": "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
+        "groupSafe": true,
+        "generated": "*QW TOURNAMENTS — MATCH GROUP CHECK-IN*\n\n*Reference:* QW-GROUP-VERIFY\n*Tournament:* Solo Survival 01\n*Player:* Final Player\n*Free Fire UID:* 123456789\n\nAge and payment information stay private. Send them only through the organizer chat if requested.",
+        "copied": "*QW TOURNAMENTS — MATCH GROUP CHECK-IN*\n\n*Reference:* QW-SOLO01-1004-1CE8F3\n*Tournament:* Solo Survival 01\n*Player:* Final Player\n*Free Fire UID:* 123456789\n\nAge and payment information stay private. Send them only through the organizer chat if requested.",
+        "clicks": [
+          "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD"
+        ],
+        "resultHidden": false,
+        "formHidden": true,
+        "groupHidden": false,
+        "groupHref": "https://chat.whatsapp.com/LDlotpG0MO4JdcAOBm4ixD",
+        "privateMessage": "*QW TOURNAMENTS — NEW REGISTRATION*\n\n*Reference:* QW-SOLO01-1004-1CE8F3\n*Tournament:* Solo Survival 01\n*Format:* Solo · Full map\n*Match:* Sunday, 4 October 2026 at 7:00 pm IST\n*Entry:* ₹10 per player\n*Kill reward:* ₹6 per confirmed kill\n*Booyah bonus:* ₹30 additional for the match winner\n\n*Player*\nSolo player\n• Name: Final Player\n• Free Fire UID: 123456789\n• Age: 20\n\n*Entrant confirmations*\n• Rules and payout verification terms accepted: Yes\n• Every player is 18+ or has guardian approval: Yes\n• Payment-proof process understood: Yes\n\nI understand that eliminations and the Booyah result must be verified by the organizer. I will attach payment proof in this chat only after receiving payment instructions, and I understand that this message does not confirm my slot.",
+        "consentCount": 4,
+        "actions": [
+          "Join WhatsApp group",
+          "Copy group details",
+          "Send private details",
+          "Edit lineup"
+        ],
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "edit-lineup-restores-form",
+      "passed": true,
+      "details": {
+        "formHidden": false,
+        "resultHidden": true,
+        "step": "2",
+        "playerName": "Final Player"
+      }
+    },
+    {
+      "name": "group-privacy-rules",
+      "passed": true,
+      "details": {
+        "open": true,
+        "text": "08\nPlayer protection\nPrivacy and account safety\nThe registration page prepares a WhatsApp message on your device; it does not upload the form.\nAfter consent, the match-group message may include only the registration reference, in-game name, and Free Fire UID.\nAges, phone numbers, payment proof, payment addresses, and identity documents stay private and must not be posted in the group.\nQW never asks for an OTP, UPI PIN, card PIN, Free Fire password, or account password.",
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "no-runtime-or-http-errors",
+      "passed": true,
+      "details": {
+        "exceptions": [],
+        "badLocal": []
+      }
+    }
+  ]
+}

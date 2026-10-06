@@ -161,6 +161,7 @@ h3 {
 .wizard-card,
 .event-status-panel,
 .roster-card,
+.winner-card,
 .registration-review {
   border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
 }

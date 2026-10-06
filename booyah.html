@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="See the verified match winners from QW Free Fire tournaments and Solo lobbies.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#111824" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
+  <title>Booyah Winners — QW Tournaments</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css?v=20261006-booyah">
+  <link rel="stylesheet" href="css/gaming.css?v=20261006-booyah">
+  <script src="js/theme-init.js"></script>
+</head>
+<body data-page="booyah">
+  <a class="skip-link" href="#winnerGrid">Skip to match winners</a>
+  <div id="siteHeader" class="site-header-mount"></div>
+  <noscript><div class="noscript-bar">JavaScript is required to load match winners. <a href="https://wa.me/919900344144">Contact QW on WhatsApp</a>.</div></noscript>
+
+  <main id="mainContent">
+    <section class="page-intro page-intro--booyah">
+      <div class="page-intro__mesh" aria-hidden="true"></div>
+      <div class="shell page-intro__layout">
+        <div data-reveal>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Booyah</span></nav>
+          <p class="kicker">Hall of victory</p>
+          <h1>Last one standing.</h1>
+          <p>Every card marks an organizer-verified QW match winner. Results appear only after the lobby outcome has been checked.</p>
+        </div>
+        <div class="booyah-crown" aria-hidden="true" data-reveal>
+          <svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 11H5L3 7Z"/><path d="M5 21h14"/></svg>
+          <strong>BOOYAH</strong><small>verified champions</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="section booyah-section" aria-labelledby="winnerBoardTitle">
+      <div class="shell">
+        <div class="booyah-heading" data-reveal>
+          <div><p class="kicker">Winner board</p><h2 id="winnerBoardTitle">Match champions</h2></div>
+          <p id="winnerCount" role="status" aria-live="polite">Loading verified results…</p>
+        </div>
+        <div class="winner-grid" id="winnerGrid" tabindex="-1" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section section--surface">
+      <div class="shell booyah-proof" data-reveal>
+        <span class="booyah-proof__icon" aria-hidden="true">✓</span>
+        <div><p class="kicker">Fair result policy</p><h2>Checked before celebrated.</h2><p>Only organizer-verified match results are published. Personal, payment, and room-access details always remain private.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+  <script src="data/config.js?v=20261006-upi-ybl"></script>
+  <script src="data/tournaments.js?v=20261006-lobbies"></script>
+  <script src="data/winners.js?v=20261006-booyah"></script>
+  <script type="module" src="js/pages/booyah-page.js?v=20261006-booyah"></script>
+</body>
+</html>

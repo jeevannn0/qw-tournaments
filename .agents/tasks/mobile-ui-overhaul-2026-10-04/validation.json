@@ -1,0 +1,575 @@
+{
+  "generatedAt": "2026-10-04T09:42:43.352Z",
+  "passed": true,
+  "totals": {
+    "checks": 33,
+    "passed": 33,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "name": "home-320-no-overflow",
+      "passed": true,
+      "details": {
+        "width": 320,
+        "scrollWidth": 320,
+        "heroBottom": 567,
+        "matchesTop": 707,
+        "firstCardTop": 846,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-320-content",
+      "passed": true,
+      "details": {
+        "width": 320,
+        "scrollWidth": 320,
+        "heroBottom": 567,
+        "matchesTop": 707,
+        "firstCardTop": 846,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-320-images",
+      "passed": true,
+      "details": {
+        "width": 320,
+        "scrollWidth": 320,
+        "heroBottom": 567,
+        "matchesTop": 707,
+        "firstCardTop": 846,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-320-match-access",
+      "passed": true,
+      "details": {
+        "width": 320,
+        "scrollWidth": 320,
+        "heroBottom": 567,
+        "matchesTop": 707,
+        "firstCardTop": 846,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-320-compact-hero",
+      "passed": true,
+      "details": {
+        "width": 320,
+        "scrollWidth": 320,
+        "heroBottom": 567,
+        "matchesTop": 707,
+        "firstCardTop": 846,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-360-no-overflow",
+      "passed": true,
+      "details": {
+        "width": 360,
+        "scrollWidth": 360,
+        "heroBottom": 599,
+        "matchesTop": 733,
+        "firstCardTop": 874,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-360-content",
+      "passed": true,
+      "details": {
+        "width": 360,
+        "scrollWidth": 360,
+        "heroBottom": 599,
+        "matchesTop": 733,
+        "firstCardTop": 874,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-360-images",
+      "passed": true,
+      "details": {
+        "width": 360,
+        "scrollWidth": 360,
+        "heroBottom": 599,
+        "matchesTop": 733,
+        "firstCardTop": 874,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-360-match-access",
+      "passed": true,
+      "details": {
+        "width": 360,
+        "scrollWidth": 360,
+        "heroBottom": 599,
+        "matchesTop": 733,
+        "firstCardTop": 874,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-390-no-overflow",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 861,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-390-content",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 861,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-390-images",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 861,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-390-match-access",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 861,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-430-no-overflow",
+      "passed": true,
+      "details": {
+        "width": 430,
+        "scrollWidth": 430,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 864,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-430-content",
+      "passed": true,
+      "details": {
+        "width": 430,
+        "scrollWidth": 430,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 864,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-430-images",
+      "passed": true,
+      "details": {
+        "width": 430,
+        "scrollWidth": 430,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 864,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-430-match-access",
+      "passed": true,
+      "details": {
+        "width": 430,
+        "scrollWidth": 430,
+        "heroBottom": 599,
+        "matchesTop": 718,
+        "firstCardTop": 864,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-768-no-overflow",
+      "passed": true,
+      "details": {
+        "width": 768,
+        "scrollWidth": 768,
+        "heroBottom": 1027,
+        "matchesTop": 1151,
+        "firstCardTop": 1361,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-768-content",
+      "passed": true,
+      "details": {
+        "width": 768,
+        "scrollWidth": 768,
+        "heroBottom": 1027,
+        "matchesTop": 1151,
+        "firstCardTop": 1361,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-768-images",
+      "passed": true,
+      "details": {
+        "width": 768,
+        "scrollWidth": 768,
+        "heroBottom": 1027,
+        "matchesTop": 1151,
+        "firstCardTop": 1361,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-1440-no-overflow",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "heroBottom": 903,
+        "matchesTop": 1012,
+        "firstCardTop": 1266,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-1440-content",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "heroBottom": 903,
+        "matchesTop": 1012,
+        "firstCardTop": 1266,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "home-1440-images",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "heroBottom": 903,
+        "matchesTop": 1012,
+        "firstCardTop": 1266,
+        "cards": 2,
+        "feature": 1,
+        "brokenImages": 0,
+        "images": [
+          "assets/free-fire-squad.jpg",
+          "assets/free-fire-solo.jpg",
+          "assets/free-fire-clash.jpg",
+          "assets/free-fire-squad.jpg"
+        ]
+      }
+    },
+    {
+      "name": "mobile-drawer-theme",
+      "passed": true,
+      "details": {
+        "opened": false,
+        "toggleText": "Dark theme",
+        "before": "dark",
+        "after": "light",
+        "focus": "navDrawerOpen"
+      }
+    },
+    {
+      "name": "tournaments-route",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "cards": 3,
+        "allImagesLoaded": true,
+        "brokenImages": 0
+      }
+    },
+    {
+      "name": "tournament-search-and-empty-state",
+      "passed": true,
+      "details": {
+        "clashCount": 1,
+        "empty": true,
+        "announced": "0 tournaments shown"
+      }
+    },
+    {
+      "name": "tournament-detail-route",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "title": "Squad Last Circle 01",
+        "progress": "12",
+        "image": "assets/free-fire-squad.jpg",
+        "brokenImages": 0
+      }
+    },
+    {
+      "name": "players-route",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "selected": "clash-squad-cup-01",
+        "cards": 2,
+        "meta": "SELECTED MATCH\nCla h Squad Cup 01\nSAMPLE ROSTER\nTue day, 29 September 2026 at 12:00 pm IST\n2 active · 2 total team"
+      }
+    },
+    {
+      "name": "rules-hash-and-table",
+      "passed": true,
+      "details": {
+        "width": 390,
+        "scrollWidth": 390,
+        "scrollY": 1419,
+        "paymentsTop": 280,
+        "eligibilityTop": -499,
+        "open": true,
+        "current": "#payments",
+        "rows": 6
+      }
+    },
+    {
+      "name": "registration-validation-and-review",
+      "passed": true,
+      "details": {
+        "selected": "squad-last-circle-01",
+        "duplicateError": true,
+        "visibleStep": "3",
+        "reviewPlayers": 4,
+        "progressNow": "3",
+        "progressRole": "progressbar",
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "no-local-http-errors",
+      "passed": true,
+      "details": {
+        "badResponses": [],
+        "localFailures": []
+      }
+    },
+    {
+      "name": "no-runtime-exceptions",
+      "passed": true,
+      "details": {
+        "exceptions": []
+      }
+    },
+    {
+      "name": "no-runtime-third-party-requests",
+      "passed": true,
+      "details": {
+        "externalRuntime": []
+      }
+    }
+  ]
+}

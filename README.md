@@ -20,6 +20,7 @@ There is no package manager, compilation, or application server. Browser modules
 | `tournament.html?tournament=<id>` | Event details, rewards, availability, and rules |
 | `register.html?tournament=<id>` | Required player details, payment proof, review, and Supabase submission |
 | `players.html?tournament=<id>` | Public organizer-confirmed player roster |
+| `booyah.html` | Public organizer-verified match-winner board |
 | `rules.html` | Eligibility, payment, verification, privacy, and competition rules |
 | `admin.html` | Private organizer dashboard protected by Supabase Auth and database policies |
 
@@ -124,7 +125,8 @@ The WhatsApp group message contains only registration reference, tournament, in-
 │   ├── config.js
 │   ├── players.js
 │   ├── supabase-config.js
-│   └── tournaments.js
+│   ├── tournaments.js
+│   └── winners.js
 ├── docs/
 │   ├── supabase-setup.md
 │   ├── image-credits.md
@@ -133,6 +135,7 @@ The WhatsApp group message contains only registration reference, tournament, in-
 │   ├── pages/
 │   └── shared/
 ├── admin.html
+├── booyah.html
 ├── index.html
 ├── players.html
 ├── register.html
