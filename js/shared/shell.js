@@ -1,4 +1,4 @@
-import { config, escapeHtml, supportUrl } from "./data.js";
+import { config, escapeHtml, supportUrl } from "./data.js?v=20261011-lifecycle";
 
 const icons = {
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
@@ -200,7 +200,7 @@ export function initializeShell() {
           <nav class="desktop-nav" aria-label="Primary navigation">${navLinks(activePage, "desktop-nav__link")}</nav>
           <div class="app-header__actions">
             <button class="icon-button desktop-theme-toggle" type="button" data-theme-toggle></button>
-            <a class="button button--primary header-register" href="register.html?tournament=solo-survival-01"><span class="header-register__short">Solo</span><span class="header-register__long">Join Solo</span></a>
+            <a class="button button--primary header-register" href="register.html"><span class="header-register__short">Play</span><span class="header-register__long">Choose match</span></a>
             <button class="icon-button nav-open" id="navDrawerOpen" type="button" aria-label="Open navigation" aria-haspopup="dialog">${icon("menu")}</button>
           </div>
         </div>
@@ -211,11 +211,12 @@ export function initializeShell() {
           <nav class="drawer-nav" aria-label="Mobile navigation">${navLinks(activePage, "drawer-nav__link")}</nav>
           <div class="drawer-theme-row"><span>Appearance</span><button class="button button--quiet" type="button" data-theme-toggle></button></div>
           <div class="nav-drawer__footer">
-            <a class="button button--primary button--full" href="register.html?tournament=solo-survival-01">Join Solo for ₹10 ${icon("arrow")}</a>
+            <a class="button button--primary button--full" href="register.html">Choose an open match ${icon("arrow")}</a>
             ${helpLink ? `<a class="button button--quiet button--full" href="${escapeHtml(helpLink)}" target="_blank" rel="noopener noreferrer">${icon("whatsapp")} Ask organizer</a>` : '<span class="button button--disabled button--full" aria-disabled="true">Organizer contact unavailable</span>'}
           </div>
         </div>
-      </dialog>`;
+      </dialog>
+      <nav class="mobile-dock" aria-label="Quick navigation">${navLinks(activePage, "mobile-dock__link")}</nav>`;
   }
 
   if (footerMount) {
@@ -223,7 +224,7 @@ export function initializeShell() {
       <footer class="site-footer">
         <div class="shell site-footer__grid">
           <div class="site-footer__brand"><a class="wordmark wordmark--footer" href="index.html"><span class="wordmark__symbol" aria-hidden="true">QW</span><span class="wordmark__text"><strong>QW</strong><small>Tournaments</small></span></a><p>Community Free Fire tournaments with visible rules, private registration, and written organizer confirmation.</p></div>
-          <div><h2>Explore</h2>${navLinks(activePage, "footer-link")}<a class="footer-link" href="register.html?tournament=solo-survival-01">Register Solo</a></div>
+          <div><h2>Explore</h2>${navLinks(activePage, "footer-link")}<a class="footer-link" href="register.html">Register for a match</a></div>
           <div><h2>Support</h2>${helpLink ? `<a class="footer-link" href="${escapeHtml(helpLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(config.whatsappDisplay)}</a>` : ""}<span>${escapeHtml(config.supportHours)}</span></div>
         </div>
         <div class="shell site-footer__bottom"><span>© ${new Date().getFullYear()} ${safeBrand}</span><span>Independent community event · Not affiliated with or endorsed by Garena.</span></div>

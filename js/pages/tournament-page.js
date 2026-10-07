@@ -7,6 +7,7 @@ import {
   formatReward,
   getCapacity,
   getEventMedia,
+  getEventPresentation,
   getEventState,
   getEventTimeSlots,
   getRequestedTournament,
@@ -17,12 +18,159 @@ import {
   rosters,
   setDocumentTitle,
   tournaments
-} from "../shared/data.js?v=20261006-match-complete";
-import { eventStatusBadge } from "../shared/event-card.js?v=20261006-match-complete";
-import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
-import { initializeMotion } from "../shared/motion.js";
+} from "../shared/data.js?v=20261011-lifecycle";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
+import { eventStatusBadge } from "../shared/event-card.js?v=20261011-lifecycle";
+import { getCustomRoomCredentials, isCustomRoomReady, validRegistrationEmail } from "../shared/custom-room-backend.js?v=20261011-lifecycle";
+import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
+import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
 
 const root = document.querySelector("#eventDetail");
+const roomDialog = document.querySelector("#customRoomDialog");
+const roomStatus = document.querySelector("#customRoomStatus");
+const roomEmailForm = document.querySelector("#customRoomEmailForm");
+const roomEmail = document.querySelector("#customRoomEmail");
+const roomCheck = document.querySelector("#customRoomCheck");
+const roomResult = document.querySelector("#customRoomResult");
+const roomId = document.querySelector("#customRoomId");
+const roomPassword = document.querySelector("#customRoomPassword");
+let activeTournament = null;
+let roomRequestGeneration = 0;
+let roomReadinessTimer = 0;
+let detailRefreshGeneration = 0;
+
+function customRoomButton() {
+  return `<button class="button button--quiet button--large" type="button" data-custom-room>Custom Room details ${icon("lock")}</button>`;
+}
+
+function clearCustomRoomDialog() {
+  roomEmailForm.hidden = true;
+  roomResult.hidden = true;
+  roomEmail.value = "";
+  roomId.textContent = "";
+  roomPassword.textContent = "";
+  roomStatus.hidden = false;
+  roomStatus.innerHTML = "<strong>Checking Room details…</strong>";
+}
+
+async function openCustomRoomDialog() {
+  if (!activeTournament) return;
+  const tournamentId = activeTournament.id;
+  const requestGeneration = ++roomRequestGeneration;
+  clearCustomRoomDialog();
+  if (typeof roomDialog.showModal === "function") roomDialog.showModal();
+  else roomDialog.setAttribute("open", "");
+  try {
+    const ready = await isCustomRoomReady(tournamentId);
+    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (!ready) {
+      roomStatus.innerHTML = "<strong>Room details have not been published yet.</strong><p>Please wait for the organizer to add the Room ID and password, then try again.</p>";
+      return;
+    }
+    roomStatus.innerHTML = "<strong>Room details are ready.</strong><p>Enter your registered email to continue.</p>";
+    window.clearInterval(roomReadinessTimer);
+    roomReadinessTimer = window.setInterval(refreshVisibleRoomReadiness, 5000);
+    roomEmailForm.hidden = false;
+    roomEmail.focus();
+  } catch {
+    if (requestGeneration !== roomRequestGeneration || !roomDialog.open) return;
+    roomStatus.innerHTML = "<strong>Room details are temporarily unavailable.</strong><p>Please try again shortly.</p>";
+  }
+}
+
+function closeCustomRoomDialog() {
+  roomRequestGeneration += 1;
+  window.clearInterval(roomReadinessTimer);
+  roomReadinessTimer = 0;
+  clearCustomRoomDialog();
+  if (typeof roomDialog.close === "function" && roomDialog.open) roomDialog.close();
+  else roomDialog.removeAttribute("open");
+}
+
+async function submitCustomRoomEmail(event) {
+  event.preventDefault();
+  if (!activeTournament || !validRegistrationEmail(roomEmail.value)) {
+    roomStatus.innerHTML = "<strong>Enter a valid registered email.</strong>";
+    roomEmail.focus();
+    return;
+  }
+  const tournamentId = activeTournament.id;
+  const requestGeneration = ++roomRequestGeneration;
+  roomCheck.disabled = true;
+  roomCheck.textContent = "Checking registration…";
+  roomId.textContent = "";
+  roomPassword.textContent = "";
+  roomResult.hidden = true;
+  try {
+    const credentials = await getCustomRoomCredentials(tournamentId, roomEmail.value);
+    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (!credentials) {
+      roomStatus.innerHTML = "<strong>No confirmed registration found for this email.</strong><p>Use the exact email entered for this match, or wait until the organizer confirms your registration.</p>";
+      return;
+    }
+    roomStatus.innerHTML = "<strong>Confirmed registration matched.</strong>";
+    roomId.textContent = credentials.roomId;
+    roomPassword.textContent = credentials.roomPassword;
+    roomResult.hidden = false;
+  } catch {
+    if (requestGeneration !== roomRequestGeneration || !roomDialog.open) return;
+    roomStatus.innerHTML = "<strong>Room access could not be checked.</strong><p>Please try again shortly.</p>";
+  } finally {
+    if (requestGeneration === roomRequestGeneration) {
+      roomCheck.disabled = false;
+      roomCheck.textContent = "Show Room ID and password";
+    }
+  }
+}
+
+async function refreshVisibleRoomReadiness() {
+  if (!roomDialog.open || !activeTournament) return;
+  const tournamentId = activeTournament.id;
+  const requestGeneration = ++roomRequestGeneration;
+  try {
+    const ready = await isCustomRoomReady(tournamentId);
+    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (!ready) {
+      window.clearInterval(roomReadinessTimer);
+      roomReadinessTimer = 0;
+      roomId.textContent = "";
+      roomPassword.textContent = "";
+      roomResult.hidden = true;
+      roomStatus.innerHTML = "<strong>Room details are no longer available.</strong><p>The organizer may be updating the lobby. Check again shortly.</p>";
+    }
+  } catch {
+    if (requestGeneration === roomRequestGeneration) {
+      roomId.textContent = "";
+      roomPassword.textContent = "";
+      roomResult.hidden = true;
+    }
+  }
+}
+
+async function copyRoomValue(element, label) {
+  if (!element?.textContent || !activeTournament || !roomDialog.open) return;
+  const tournamentId = activeTournament.id;
+  const requestGeneration = ++roomRequestGeneration;
+  try {
+    const ready = await isCustomRoomReady(tournamentId);
+    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (!ready) {
+      window.clearInterval(roomReadinessTimer);
+      roomReadinessTimer = 0;
+      roomId.textContent = "";
+      roomPassword.textContent = "";
+      roomResult.hidden = true;
+      roomStatus.innerHTML = "<strong>Room details are no longer available.</strong><p>The organizer may be updating the lobby. Check again shortly.</p>";
+      return;
+    }
+    const value = element.textContent;
+    if (!value) return;
+    await navigator.clipboard.writeText(value);
+    showToast(`${label} copied.`);
+  } catch {
+    showToast(`Copy unavailable. Reopen the Room details and try again.`);
+  }
+}
 
 function rewardCards(tournament) {
   if (tournament.comingSoon) {
@@ -60,7 +208,46 @@ function renderNotFound(hasConfiguredEvents = true) {
   root.innerHTML = `<section class="not-found shell"><span class="not-found__code">${hasConfiguredEvents ? "404" : "00"}</span><p class="kicker">${hasConfiguredEvents ? "Match unavailable" : "Schedule empty"}</p><h1>${hasConfiguredEvents ? "Match not found" : "No tournaments configured"}</h1><p>${hasConfiguredEvents ? "The event code may be outdated or the match was removed." : "Publish a tournament before opening this page."}</p><a class="button button--primary" href="tournaments.html">Open match board ${icon("arrow")}</a></section>`;
 }
 
+function renderAnnouncementTournament(tournament, presentation) {
+  setDocumentTitle(tournament.name);
+  const media = getEventMedia(tournament);
+  const secondaryHref = tournament.type === "solo" ? rosterUrl(tournament) : "tournaments.html";
+  const secondaryLabel = tournament.type === "solo" ? "Player roster" : "Match board";
+  const registrationOpen = presentation.state.open;
+  const primaryAction = registrationOpen
+    ? `<a class="button button--primary button--large" href="${registrationUrl(tournament)}">Register for ${escapeHtml(presentation.entry)} ${icon("arrow")}</a>`
+    : '<span class="button button--disabled button--large" aria-disabled="true">Registration closed</span>';
+  const lifecycleCopy = presentation.mode === "registration_open"
+    ? `Registration is open for one ${tournament.type === "solo" ? "player" : "four-player squad"} lobby. At match time the card changes to Completed for three hours.`
+    : presentation.mode === "scheduled"
+      ? "This match is announced and registration remains closed. At match time the card changes to Completed for three hours."
+      : presentation.mode === "completed"
+        ? "The announced match has completed. This card will return to Coming soon three hours after match time."
+        : "Unpublished schedule, entry, and reward terms stay hidden until the organizer schedules the next match.";
+  root.innerHTML = `
+    <section class="event-hero event-hero--announcement event-hero--${escapeHtml(presentation.mode)}">
+      <div class="shell"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="tournaments.html">Match board</a><span aria-hidden="true">/</span><span>${escapeHtml(tournament.shortCode)}</span></nav>
+        <div class="event-hero__layout">
+          <div class="event-hero__copy" data-reveal><div class="inline-badges">${eventStatusBadge(tournament, presentation.state)}</div><p class="kicker">Match announcement · ${escapeHtml(tournament.server)}</p><h1>${escapeHtml(tournament.name)}</h1><p>${escapeHtml(tournament.description)}</p><div class="button-row">${primaryAction}<a class="button button--quiet button--large" href="${secondaryHref}">${secondaryLabel}</a>${customRoomButton()}</div></div>
+          <figure class="event-poster" data-reveal><img src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" width="480" height="270" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}"><span class="event-poster__shade" aria-hidden="true"></span><span class="event-poster__scan" aria-hidden="true"></span><span class="event-poster__code" aria-hidden="true">${escapeHtml(eventMark(tournament))}</span><figcaption><span>${escapeHtml(presentation.state.label)}</span><strong>${escapeHtml(tournament.formatLabel)}</strong></figcaption></figure>
+        </div>
+        <dl class="event-fact-bar" data-reveal><div><dt>Schedule</dt><dd>${escapeHtml(presentation.schedule)}</dd></div><div><dt>Entry</dt><dd>${escapeHtml(presentation.entry)}</dd></div><div><dt>Reward</dt><dd>${escapeHtml(presentation.reward)}</dd></div><div><dt>Format</dt><dd>${escapeHtml(tournament.rounds)}</dd></div><div><dt>Capacity</dt><dd>${escapeHtml(presentation.capacityLabel)}</dd></div></dl>
+      </div>
+    </section>
+    <nav class="event-local-nav" aria-label="Tournament sections"><div class="shell"><a href="#overview">Overview</a><a href="#match-facts">Match facts</a><a href="#ruleset">Safety</a></div></nav>
+    <section class="section" id="overview"><div class="shell detail-columns"><div data-reveal><p class="kicker">${escapeHtml(presentation.state.label)}</p><h2>${presentation.comingSoon ? "The next match is preparing." : "Match details are published."}</h2><p class="section-lead">${escapeHtml(lifecycleCopy)}</p></div><div class="event-status-panel" data-reveal><div class="event-status-panel__top"><div>${eventStatusBadge(tournament, presentation.state)}<h3>${registrationOpen ? "Registration and payment open" : "Announcement only"}</h3></div><span class="event-status-panel__index">01</span></div><p>${registrationOpen ? `The published schedule, fee, reward, and ${tournament.type === "solo" ? "player" : "team"} capacity are enforced by the registration service.` : "Registration and payment remain closed for this state. Historical lobbies, rosters, payments, and results stay unchanged."}</p><ul class="mini-checks"><li>${icon("check")} Organizer-published match facts</li><li>${icon(registrationOpen ? "check" : "lock")} ${registrationOpen ? "Server-validated registration" : "Registration remains closed"}</li><li>${icon("lock")} Room credentials stay private</li></ul></div></div></section>
+    <section class="section section--surface" id="match-facts"><div class="shell"><div class="section-heading" data-reveal><p class="kicker">Public facts</p><h2>${escapeHtml(presentation.state.label)}.</h2></div><dl class="event-fact-bar" data-reveal><div><dt>Schedule</dt><dd>${escapeHtml(presentation.schedule)}</dd></div><div><dt>Entry</dt><dd>${escapeHtml(presentation.entry)}</dd></div><div><dt>Reward</dt><dd>${escapeHtml(presentation.reward)}</dd></div><div><dt>Map</dt><dd>${escapeHtml(tournament.map)}</dd></div><div><dt>Capacity</dt><dd>${escapeHtml(presentation.capacityLabel)}</dd></div></dl></div></section>
+    <section class="section" id="ruleset"><div class="shell detail-columns"><div data-reveal><p class="kicker">Registration safety</p><h2>${registrationOpen ? "Submit the complete entry." : "Wait for registration to open."}</h2><p class="section-lead">${registrationOpen ? "Pay only the displayed fee through the registration page. The organizer verifies the incoming payment before assigning a number." : "Do not send payment until this page explicitly shows Registration open and provides the registration action."}</p></div><div class="coming-soon-panel" data-reveal><span aria-hidden="true">⌁</span><h3>${registrationOpen ? "Registration open" : "Registration closed"}</h3><p>${registrationOpen ? "Complete the lineup and private payment proof before the match begins." : "This state has no registration or payment action."}</p><a class="button button--quiet" href="rules.html">Read all rules ${icon("arrow")}</a></div></div></section>
+    <section class="event-final-cta section"><div class="shell event-final-cta__inner" data-reveal><div><p class="kicker">${escapeHtml(tournament.shortCode)}</p><h2>${escapeHtml(presentation.state.label)}</h2></div>${registrationOpen ? primaryAction : `<a class="button button--primary button--large" href="${secondaryHref}">${secondaryLabel}</a>`}</div></section>`;
+  initializeMotion(root);
+}
+
 function renderTournament(tournament) {
+  const presentation = getEventPresentation(tournament);
+  if (presentation.hasOverride) {
+    renderAnnouncementTournament(tournament, presentation);
+    return;
+  }
   setDocumentTitle(tournament.name);
   const state = getEventState(tournament);
   const capacity = getCapacity(tournament);
@@ -86,7 +273,7 @@ function renderTournament(tournament) {
       <div class="shell">
         <nav class="breadcrumb" aria-label="Breadcrumb"><a href="tournaments.html">Match board</a><span aria-hidden="true">/</span><span>${escapeHtml(tournament.shortCode)}</span></nav>
         <div class="event-hero__layout">
-          <div class="event-hero__copy" data-reveal><div class="inline-badges">${eventStatusBadge(tournament)}</div><p class="kicker">${escapeHtml(tournament.stage)} · ${escapeHtml(tournament.server)}</p><h1>${escapeHtml(tournament.name)}</h1><p>${escapeHtml(tournament.description)}</p><div class="button-row">${primaryAction}${secondaryAction}</div></div>
+          <div class="event-hero__copy" data-reveal><div class="inline-badges">${eventStatusBadge(tournament)}</div><p class="kicker">${escapeHtml(tournament.stage)} · ${escapeHtml(tournament.server)}</p><h1>${escapeHtml(tournament.name)}</h1><p>${escapeHtml(tournament.description)}</p><div class="button-row">${primaryAction}${secondaryAction}${customRoomButton()}</div></div>
           <figure class="event-poster" data-reveal data-parallax><img src="${escapeHtml(media.src)}" alt="${escapeHtml(media.alt)}" width="480" height="270" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}"><span class="event-poster__shade" aria-hidden="true"></span><span class="event-poster__scan" aria-hidden="true"></span><span class="event-poster__glitch" aria-hidden="true"></span><span class="event-poster__code" aria-hidden="true">${escapeHtml(eventMark(tournament))}</span><figcaption><span>${escapeHtml(tournament.shortCode)}</span><strong>${escapeHtml(tournament.formatLabel)}</strong></figcaption></figure>
         </div>
         <dl class="event-fact-bar" data-reveal><div><dt>${registrationLabel}</dt><dd>${escapeHtml(registrationValue)}</dd></div><div><dt>Entry</dt><dd>${escapeHtml(formatCurrency(tournament.entryFee))}</dd></div><div><dt>Reward</dt><dd>${escapeHtml(formatReward(tournament))}</dd></div><div><dt>Format</dt><dd>${escapeHtml(tournament.rounds)}</dd></div><div><dt>${comingSoon ? "Capacity" : "Open"}</dt><dd>${escapeHtml(capacityValue)}</dd></div></dl>
@@ -101,9 +288,52 @@ function renderTournament(tournament) {
   initializeMotion(root);
 }
 
-initializeShell();
-const queryId = new URLSearchParams(window.location.search).get("tournament");
-const tournament = queryId ? getTournament(queryId) : getRequestedTournament() || tournaments.find((item) => item.featured) || tournaments[0];
-if (queryId && !tournament) renderNotFound(Boolean(tournaments.length));
-else if (tournament) renderTournament(tournament);
-else renderNotFound(false);
+let presentationRefreshTimer;
+function schedulePresentationRefresh(tournament) {
+  window.clearTimeout(presentationRefreshTimer);
+  const rolloverAt = getEventPresentation(tournament).rolloverAt;
+  if (!Number.isFinite(rolloverAt) || rolloverAt <= Date.now()) return;
+  presentationRefreshTimer = window.setTimeout(() => {
+    renderTournament(tournament);
+    schedulePresentationRefresh(tournament);
+  }, Math.max(100, Math.min(rolloverAt - Date.now() + 100, 2_147_483_647)));
+}
+
+async function refreshTournamentPresentation({ force = false } = {}) {
+  const refreshGeneration = ++detailRefreshGeneration;
+  await hydrateTournamentOverrides({ force });
+  if (refreshGeneration !== detailRefreshGeneration) return;
+  const queryId = new URLSearchParams(window.location.search).get("tournament");
+  const tournament = queryId ? getTournament(queryId) : getRequestedTournament() || tournaments.find((item) => item.featured) || tournaments[0];
+  activeTournament = tournament || null;
+  if (queryId && !tournament) renderNotFound(Boolean(tournaments.length));
+  else if (tournament) {
+    renderTournament(tournament);
+    schedulePresentationRefresh(tournament);
+  } else renderNotFound(false);
+}
+
+async function initializeTournament() {
+  initializeShell();
+  await refreshTournamentPresentation();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && roomDialog.open) closeCustomRoomDialog();
+    if (document.visibilityState === "visible") {
+      refreshTournamentPresentation({ force: true });
+      refreshVisibleRoomReadiness();
+    }
+  });
+  window.addEventListener("pageshow", () => refreshTournamentPresentation({ force: true }));
+}
+
+root.addEventListener("click", (event) => {
+  if (event.target.closest("[data-custom-room]")) openCustomRoomDialog();
+});
+document.querySelector("#customRoomClose").addEventListener("click", closeCustomRoomDialog);
+roomDialog.addEventListener("cancel", (event) => { event.preventDefault(); closeCustomRoomDialog(); });
+roomDialog.addEventListener("click", (event) => { if (event.target === roomDialog) closeCustomRoomDialog(); });
+roomEmailForm.addEventListener("submit", submitCustomRoomEmail);
+document.querySelector("#copyCustomRoomId").addEventListener("click", () => copyRoomValue(roomId, "Room ID"));
+document.querySelector("#copyCustomRoomPassword").addEventListener("click", () => copyRoomValue(roomPassword, "Password"));
+
+initializeTournament();

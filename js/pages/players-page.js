@@ -3,15 +3,17 @@ import {
   escapeHtml,
   formatDateTime,
   getRequestedTournament,
+  getEventTimeSlots,
   getTimeSlotState,
   getTournament,
   normalize,
   rosters,
   tournaments
-} from "../shared/data.js?v=20261006-match-complete";
-import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
-import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
-import { initializeMotion, transitionUpdate } from "../shared/motion.js";
+} from "../shared/data.js?v=20261011-lifecycle";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
+import { icon, initializeShell } from "../shared/shell.js?v=20261011-lifecycle";
+import { initializeMotion, transitionUpdate } from "../shared/motion.js?v=20261011-lifecycle";
 
 const eventSelect = document.querySelector("#rosterEvent");
 const lobbySelect = document.querySelector("#rosterLobby");
@@ -21,16 +23,20 @@ const meta = document.querySelector("#rosterMeta");
 const activeStatuses = new Set(["confirmed", "checked in"]);
 const supabaseRosterCache = new Map();
 const supabaseRosterRequests = new Map();
+const supabaseRosterGenerations = new Map();
 let renderRequest = 0;
+let playersRefreshGeneration = 0;
 
 function projectedEntry(entry) {
   if (!entry || typeof entry !== "object") return null;
   return {
     registrationId: normalize(entry.registrationId || entry.reference).slice(0, 40),
+    registrationCycle: Number(entry.registrationCycle),
     timeSlotId: normalize(entry.timeSlotId).slice(0, 64),
     timeSlotLabel: normalize(entry.timeSlotLabel).slice(0, 40),
     timeSlotAt: entry.timeSlotAt || null,
     slot: Number.isFinite(Number(entry.slot)) ? Number(entry.slot) : "—",
+    slotCapacity: Number.isFinite(Number(entry.slotCapacity)) ? Number(entry.slotCapacity) : 50,
     teamName: normalize(entry.teamName).slice(0, 40),
     displayName: normalize(entry.displayName).slice(0, 40),
     uid: normalize(entry.uid).slice(0, 20),
@@ -79,16 +85,12 @@ function playerRow(entry) {
   </li>`;
 }
 
+function combinedLobbySlots(tournament) {
+  return getEventTimeSlots(tournament);
+}
+
 function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, query) {
-  const configuredSlots = Array.isArray(tournament.timeSlots) ? tournament.timeSlots : [];
-  const slots = configuredSlots.length
-    ? configuredSlots
-    : [...new Map(allEntries.map((entry) => [entry.timeSlotId, {
-      id: entry.timeSlotId,
-      label: entry.timeSlotLabel,
-      startsAt: entry.timeSlotAt,
-      capacity: 50
-    }])).values()];
+  const slots = combinedLobbySlots(tournament, allEntries);
   const shownSlots = selectedLobby === "all" ? slots : slots.filter((slot) => slot.id === selectedLobby);
 
   return `<div class="lobby-board-list">${shownSlots.map((slot, index) => {
@@ -110,52 +112,79 @@ function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, 
   }).join("")}</div>`;
 }
 
-function syncLobbyOptions(tournament) {
-  const slots = Array.isArray(tournament?.timeSlots) ? tournament.timeSlots : [];
+function syncLobbyOptions(tournament, requestedLobby = "all", entries = []) {
+  const slots = combinedLobbySlots(tournament, entries);
   lobbySelect.innerHTML = `<option value="all">All lobbies</option>${slots.map((slot) => {
     const state = getTimeSlotState(tournament, slot);
     return `<option value="${escapeHtml(slot.id)}">${escapeHtml(slot.label)} · ${escapeHtml(state.label)}</option>`;
   }).join("")}`;
-  lobbySelect.value = window.matchMedia("(max-width: 43.74rem)").matches && slots.length ? slots[0].id : "all";
+  const validLobby = requestedLobby === "all" || slots.some((slot) => slot.id === requestedLobby);
+  lobbySelect.value = validLobby ? requestedLobby : "all";
   lobbySelect.disabled = !slots.length;
 }
 
-async function supabaseRoster(tournament) {
-  if (!isSupabaseConfigured() || tournament.comingSoon) return null;
-  if (supabaseRosterCache.has(tournament.id)) return supabaseRosterCache.get(tournament.id);
-  if (supabaseRosterRequests.has(tournament.id)) return supabaseRosterRequests.get(tournament.id);
+function syncRosterUrl(tournament) {
+  const url = new URL(window.location.href);
+  const query = normalize(search.value).slice(0, 80);
+  url.searchParams.set("tournament", tournament.id);
+  if (lobbySelect.value && lobbySelect.value !== "all") url.searchParams.set("lobby", lobbySelect.value);
+  else url.searchParams.delete("lobby");
+  if (query) url.searchParams.set("q", query);
+  else url.searchParams.delete("q");
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
 
+function rosterCacheKey(tournament) {
+  const cycle = Number(tournament?.registrationCycle);
+  return `${tournament?.id || ""}|${Number.isInteger(cycle) && cycle >= 1 ? cycle : 0}`;
+}
+
+async function supabaseRoster(tournament, { force = false } = {}) {
+  if (!isSupabaseConfigured()) return null;
+  const key = rosterCacheKey(tournament);
+  const registrationCycle = Number(tournament.registrationCycle);
+  if (force) supabaseRosterCache.delete(key);
+  if (!force && supabaseRosterCache.has(key)) return supabaseRosterCache.get(key);
+  if (!force && supabaseRosterRequests.has(key)) return supabaseRosterRequests.get(key);
+
+  const requestGeneration = (supabaseRosterGenerations.get(key) || 0) + 1;
+  supabaseRosterGenerations.set(key, requestGeneration);
   const request = (async () => {
     const client = await getSupabaseClient();
-    const { data, error } = await client
-      .from("public_players")
-      .select("reference, time_slot_id, time_slot_label, time_slot_at, slot, display_name, ff_uid, status")
-      .eq("tournament_id", tournament.id)
-      .order("time_slot_at", { ascending: true })
-      .order("slot", { ascending: true });
+    const { data, error } = await client.rpc("get_current_public_players", {
+      p_tournament_id: tournament.id
+    });
     if (error) throw error;
     const entries = (data || [])
       .map((row) => projectedEntry({
         reference: row.reference,
+        registrationCycle: row.registration_cycle,
         timeSlotId: row.time_slot_id,
         timeSlotLabel: row.time_slot_label,
         timeSlotAt: row.time_slot_at,
         slot: row.slot,
+        slotCapacity: row.slot_capacity,
+        teamName: row.team_name,
+        players: row.players,
         displayName: row.display_name,
         uid: row.ff_uid,
         status: row.status
       }))
-      .filter(Boolean);
+      .filter((entry) => entry && entry.registrationCycle === registrationCycle);
     const roster = { published: true, updatedAt: null, entries, live: true };
-    supabaseRosterCache.set(tournament.id, roster);
+    if (supabaseRosterGenerations.get(key) === requestGeneration) {
+      [...supabaseRosterCache.keys()].filter((candidate) => candidate.startsWith(`${tournament.id}|`) && candidate !== key)
+        .forEach((candidate) => supabaseRosterCache.delete(candidate));
+      supabaseRosterCache.set(key, roster);
+    }
     return roster;
   })();
 
-  supabaseRosterRequests.set(tournament.id, request);
+  supabaseRosterRequests.set(key, request);
   try {
     return await request;
   } finally {
-    supabaseRosterRequests.delete(tournament.id);
+    if (supabaseRosterRequests.get(key) === request) supabaseRosterRequests.delete(key);
   }
 }
 
@@ -165,7 +194,7 @@ function renderLoading(tournament) {
   content.innerHTML = '<div class="roster-loading" aria-hidden="true"><span></span><span></span><span></span></div>';
 }
 
-async function renderRoster() {
+async function renderRoster({ force = false } = {}) {
   const request = ++renderRequest;
   const tournament = getTournament(eventSelect.value) || tournaments[0];
   if (!tournament) {
@@ -173,14 +202,15 @@ async function renderRoster() {
     content.innerHTML = emptyState("No roster available", "Add a tournament before publishing players.");
     return;
   }
+  syncRosterUrl(tournament);
 
   let roster = rosters[tournament.id] || { published: false, entries: [] };
-  if (isSupabaseConfigured() && !tournament.comingSoon && !supabaseRosterCache.has(tournament.id)) {
+  if (isSupabaseConfigured() && !tournament.comingSoon && (force || !supabaseRosterCache.has(rosterCacheKey(tournament)))) {
     renderLoading(tournament);
   }
 
   try {
-    roster = await supabaseRoster(tournament) || roster;
+    roster = await supabaseRoster(tournament, { force }) || roster;
   } catch {
     if (request !== renderRequest) return;
     content.removeAttribute("aria-busy");
@@ -192,6 +222,7 @@ async function renderRoster() {
   content.removeAttribute("aria-busy");
 
   const allEntries = (Array.isArray(roster.entries) ? roster.entries : []).map(projectedEntry).filter(Boolean);
+  syncLobbyOptions(tournament, lobbySelect.value || "all", allEntries);
   const query = normalize(search.value).slice(0, 80).toLowerCase();
   const selectedLobby = lobbySelect.value || "all";
   const visibleEntries = allEntries.filter((entry) => (selectedLobby === "all" || entry.timeSlotId === selectedLobby) && entryMatches(entry, query));
@@ -223,9 +254,6 @@ async function renderRoster() {
   };
 
   transitionUpdate(update);
-  const url = new URL(window.location.href);
-  url.searchParams.set("tournament", tournament.id);
-  window.history.replaceState({}, "", `${url.pathname}${url.search}`);
 }
 
 function clearRosterFilters() {
@@ -236,9 +264,7 @@ function clearRosterFilters() {
 }
 
 function refreshRoster() {
-  const tournament = getTournament(eventSelect.value);
-  if (tournament) supabaseRosterCache.delete(tournament.id);
-  renderRoster();
+  renderRoster({ force: true });
 }
 
 function handleRosterAction(event) {
@@ -247,23 +273,53 @@ function handleRosterAction(event) {
   if (action === "retry" || action === "refresh") refreshRoster();
 }
 
-function initializePlayers() {
-  initializeShell();
+function syncEventOptions(preferredId = eventSelect.value) {
   eventSelect.innerHTML = tournaments.map((tournament) => `<option value="${escapeHtml(tournament.id)}">${escapeHtml(tournament.name)} · ${escapeHtml(tournament.formatLabel)}</option>`).join("");
+  if (tournaments.some((tournament) => tournament.id === preferredId)) eventSelect.value = preferredId;
+}
+
+async function refreshPlayersPage() {
+  const refreshGeneration = ++playersRefreshGeneration;
+  const selectedId = eventSelect.value;
+  await hydrateTournamentOverrides({ force: true });
+  if (refreshGeneration !== playersRefreshGeneration) return;
+  syncEventOptions(selectedId);
+  syncLobbyOptions(getTournament(eventSelect.value), lobbySelect.value || "all");
+  await renderRoster({ force: true });
+}
+
+async function initializePlayers() {
+  initializeShell();
+  await hydrateTournamentOverrides();
+  syncEventOptions();
+  const params = new URLSearchParams(window.location.search);
   const requested = getRequestedTournament();
   const firstPublished = tournaments.find((tournament) => rosters[tournament.id]?.published);
   eventSelect.value = (requested || firstPublished || tournaments[0])?.id || "";
-  syncLobbyOptions(getTournament(eventSelect.value));
+  search.value = normalize(params.get("q") || "").slice(0, 80);
+  syncLobbyOptions(getTournament(eventSelect.value), params.get("lobby") || "all");
 
   eventSelect.addEventListener("change", () => {
     search.value = "";
-    syncLobbyOptions(getTournament(eventSelect.value));
+    syncLobbyOptions(getTournament(eventSelect.value), "all");
     renderRoster();
   });
   lobbySelect.addEventListener("change", renderRoster);
   search.addEventListener("input", renderRoster);
+  window.addEventListener("popstate", () => {
+    const nextParams = new URLSearchParams(window.location.search);
+    const requestedTournament = getTournament(nextParams.get("tournament"));
+    if (requestedTournament) eventSelect.value = requestedTournament.id;
+    search.value = normalize(nextParams.get("q") || "").slice(0, 80);
+    syncLobbyOptions(getTournament(eventSelect.value), nextParams.get("lobby") || "all");
+    renderRoster();
+  });
   meta.addEventListener("click", handleRosterAction);
   content.addEventListener("click", handleRosterAction);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshPlayersPage();
+  });
+  window.addEventListener("pageshow", refreshPlayersPage);
   renderRoster();
   initializeMotion();
 }

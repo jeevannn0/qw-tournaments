@@ -8,14 +8,16 @@ import {
   getTournament,
   normalize,
   winners
-} from "../shared/data.js?v=20261006-match-complete";
-import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js";
-import { icon, initializeShell } from "../shared/shell.js?v=20261006-mobile-compact-v2";
-import { initializeMotion } from "../shared/motion.js";
+} from "../shared/data.js?v=20261011-lifecycle";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
+import { icon, initializeShell } from "../shared/shell.js?v=20261011-lifecycle";
+import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
 
 const winnerGrid = document.querySelector("#winnerGrid");
 const winnerCount = document.querySelector("#winnerCount");
 const imageObjectUrls = new Set();
+let winnerRenderGeneration = 0;
 
 function projectWinner(entry) {
   if (!entry || typeof entry !== "object") return null;
@@ -28,7 +30,11 @@ function projectWinner(entry) {
   const tournament = getTournament(tournamentId);
   if (!tournament) return null;
   const timeSlot = timeSlotId ? getTimeSlot(tournament, timeSlotId) : null;
-  if (timeSlotId && !timeSlot) return null;
+  const storedMatchLabel = normalize(entry.matchLabel).slice(0, 60);
+  const storedMatchAt = Number.isFinite(Date.parse(entry.matchAt)) ? entry.matchAt : null;
+  const historicalState = storedMatchAt && Date.parse(storedMatchAt) <= Date.now()
+    ? { key: "complete", label: "Completed", open: false }
+    : { key: "scheduled", label: "Scheduled", open: false };
 
   const kills = entry.kills === null || entry.kills === undefined || entry.kills === "" ? null : Number(entry.kills);
   const verifiedKills = Number.isInteger(kills) && kills >= 0 && kills <= 99 ? kills : null;
@@ -45,9 +51,9 @@ function projectWinner(entry) {
     uid: normalize(entry.uid).slice(0, 20),
     kills: verifiedKills,
     tournamentName: normalize(tournament.name).slice(0, 80),
-    matchLabel: normalize(timeSlot?.label || entry.matchLabel || tournament.formatLabel || "Match").slice(0, 60),
-    matchAt: timeSlot?.startsAt || entry.matchAt || tournament.matchAt || null,
-    matchState: timeSlot ? getTimeSlotState(tournament, timeSlot) : getEventState(tournament),
+    matchLabel: storedMatchLabel || normalize(timeSlot?.label || tournament.formatLabel || "Match").slice(0, 60),
+    matchAt: storedMatchAt || timeSlot?.startsAt || tournament.matchAt || null,
+    matchState: timeSlot ? getTimeSlotState(tournament, timeSlot) : historicalState,
     totalReward: Number.isInteger(prizeAmount) && prizeAmount >= 0 ? prizeAmount : calculatedReward,
     imagePath: normalize(entry.imagePath).slice(0, 400),
     imageUrl: normalize(entry.imageUrl).slice(0, 1000),
@@ -139,6 +145,7 @@ async function loadPublishedWinners() {
 }
 
 async function renderWinners() {
+  const renderGeneration = ++winnerRenderGeneration;
   releaseImageUrls();
   winnerCount.textContent = "Loading verified results…";
   winnerGrid.setAttribute("aria-busy", "true");
@@ -148,25 +155,39 @@ async function renderWinners() {
     const results = (await loadPublishedWinners())
       .filter(Boolean)
       .sort((a, b) => (Date.parse(b.matchAt) || 0) - (Date.parse(a.matchAt) || 0));
+    if (renderGeneration !== winnerRenderGeneration) return;
     winnerCount.textContent = results.length
       ? `${results.length} verified ${results.length === 1 ? "winner" : "winners"}`
       : "No verified results published yet";
     winnerGrid.innerHTML = results.length ? results.map(winnerCard).join("") : emptyState();
   } catch {
+    if (renderGeneration !== winnerRenderGeneration) return;
     winnerCount.textContent = "Winner board unavailable";
     winnerGrid.innerHTML = emptyState("Could not load verified winners.", "Check your connection and try again. No registration or payment information is shown here.", true);
   } finally {
-    winnerGrid.removeAttribute("aria-busy");
-    initializeMotion(winnerGrid);
+    if (renderGeneration === winnerRenderGeneration) {
+      winnerGrid.removeAttribute("aria-busy");
+      initializeMotion(winnerGrid);
+    }
   }
 }
 
-function initializeBooyah() {
+async function refreshBooyah({ force = false } = {}) {
+  await hydrateTournamentOverrides({ force });
+  await renderWinners();
+}
+
+async function initializeBooyah() {
   initializeShell();
+  await hydrateTournamentOverrides();
   winnerGrid.addEventListener("click", (event) => {
     if (event.target.closest("[data-retry-winners]")) renderWinners();
   });
   window.addEventListener("beforeunload", releaseImageUrls);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshBooyah({ force: true });
+  });
+  window.addEventListener("pageshow", () => refreshBooyah({ force: true }));
   renderWinners();
   initializeMotion();
 }

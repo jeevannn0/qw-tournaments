@@ -9,8 +9,8 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Tournament details — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-mobile-compact-v2">
-  <link rel="stylesheet" href="css/gaming.css?v=20261006-mobile-compact-v2">
+  <link rel="stylesheet" href="css/styles.css?v=20261011-lifecycle">
+  <link rel="stylesheet" href="css/gaming.css?v=20261011-lifecycle">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="tournaments">
@@ -18,10 +18,28 @@
   <div id="siteHeader" class="site-header-mount"></div>
   <noscript><div class="noscript-bar">JavaScript is required to load this event. <a href="tournaments.html">Browse the tournament board</a>.</div></noscript>
   <main id="eventDetail"></main>
+
+  <dialog class="admin-detail-dialog" id="customRoomDialog" aria-labelledby="customRoomTitle">
+    <div class="admin-detail-dialog__panel">
+      <header><div><p class="kicker">Confirmed players only</p><h2 id="customRoomTitle">Custom Room details</h2></div><button class="icon-button" id="customRoomClose" type="button" aria-label="Close Custom Room details"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+      <div class="backend-status" id="customRoomStatus" role="status" aria-live="polite"><strong>Checking Room details…</strong></div>
+      <form id="customRoomEmailForm" hidden>
+        <p>Enter the same email used when registering for this match. Only a confirmed registration for the current match can access the credentials.</p>
+        <div class="field"><label for="customRoomEmail">Registered email</label><input id="customRoomEmail" name="customRoomEmail" type="email" autocomplete="email" maxlength="254" placeholder="player@example.com" required></div>
+        <div class="wizard-actions"><button class="button button--primary" id="customRoomCheck" type="submit">Show Room ID and password</button></div>
+      </form>
+      <section class="admin-proof-panel" id="customRoomResult" hidden aria-live="polite">
+        <div><p class="kicker">Current match lobby</p><h3>Room access</h3><p>Keep these details private and do not share them outside your confirmed lineup.</p></div>
+        <dl class="admin-detail-list"><div><dt>Room ID</dt><dd><code id="customRoomId"></code></dd></div><div><dt>Password</dt><dd><code id="customRoomPassword"></code></dd></div></dl>
+        <div class="button-row"><button class="button button--quiet" id="copyCustomRoomId" type="button">Copy Room ID</button><button class="button button--primary" id="copyCustomRoomPassword" type="button">Copy password</button></div>
+      </section>
+    </div>
+  </dialog>
   <div id="siteFooter"></div>
-  <script src="data/config.js"></script>
-  <script src="data/tournaments.js?v=20261006-lobbies"></script>
-  <script src="data/players.js"></script>
-  <script type="module" src="js/pages/tournament-page.js?v=20261006-match-complete"></script>
+  <script src="data/config.js?v=20261011-lifecycle"></script>
+  <script src="data/tournaments.js?v=20261011-lifecycle"></script>
+  <script src="data/players.js?v=20261011-lifecycle"></script>
+  <script src="data/supabase-config.js?v=20261011-lifecycle"></script>
+  <script type="module" src="js/pages/tournament-page.js?v=20261011-lifecycle"></script>
 </body>
 </html>

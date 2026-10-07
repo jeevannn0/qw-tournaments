@@ -168,3 +168,35 @@ Replacing a winner card uploads the new image first and removes the previous ima
 ## PDF reconciliation
 
 The protected admin dashboard provides **Export filtered PDF** and **Export all PDF**. Each opens the browser print dialog; choose **Save as PDF**. Reports include lobby, player/UID, private WhatsApp number, UTR, claimed amount, payment state, registration state, player number, and reference. Payment screenshots are deliberately excluded. Treat the resulting PDF as private financial-review data and delete it when reconciliation is complete.
+
+## Match registration control migration
+
+For an existing project, apply migrations in filename order. Run `supabase-migrations/2026-10-07-match-card-overrides.sql` first, then run `supabase-migrations/2026-10-08-registration-open.sql`. Fresh projects can run the complete `supabase-schema.sql` instead.
+
+The organizer console’s **Match cards** tab now controls three states for Solo Survival, Squad Last Circle, and Clash Squad Cup:
+
+- **Coming soon** hides unpublished schedule, fee, and reward terms.
+- **Scheduled — registration closed** publishes a future IST match time, fee, reward summary, and planned capacity without accepting entries.
+- **Registration open** publishes one server-validated lobby and accepts a complete player or four-player squad registration until the match starts. It requires a future match time, ₹1–₹100,000 entry fee, reward summary, and capacity from 1–500 players or teams.
+
+At match time, Scheduled and Registration open both change to **Completed** for three hours and then display **Coming soon**. Registration open is server-authoritative: the submission RPC derives the tournament name, lobby ID/time, fee, capacity, and registration cycle from the organizer-controlled row, verifies the private proof upload, locks capacity during submission, and rejects reused active player UIDs.
+
+Each new schedule/fee/capacity configuration receives a registration cycle so old registrations and rosters remain attached to their historical lobby. While registration remains open, those protected values cannot change; selecting Scheduled or Coming soon closes registration and can establish the next cycle safely. Existing Solo schema-v1 registrations remain readable and reviewable; new registrations use schema version 2 and store either one Solo player or a complete four-player squad. Public confirmed rows contain only safe lineup names and UIDs.
+
+Every save keeps optimistic version checking and organizer-only revision history. Public reads receive sanitized match configuration only—not audit notes or organizer IDs. If Supabase is offline or the new migration has not been applied, public pages fall back safely and cannot submit a dynamic registration.
+
+## Custom Room email access
+
+After `2026-10-08-registration-open.sql`, apply `supabase-migrations/2026-10-09-custom-room-details.sql` to existing projects. New registrations require a private email. In the organizer **Match cards** tab, the separate **Custom Room details** card lists future matches with Registration open and stores one Room ID/password for the current registration cycle.
+
+Every match-details page always shows **Custom Room details**. Before credentials are published it asks the player to wait. After publication, it returns credentials only when the entered normalized email matches a payment-verified, organizer-confirmed schema-v2 registration for that exact tournament and current cycle. Historical registrations created before this migration have no email mapping and cannot use email lookup. Room credentials and email mappings live in a locked private schema and are never granted as client-readable tables.
+
+This is intentionally email-only access, not proof of email ownership. Anyone who knows a confirmed entrant’s email could retrieve the credentials, so rotate the room password if it leaks and never display registered emails publicly.
+
+### Clearing Custom Room details
+
+Apply `supabase-migrations/2026-10-10-clear-custom-room.sql` after the Custom Room migration. The organizer Custom Room tab then provides **Clear Room details** for a published current-cycle room. Clearing removes both secrets immediately, makes the public readiness check false, and returns players to the waiting message. The organizer can publish replacement details later.
+
+## Lifecycle reconciliation
+
+After the Custom Room clear migration, apply `supabase-migrations/2026-10-11-lifecycle-reconciliation.sql`. It makes room access expire when registration closes or the match starts, keeps closed current-cycle credentials clearable by organizers, adds optimistic registration-review locking, reconciles duplicate UTR status after deletion, supports dynamic winner publication for all three formats, restricts public rosters to the current cycle, publishes accurate occupancy, and retires stale RPC access. Payment verification still exposes archived cycles explicitly for organizer review while defaulting to the current match.

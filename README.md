@@ -6,9 +6,9 @@ There is no package manager, compilation, or application server. Browser modules
 
 ## Current release
 
-- **Solo Survival 01:** two scheduled 50-player lobbies on 6 October 2026 at 7:30 PM and 9:00 PM IST, ₹10 entry, ₹6 for each organizer-verified elimination, and an additional ₹30 Booyah bonus.
-- **Squad Last Circle 01:** Coming soon; registration, payment, schedule, fee, and rewards are unavailable.
-- **Clash Squad Cup 01:** Coming soon under the same restrictions.
+- **Solo Survival 01, Squad Last Circle 01, and Clash Squad Cup 01** can each be set to Coming soon, Scheduled, or Registration open from the organizer Match Cards workspace.
+- Registration open creates one future, capacity-limited lobby using the published fee and reward summary. Solo accepts one player; Squad BR and Clash Squad accept exactly four players and a squad name.
+- Scheduled and Registration open matches become Completed at match time and return to Coming soon three hours later.
 - Only organizer-confirmed, consented game details appear in the public roster.
 
 ## Pages
@@ -22,7 +22,7 @@ There is no package manager, compilation, or application server. Browser modules
 | `players.html?tournament=<id>` | Public organizer-confirmed player roster |
 | `booyah.html` | Public organizer-verified match-winner board |
 | `rules.html` | Eligibility, payment, verification, privacy, and competition rules |
-| `admin.html` | Private organizer dashboard for registration review and Booyah winner publishing, protected by Supabase Auth and database policies |
+| `admin.html` | Private organizer dashboard for registration review, Booyah winner publishing, and versioned match announcements, protected by Supabase Auth and database policies |
 
 ## Architecture
 
@@ -51,12 +51,11 @@ Supabase is fail-closed. Until `data/supabase-config.js` contains a valid Projec
 
 Every registration requires:
 
-- One required Solo lobby: 6 October 2026 at 7:30 PM or 9:00 PM IST
-- In-game display name
-- Numeric 6–12 digit Free Fire UID
-- Age from 13 through 80
-- Private 10-digit Indian WhatsApp number
-- UPI payment of ₹10 to `9900344144@ybl`, copied from the registration page and paid through any UPI app
+- One organizer-published future lobby from a match marked Registration open
+- One Solo player, or a squad name and exactly four Squad/TDM players
+- Each player’s in-game display name, numeric 6–12 digit Free Fire UID, and age from 13 through 80
+- One private 10-digit Indian WhatsApp number
+- The exact published UPI entry fee paid to `9900344144@ybl`, copied from the registration page and paid through any UPI app
 - 6–40 character UTR or transaction reference
 - JPG, PNG, or WebP payment screenshot no larger than 2 MB
 - Rules, guardian, payment, and public-roster confirmations
@@ -72,9 +71,12 @@ Open `admin.html` and sign in with the organizer email/password account. The acc
 The dashboard supports:
 
 - Total, pending, payment-verified, confirmed, and duplicate-UTR counts
-- Search plus lobby, payment, registration, duplicate-UTR, and sort filters
+- Three keyboard-accessible operations tabs for payment verification, Booyah cards, and match cards
+- A version-checked Match Cards editor for public copy, map, rounds, lobby capacity, and three states: Coming soon, Scheduled, or Registration open
+- Registration open publishes one IST lobby, entry fee, reward summary, and player/team capacity, then enables server-validated registration and payment submission
+- Search plus dynamic lobby, payment, registration, duplicate-UTR, and sort filters
 - Automatic duplicate UTR warning badges, including cross-record counts
-- Complete private player/payment details
+- Complete private Solo or four-player squad details
 - On-demand private screenshot loading
 - Payment verification, rejection, cancellation, notes, and player-number assignment
 - Export filtered PDF and Export all PDF reconciliation reports without screenshots
@@ -82,7 +84,13 @@ The dashboard supports:
 - Permanent deletion of cancelled or rejected registrations and their private screenshots
 - Atomic private-status and public-roster updates through `review_registration`
 
-Confirmation requires verified payment and a unique player number from 1 through 50 within the selected lobby. The public row contains only reference, tournament, lobby, display name, UID, player number, status, and confirmation time.
+Confirmation requires verified payment and a unique player/team number within the lobby’s configured capacity. Public rows contain only reference, tournament, lobby, safe lineup names and UIDs, assigned number, status, and confirmation time.
+
+### Match registration lifecycle
+
+**Coming soon** hides schedule, fee, and reward terms. **Scheduled** publishes those facts while registration remains closed. **Registration open** uses the same facts as one authoritative lobby and accepts a complete Solo or four-player squad submission until match time. At match time, Scheduled and Registration open become **Completed**; three hours later they display **Coming soon**.
+
+The server derives each new registration’s tournament name, lobby ID/time, fee, capacity, and cycle from the organizer-controlled match row. It verifies the private proof object, enforces capacity under a database lock, and rejects a player UID already active in the same tournament cycle. Historical registrations and rosters remain attached to their original cycle.
 
 ## Supabase setup
 
@@ -100,8 +108,8 @@ The Project URL and Publishable key are public browser values. Never commit the 
 
 ## Security boundaries
 
-- Visitors can insert only complete pending Solo registrations owned by their authenticated anonymous user.
-- Database constraints enforce the current tournament, ₹10 amount, field formats, consents, statuses, and screenshot path.
+- Visitors can submit only complete pending registrations through the guarded `submit_registration` RPC.
+- Database and RPC validation enforce the current open match, published fee/time/capacity, one-or-four-player lineup, field formats, consents, statuses, and screenshot path.
 - Visitors cannot list other private registrations, review payments, assign slots, or confirm themselves.
 - Only active organizers can list private registrations, download proofs, and invoke the review RPC.
 - The payment bucket is private, image-only, and limited to 2 MB.
@@ -113,7 +121,7 @@ The Project URL and Publishable key are public browser values. Never commit the 
 
 Payment screenshots can reveal names, UPI IDs, phone numbers, and transaction references. Protect the organizer account, use a written retention period, and delete rejected, cancelled, and settled proofs when they are no longer needed. Never collect an OTP, UPI PIN, card PIN, game password, account password, or identity document.
 
-The WhatsApp group message contains only registration reference, tournament, in-game name, and Free Fire UID. Age, phone number, payment details, screenshot, database user ID, and organizer notes remain private.
+The WhatsApp group message contains only the registration reference, tournament, lobby, squad name when applicable, and player names/UIDs. Ages, phone numbers, payment details, screenshot, database user ID, and organizer notes remain private.
 
 ## Project structure
 
@@ -171,3 +179,13 @@ Content was rephrased for compliance with licensing restrictions.
 ## UPI payment handoff
 
 The receiving address is a personal UPI VPA, not a merchant payment-gateway integration. The payment card displays the configured UPI ID and provides one **Copy UPI ID** button. Players paste the ID into any UPI app, verify the recipient name, enter exactly ₹10, and the organizer verifies the actual received amount. The site does not issue partial merchant-style UPI intents because payment apps can report misleading bank-limit failures when required merchant fields are unavailable.
+
+## Custom Room access
+
+Apply `supabase-migrations/2026-10-09-custom-room-details.sql` after the registration-open migration. New registrations collect a private email. Organizers publish a current-cycle Room ID/password from the separate Custom Room card in `admin.html`; confirmed players retrieve it from the always-visible Custom Room button on the matching event page by entering that same email. Unpublished rooms show a wait message, and wrong, pending, rejected, cancelled, historical, or other-cycle registrations receive no credentials. Email-only lookup does not prove email ownership, so room passwords should be rotated if exposed.
+
+To enable removal of demo or outdated Room credentials, apply `supabase-migrations/2026-10-10-clear-custom-room.sql`. The organizer-only **Clear Room details** action deletes the current-cycle Room ID/password after confirmation and immediately restores the player waiting state.
+
+## Lifecycle reconciliation migration
+
+Apply `supabase-migrations/2026-10-11-lifecycle-reconciliation.sql` after migrations 10-09 and 10-10. This final reconciliation expires Room access when a match closes/starts, keeps inactive credentials clearable, makes reviews conflict-safe, restores duplicate UTR state after deletion, enables cycle-aware winners for all formats, limits public rosters to the current cycle, and provides accurate current occupancy. The Payment verification tab keeps archived cycles accessible through explicitly labelled cards without mixing them into the current match.

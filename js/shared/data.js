@@ -169,11 +169,35 @@ export function formatTimeOnly(value) {
 }
 
 export function getEventTimeSlots(tournament) {
+  const cycle = Number(tournament?.registrationCycle);
+  const capacity = Number(tournament?.presentationCapacity);
+  const startsAt = tournament?.presentationScheduledAt;
+  if (tournament?.presentationMode === "registration_open"
+    && Number.isInteger(cycle) && cycle >= 1
+    && Number.isInteger(capacity) && capacity >= 1 && capacity <= 500
+    && Number.isFinite(Date.parse(startsAt))) {
+    return [{
+      id: `${tournament.id}-cycle-${cycle}`,
+      label: `${tournament.name} lobby`,
+      startsAt,
+      capacity,
+      spotsLeft: Number.isInteger(Number(tournament.presentationSpotsLeft))
+        ? Math.max(0, Math.min(capacity, Number(tournament.presentationSpotsLeft)))
+        : capacity
+    }];
+  }
   return Array.isArray(tournament?.timeSlots) ? tournament.timeSlots : [];
 }
 
+function isDynamicRegistration(tournament, timeSlot = null) {
+  if (tournament?.presentationMode !== "registration_open") return false;
+  if (!timeSlot) return true;
+  return getEventTimeSlots(tournament).some((candidate) => candidate.id === timeSlot?.id);
+}
+
 export function getTimeSlotState(tournament, timeSlot, now = Date.now()) {
-  if (tournament?.comingSoon === true) {
+  const dynamicRegistration = isDynamicRegistration(tournament, timeSlot);
+  if (tournament?.comingSoon === true && !dynamicRegistration) {
     return { key: "scheduled", label: "Coming soon", open: false };
   }
 
@@ -184,7 +208,7 @@ export function getTimeSlotState(tournament, timeSlot, now = Date.now()) {
   if (startsAt <= now) {
     return { key: "complete", label: "Completed", open: false };
   }
-  if (tournament?.registrationOpen !== true) {
+  if (!dynamicRegistration && tournament?.registrationOpen !== true) {
     return { key: "closed", label: "Registration closed", open: false };
   }
   if (!config.registrationSafe) {
@@ -230,12 +254,12 @@ export function isTdm(tournament) {
 export function getEventHealth(tournament) {
   if (!tournament || typeof tournament !== "object") return { valid: false, reason: "Event data unavailable" };
   if (!/^[a-z0-9-]{1,64}$/.test(String(tournament.id || ""))) return { valid: false, reason: "Event code unavailable" };
-  if (!['solo', 'squad'].includes(tournament.type)) return { valid: false, reason: "Format unavailable" };
+  if (!["solo", "squad"].includes(tournament.type)) return { valid: false, reason: "Format unavailable" };
 
   const timeSlots = getEventTimeSlots(tournament);
   if (timeSlots.length) {
     const ids = new Set();
-    const timeSlotsValid = timeSlots.length === 2 && timeSlots.every((timeSlot) => {
+    const timeSlotsValid = timeSlots.every((timeSlot) => {
       const id = String(timeSlot?.id || "");
       const startsAt = Date.parse(timeSlot?.startsAt);
       const capacity = Number(timeSlot?.capacity);
@@ -243,16 +267,13 @@ export function getEventHealth(tournament) {
       const valid = /^[a-z0-9-]{1,64}$/.test(id)
         && !ids.has(id)
         && Number.isFinite(startsAt)
-        && Number.isInteger(capacity)
-        && capacity === 50
-        && Number.isInteger(spotsLeft)
-        && spotsLeft >= 0
-        && spotsLeft <= capacity;
+        && Number.isInteger(capacity) && capacity >= 1 && capacity <= 500
+        && Number.isInteger(spotsLeft) && spotsLeft >= 0 && spotsLeft <= capacity;
       ids.add(id);
       return valid;
     });
     if (!timeSlotsValid) return { valid: false, reason: "Lobby schedule unavailable" };
-  } else if (tournament.alwaysOpen !== true) {
+  } else if (tournament.alwaysOpen !== true && !tournament.comingSoon) {
     const matchAt = Date.parse(tournament.matchAt);
     const checkInAt = Date.parse(tournament.checkInAt);
     const closesAt = Date.parse(tournament.registrationClosesAt);
@@ -265,6 +286,14 @@ export function getEventHealth(tournament) {
       && closesAt <= checkInAt
       && checkInAt <= matchAt;
     if (!scheduleValid) return { valid: false, reason: "Schedule unavailable" };
+  }
+
+  if (isDynamicRegistration(tournament)) {
+    const fee = Number(tournament.presentationEntryFee);
+    const reward = normalize(tournament.presentationRewardLabel);
+    return Number.isInteger(fee) && fee >= 1 && fee <= 100000 && reward.length >= 5
+      ? { valid: true, reason: "" }
+      : { valid: false, reason: "Registration terms unavailable" };
   }
 
   const fee = Number(tournament.entryFee);
@@ -287,8 +316,11 @@ export function getEventHealth(tournament) {
   return { valid: true, reason: "" };
 }
 
-export function getEventState(tournament, now = Date.now()) {
-  if (tournament?.comingSoon === true) {
+const EVENT_CARD_COMPLETED_HOLD_MS = 3 * 60 * 60 * 1000;
+
+function getCanonicalEventState(tournament, now = Date.now()) {
+  const dynamicRegistration = isDynamicRegistration(tournament);
+  if (tournament?.comingSoon === true && !dynamicRegistration) {
     return { key: "scheduled", label: "Coming soon", open: false, action: "View preview", reason: "Schedule, entry fee, and rewards will be announced before registration opens." };
   }
 
@@ -300,7 +332,7 @@ export function getEventState(tournament, now = Date.now()) {
   if (timeSlotStates.length && timeSlotStates.every((state) => state.key === "complete")) {
     return { key: "complete", label: "Completed", open: false, action: "View event", reason: "All scheduled lobbies have started." };
   }
-  if (tournament.registrationOpen !== true) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
+  if (!dynamicRegistration && tournament.registrationOpen !== true) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
   if (!config.registrationSafe) return { key: "unavailable", label: "Registration unavailable", open: false, action: "View event", reason: "Organizer contact unavailable" };
 
   if (timeSlots.length) {
@@ -312,9 +344,7 @@ export function getEventState(tournament, now = Date.now()) {
   }
 
   if (Number(tournament.spotsLeft) <= 0) return { key: "full", label: "Slots full", open: false, action: "View event" };
-  if (tournament.alwaysOpen === true) {
-    return { key: "open", label: "Live now", open: true, action: "Register now", reason: "Registration has no closing time." };
-  }
+  if (tournament.alwaysOpen === true) return { key: "open", label: "Live now", open: true, action: "Register now", reason: "Registration has no closing time." };
 
   const matchAt = Date.parse(tournament.matchAt);
   const opensAt = tournament.registrationOpensAt ? Date.parse(tournament.registrationOpensAt) : null;
@@ -324,6 +354,87 @@ export function getEventState(tournament, now = Date.now()) {
   if (now >= closesAt) return { key: "closed", label: "Registration closed", open: false, action: "View event" };
   if (closesAt - now <= 24 * 60 * 60 * 1000) return { key: "closing", label: "Closing soon", open: true, action: "Register now" };
   return { key: "open", label: "Registration open", open: true, action: "Register now" };
+}
+
+export function getEventPresentation(tournament, now = Date.now()) {
+  const canonicalState = getCanonicalEventState(tournament, now);
+  const unit = tournament?.type === "solo" ? "players" : "teams";
+  const overrideMode = tournament?.presentationMode;
+  const capacity = Number(tournament?.presentationCapacity);
+  const hasValidCapacity = Number.isInteger(capacity) && capacity >= 1 && capacity <= 500;
+  const scheduledAt = Date.parse(tournament?.presentationScheduledAt);
+  const entryFee = Number(tournament?.presentationEntryFee);
+  const rewardLabel = normalize(tournament?.presentationRewardLabel);
+  const factMode = overrideMode === "scheduled" || overrideMode === "registration_open";
+  const hasScheduledFacts = factMode
+    && Number.isFinite(scheduledAt)
+    && Number.isInteger(entryFee) && entryFee >= (overrideMode === "registration_open" ? 1 : 0) && entryFee <= 100000
+    && rewardLabel.length >= 5 && rewardLabel.length <= 120;
+  const hasOverride = hasValidCapacity && (overrideMode === "coming_soon" || hasScheduledFacts);
+
+  if (hasOverride) {
+    const completedUntil = hasScheduledFacts ? scheduledAt + EVENT_CARD_COMPLETED_HOLD_MS : null;
+    const mode = overrideMode === "coming_soon" || now >= completedUntil
+      ? "coming_soon"
+      : now >= scheduledAt ? "completed" : overrideMode;
+    const state = mode === "registration_open"
+      ? canonicalState.open
+        ? { key: "open", label: "Registration open", open: true, action: "Register now", reason: "Choose this lobby and submit the complete entry for organizer verification." }
+        : canonicalState
+      : mode === "scheduled"
+        ? { key: "scheduled", label: "Scheduled", open: false, action: "View details", reason: "Match details are announced. Registration remains closed." }
+        : mode === "completed"
+          ? { key: "complete", label: "Completed", open: false, action: "View details", reason: "The announced match has completed." }
+          : { key: "scheduled", label: "Coming soon", open: false, action: "View preview", reason: "Schedule, entry fee, and rewards will be announced before registration opens." };
+    return {
+      hasOverride: true,
+      mode,
+      comingSoon: mode === "coming_soon",
+      rolledOver: factMode && mode === "coming_soon",
+      rolloverAt: mode === "scheduled" || mode === "registration_open" ? scheduledAt : mode === "completed" ? completedUntil : null,
+      canonicalState,
+      state,
+      schedule: mode === "coming_soon" ? "Pending" : formatDateTime(tournament.presentationScheduledAt),
+      scheduledAt: mode === "coming_soon" ? null : tournament.presentationScheduledAt,
+      reward: mode === "coming_soon" ? "To be announced" : rewardLabel,
+      entry: mode === "coming_soon" ? "To be announced" : entryFee === 0 ? "Free" : formatCurrency(entryFee),
+      entryFee: mode === "coming_soon" ? null : entryFee,
+      capacity,
+      unit,
+      capacityLabel: mode === "registration_open"
+        ? `${Number.isInteger(Number(tournament.presentationSpotsLeft)) ? Math.max(0, Math.min(capacity, Number(tournament.presentationSpotsLeft))) : capacity}/${capacity} ${unit} available`
+        : `${capacity} ${unit} planned`
+    };
+  }
+
+  const staticComingSoon = tournament?.comingSoon === true;
+  const starts = getEventTimeSlots(tournament).map((timeSlot) => Date.parse(timeSlot?.startsAt));
+  const rolloverEligible = tournament?.type === "solo" && starts.length > 0 && starts.every(Number.isFinite);
+  const legacyRolloverAt = rolloverEligible ? Math.max(...starts) + EVENT_CARD_COMPLETED_HOLD_MS : null;
+  const rolledOver = !staticComingSoon && canonicalState.key === "complete" && Number.isFinite(legacyRolloverAt) && now >= legacyRolloverAt;
+  const comingSoon = staticComingSoon || rolledOver;
+  const canonicalCapacity = getCapacity(tournament);
+  return {
+    hasOverride: false,
+    mode: comingSoon ? "coming_soon" : "canonical",
+    comingSoon,
+    rolledOver,
+    rolloverAt: !comingSoon && Number.isFinite(legacyRolloverAt) ? legacyRolloverAt : null,
+    canonicalState,
+    state: comingSoon ? { key: "scheduled", label: "Coming soon", open: false, action: "View preview", reason: "The next schedule, entry fee, and rewards will be announced before registration opens." } : canonicalState,
+    schedule: comingSoon ? "Pending" : getEventTimeSlots(tournament).length ? formatLobbySchedule(tournament) : tournament?.alwaysOpen ? "Always open" : formatDateTime(tournament?.matchAt),
+    scheduledAt: null,
+    reward: comingSoon ? "To be announced" : formatReward(tournament),
+    entry: comingSoon ? "To be announced" : formatCurrency(tournament?.entryFee),
+    entryFee: comingSoon ? null : tournament?.entryFee,
+    capacity: canonicalCapacity.capacity,
+    unit: canonicalCapacity.unit,
+    capacityLabel: comingSoon ? `${canonicalCapacity.capacity} ${canonicalCapacity.unit} planned` : `${canonicalCapacity.spotsLeft}/${canonicalCapacity.capacity} ${canonicalCapacity.unit}`
+  };
+}
+
+export function getEventState(tournament, now = Date.now()) {
+  return getEventPresentation(tournament, now).state;
 }
 
 export function getCapacity(tournament) {

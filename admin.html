@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Private QW tournament registration and payment-review dashboard.">
+  <meta name="description" content="Private QW organizer console for payment verification, Booyah winners, and public match-card presentation.">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#111824" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
-  <title>Organizer dashboard — QW Tournaments</title>
+  <title>Organizer operations console — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-admin-review">
-  <link rel="stylesheet" href="css/gaming.css">
-  <link rel="stylesheet" href="css/booyah-admin.css?v=20261006-booyah-admin-v1">
+  <link rel="stylesheet" href="css/styles.css?v=20261011-lifecycle">
+  <link rel="stylesheet" href="css/gaming.css?v=20261011-lifecycle">
+  <link rel="stylesheet" href="css/booyah-admin.css?v=20261011-lifecycle">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="admin">
@@ -23,19 +23,19 @@
   <main id="adminContent">
     <section class="page-intro page-intro--admin">
       <div class="shell page-intro__layout">
-        <div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Organizer</span></nav><p class="kicker">Private organizer tools</p><h1>Organizer dashboard.</h1><p>Review registrations, verify payments, and confirm player numbers.</p></div>
+        <div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Organizer</span></nav><p class="kicker">Private organizer tools</p><h1>Operations console.</h1><p>Verify payments, publish Booyah winners, and maintain safe public match-card presentation.</p></div>
         <div class="page-intro__index" aria-hidden="true"><span>QW</span><strong>ADM</strong><small>private</small></div>
       </div>
     </section>
 
     <section class="section admin-access-section">
       <div class="shell">
-        <div class="backend-status" id="adminSetup" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration to <code>data/supabase-config.js</code> before using this dashboard.</p></div>
+        <div class="backend-status" id="adminSetup" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration to <code>data/supabase-config.js?v=20261011-lifecycle</code> before using this dashboard.</p></div>
 
         <section class="admin-access-card" id="adminSignedOut" hidden>
           <span class="admin-access-card__icon" aria-hidden="true">QW</span>
           <p class="kicker">Organizer authentication</p>
-          <h2>Sign in to review registrations</h2>
+          <h2>Sign in to organizer operations</h2>
           <p>Use the organizer email and password created in Supabase Authentication and approved in the private <code>admin_users</code> table.</p>
           <form class="admin-login-form" id="adminLoginForm">
             <div class="field"><label for="adminEmail">Organizer email</label><input id="adminEmail" name="adminEmail" type="email" autocomplete="username" required></div>
@@ -55,7 +55,19 @@
         <section class="admin-dashboard" id="adminDashboard" hidden>
           <div class="admin-session-bar"><div><span>Signed in as</span><strong id="adminIdentity"></strong></div><button class="button button--quiet" id="adminSignOut" type="button">Sign out</button></div>
 
-          <div class="admin-metrics" aria-label="Registration summary">
+          <div class="admin-tabs" role="tablist" aria-label="Organizer operations">
+            <button class="admin-tab" id="adminTabPayments" type="button" role="tab" aria-controls="adminPanelPayments" aria-selected="true" tabindex="0" data-admin-tab="payments">Payment verification</button>
+            <button class="admin-tab" id="adminTabBooyah" type="button" role="tab" aria-controls="adminPanelBooyah" aria-selected="false" tabindex="-1" data-admin-tab="booyah">Booyah cards</button>
+            <button class="admin-tab" id="adminTabMatches" type="button" role="tab" aria-controls="adminPanelMatches" aria-selected="false" tabindex="-1" data-admin-tab="matches">Match cards</button>
+            <button class="admin-tab" id="adminTabRooms" type="button" role="tab" aria-controls="adminPanelRooms" aria-selected="false" tabindex="-1" data-admin-tab="rooms">Custom Room</button>
+          </div>
+
+          <section class="admin-tab-panel" id="adminPanelPayments" role="tabpanel" aria-labelledby="adminTabPayments" tabindex="0" data-admin-panel="payments">
+          <section class="admin-payment-match-picker" aria-labelledby="adminPaymentMatchTitle">
+            <div><p class="kicker">Payment history</p><h2 id="adminPaymentMatchTitle">Choose a match and cycle</h2><p>Current and archived registration cycles remain reviewable. Metrics, lobby filters, the table, and exports stay scoped to the selected pair.</p></div>
+            <div class="admin-payment-match-cards" id="adminPaymentMatchCards" role="group" aria-label="Choose a match and registration cycle"></div>
+          </section>
+          <div class="admin-metrics" aria-label="Selected match registration summary">
             <article><span>Total</span><strong id="adminTotal">0</strong></article>
             <article><span>Pending review</span><strong id="adminPending">0</strong></article>
             <article><span>Payment verified</span><strong id="adminPaid">0</strong></article>
@@ -63,26 +75,9 @@
             <article class="admin-metric--danger"><span>Duplicate UTRs</span><strong id="adminDuplicates">0</strong></article>
           </div>
 
-          <section class="admin-winner-panel" aria-labelledby="adminWinnerTitle">
-            <div class="admin-winner-panel__heading"><div><p class="kicker">Booyah publisher</p><h2 id="adminWinnerTitle">Publish a match winner</h2><p>Select a scheduled lobby and one of its confirmed players. Publishing creates or replaces that lobby’s public winner card.</p></div><a class="button button--quiet" href="booyah.html" target="_blank" rel="noopener noreferrer">View Booyah page</a></div>
-            <form id="adminWinnerForm">
-              <div class="form-grid admin-winner-form">
-                <div class="field"><label for="adminWinnerMatch">Available match</label><select id="adminWinnerMatch" required></select></div>
-                <div class="field"><label for="adminWinnerPlayer">Confirmed winner</label><select id="adminWinnerPlayer" required><option value="">Choose a match first</option></select><small>Name and Free Fire UID come from the confirmed public roster.</small></div>
-                <div class="field"><label for="adminWinnerKills">Verified kills</label><input id="adminWinnerKills" type="number" inputmode="numeric" min="0" max="99" value="0" required></div>
-                <div class="field"><label for="adminWinnerPrize">Prize paid (₹)</label><input id="adminWinnerPrize" type="number" inputmode="numeric" min="0" max="1000000" value="30" required><small>Defaults to the Booyah bonus plus verified kill rewards.</small></div>
-                <div class="field"><label for="adminWinnerImage">Winner image</label><input id="adminWinnerImage" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="adminWinnerImageHelp"><small id="adminWinnerImageHelp">Required for a new card. JPG, PNG, or WebP; maximum 2 MB.</small></div>
-                <div class="field"><label for="adminWinnerImageAlt">Image description</label><input id="adminWinnerImageAlt" type="text" maxlength="180" placeholder="Example: Player celebrating after the 7:30 PM lobby"><small>Describe what is visible for players using screen readers.</small></div>
-              </div>
-              <div class="backend-status" id="adminWinnerStatus" role="status" aria-live="polite" hidden></div>
-              <div class="wizard-actions"><button class="button button--primary" id="adminPublishWinner" type="submit">Publish winner card</button></div>
-            </form>
-            <div class="admin-winner-results"><div><h3>Published winner cards</h3><span id="adminWinnerCount">0 published</span></div><div id="adminWinnerList"></div></div>
-          </section>
-
           <div class="admin-controls">
             <div class="field search-field"><label for="adminSearch">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Reference, name, UID, phone, or UTR" autocomplete="off"></div></div>
-            <div class="field"><label for="adminLobbyFilter">Lobby</label><select id="adminLobbyFilter"><option value="all">Both lobbies</option><option value="solo-2026-10-06-1930">7:30 PM lobby</option><option value="solo-2026-10-06-2100">9:00 PM lobby</option></select></div>
+            <div class="field"><label for="adminLobbyFilter">Lobby</label><select id="adminLobbyFilter"><option value="all">All match lobbies</option></select></div>
             <div class="field"><label for="adminPaymentFilter">Payment</label><select id="adminPaymentFilter"><option value="all">All payment states</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="not-found">Not found</option><option value="duplicate">Marked duplicate</option></select></div>
             <div class="field"><label for="adminRegistrationFilter">Registration</label><select id="adminRegistrationFilter"><option value="all">All registration states</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
             <div class="field admin-filter-secondary"><label for="adminDuplicateFilter">UTR check</label><select id="adminDuplicateFilter"><option value="all">All transaction IDs</option><option value="duplicates">Duplicates only</option><option value="unique">Unique only</option></select></div>
@@ -93,11 +88,77 @@
           <div class="admin-list-meta" id="adminListMeta" role="status" aria-live="polite">Loading registrations…</div>
           <div class="responsive-table admin-table-wrap">
             <table class="admin-table">
-              <thead><tr><th>Submitted</th><th>Player</th><th>Lobby</th><th>Reference</th><th>Payment / UTR</th><th>Registration</th><th>Action</th></tr></thead>
+              <thead><tr><th>Submitted</th><th>Player / squad</th><th>Lobby</th><th>Reference</th><th>Payment / UTR</th><th>Registration</th><th>Action</th></tr></thead>
               <tbody id="adminRegistrationRows"></tbody>
             </table>
           </div>
-          <div class="empty-state" id="adminEmpty" hidden><span class="empty-state__mark" aria-hidden="true">0</span><h2>No registrations found</h2><p>New complete submissions will appear here automatically.</p></div>
+          <div class="empty-state" id="adminEmpty" hidden><span class="empty-state__mark" aria-hidden="true">0</span><h2>No payments for this match</h2><p>Choose another current match card, or wait for a new complete submission.</p></div>
+          </section>
+
+          <section class="admin-tab-panel" id="adminPanelBooyah" role="tabpanel" aria-labelledby="adminTabBooyah" tabindex="0" data-admin-panel="booyah" hidden>
+            <section class="admin-winner-panel" aria-labelledby="adminWinnerTitle">
+              <div class="admin-winner-panel__heading"><div><p class="kicker">Booyah publisher</p><h2 id="adminWinnerTitle">Publish a match winner</h2><p>Select a scheduled lobby and one of its confirmed players. Publishing creates or replaces that lobby’s public winner card.</p></div><a class="button button--quiet" href="booyah.html" target="_blank" rel="noopener noreferrer">View Booyah page</a></div>
+              <form id="adminWinnerForm">
+                <div class="form-grid admin-winner-form">
+                  <div class="field"><label for="adminWinnerMatch">Available match</label><select id="adminWinnerMatch" required></select></div>
+                  <div class="field"><label for="adminWinnerPlayer">Confirmed winner</label><select id="adminWinnerPlayer" required><option value="">Choose a match first</option></select><small>Name and Free Fire UID come from the confirmed public roster.</small></div>
+                  <div class="field"><label for="adminWinnerKills">Verified kills</label><input id="adminWinnerKills" type="number" inputmode="numeric" min="0" max="99" value="0" required></div>
+                  <div class="field"><label for="adminWinnerPrize">Prize paid (₹)</label><input id="adminWinnerPrize" type="number" inputmode="numeric" min="0" max="1000000" value="30" required><small>Defaults to the Booyah bonus plus verified kill rewards.</small></div>
+                  <div class="field"><label for="adminWinnerImage">Winner image</label><input id="adminWinnerImage" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="adminWinnerImageHelp"><small id="adminWinnerImageHelp">Required for a new card. JPG, PNG, or WebP; maximum 2 MB.</small></div>
+                  <div class="field"><label for="adminWinnerImageAlt">Image description</label><input id="adminWinnerImageAlt" type="text" maxlength="180" placeholder="Example: Player celebrating after the 7:30 PM lobby"><small>Describe what is visible for players using screen readers.</small></div>
+                </div>
+                <div class="backend-status" id="adminWinnerStatus" role="status" aria-live="polite" hidden></div>
+                <div class="wizard-actions"><button class="button button--primary" id="adminPublishWinner" type="submit">Publish winner card</button></div>
+              </form>
+              <div class="admin-winner-results"><div><h3>Published winner cards</h3><span id="adminWinnerCount">0 published</span></div><div id="adminWinnerList"></div></div>
+            </section>
+          </section>
+
+          <section class="admin-tab-panel" id="adminPanelMatches" role="tabpanel" aria-labelledby="adminTabMatches" tabindex="0" data-admin-panel="matches" hidden>
+            <section class="admin-match-editor" aria-labelledby="adminMatchEditorTitle">
+              <header class="admin-match-editor__heading"><div><p class="kicker">Match control</p><h2 id="adminMatchEditorTitle">Edit and open matches</h2><p>Publish a preview, announce a schedule, or open one match lobby for player or squad registration.</p></div><a class="button button--quiet" id="adminMatchPublicLink" href="tournament.html?tournament=solo-survival-01" target="_blank" rel="noopener noreferrer">View public card</a></header>
+              <div class="admin-match-toolbar">
+                <div class="field"><label for="adminMatchSelector">Match card</label><select id="adminMatchSelector"><option value="solo-survival-01">Solo Survival 01</option><option value="squad-last-circle-01">Squad Last Circle 01</option><option value="clash-squad-cup-01">Clash Squad Cup 01</option></select></div>
+                <div class="admin-match-version"><span>Immutable ID</span><code id="adminMatchId">solo-survival-01</code><small id="adminMatchVersion">Checked-in default · version 0</small></div>
+                <button class="button button--quiet" id="adminMatchReload" type="button">Reload server version</button>
+              </div>
+              <form id="adminMatchForm" novalidate>
+                <div class="form-grid admin-match-form-grid">
+                  <div class="field"><label for="adminMatchName">Public title/name</label><input id="adminMatchName" type="text" minlength="2" maxlength="80" required></div>
+                  <div class="field"><label for="adminMatchPresentationMode">Match state</label><select id="adminMatchPresentationMode" required><option value="coming_soon">Coming soon</option><option value="scheduled">Scheduled — registration closed</option><option value="registration_open">Registration open</option></select></div>
+                  <div class="admin-match-state-explainer admin-match-wide" id="adminMatchStateExplainer" role="status" aria-live="polite"></div>
+                  <div class="admin-match-schedule-fields admin-match-wide" id="adminMatchScheduleFields" hidden>
+                    <div class="field"><label for="adminMatchScheduledAt">Match lobby date &amp; time (IST)</label><input id="adminMatchScheduledAt" type="datetime-local" step="60"></div>
+                    <div class="field"><label for="adminMatchEntryFee">Entry fee in rupees</label><input id="adminMatchEntryFee" type="number" inputmode="numeric" min="0" max="100000"></div>
+                    <div class="field"><label for="adminMatchRewardLabel">Reward summary</label><input id="adminMatchRewardLabel" type="text" minlength="5" maxlength="120" placeholder="Example: ₹5,000 total prize pool"></div>
+                  </div>
+                  <div class="field admin-match-wide"><label for="adminMatchTagline">Tagline</label><input id="adminMatchTagline" type="text" minlength="5" maxlength="180" required></div>
+                  <div class="field admin-match-wide"><label for="adminMatchDescription">Description</label><textarea id="adminMatchDescription" minlength="20" maxlength="1000" rows="5" required></textarea></div>
+                  <div class="field"><label for="adminMatchMap">Map label</label><input id="adminMatchMap" type="text" minlength="2" maxlength="80" required></div>
+                  <div class="field"><label for="adminMatchRounds">Rounds label</label><input id="adminMatchRounds" type="text" minlength="2" maxlength="120" required></div>
+                  <div class="field"><label for="adminMatchCapacity">Lobby capacity</label><input id="adminMatchCapacity" type="number" inputmode="numeric" min="1" max="500" required><small id="adminMatchCapacityHelp">Use 1–500 players or teams.</small></div>
+                </div>
+                <aside class="admin-match-locked" aria-labelledby="adminMatchLockedTitle"><div><p class="kicker">Protected system facts</p><h3 id="adminMatchLockedTitle">Automatic safeguards</h3></div><dl id="adminMatchLockedFacts"></dl><p>Registration open creates one server-validated lobby for the selected match. Existing registrations, payment proofs, historical lobbies, rosters, and results are never rewritten.</p></aside>
+                <div class="backend-status" id="adminMatchStatus" role="status" aria-live="polite" hidden></div>
+                <div class="wizard-actions"><button class="button button--quiet" id="adminMatchRestore" type="button">Restore checked-in defaults</button><button class="button button--primary" id="adminMatchSave" type="submit">Save match card</button></div>
+              </form>
+            </section>
+          </section>
+
+          <section class="admin-tab-panel" id="adminPanelRooms" role="tabpanel" aria-labelledby="adminTabRooms" tabindex="0" data-admin-panel="rooms" hidden>
+            <section class="admin-match-editor admin-room-editor" aria-labelledby="adminRoomTitle">
+              <header class="admin-match-editor__heading"><div><p class="kicker">Private lobby access</p><h2 id="adminRoomTitle">Custom Room details</h2><p>Add the Room ID and password for a match with Registration open. Only confirmed players who enter their registered email can retrieve them.</p></div><button class="button button--quiet" id="adminRoomReload" type="button">Reload active matches</button></header>
+              <form id="adminRoomForm" novalidate>
+                <div class="form-grid admin-match-form-grid">
+                  <div class="field admin-match-wide"><label for="adminRoomMatch">Active match</label><select id="adminRoomMatch" required><option value="">No active matches</option></select><small id="adminRoomMatchMeta">Open registration for a future match first.</small></div>
+                  <div class="field"><label for="adminRoomId">Room ID</label><input id="adminRoomId" type="text" minlength="1" maxlength="64" autocomplete="off" required></div>
+                  <div class="field"><label for="adminRoomPassword">Room password</label><input id="adminRoomPassword" type="text" minlength="1" maxlength="64" autocomplete="off" required></div>
+                </div>
+                <div class="backend-status" id="adminRoomStatus" role="status" aria-live="polite" hidden></div>
+                <div class="wizard-actions"><button class="button button--quiet" id="adminRoomClear" type="button" disabled>Clear Room details</button><button class="button button--primary" id="adminRoomSave" type="submit">Publish Custom Room details</button></div>
+              </form>
+            </section>
+          </section>
         </section>
       </div>
     </section>
@@ -113,7 +174,7 @@
         <div class="form-grid admin-review-grid">
           <div class="field"><label for="adminPaymentStatus">Payment review</label><select id="adminPaymentStatus" required><option value="pending">Pending</option><option value="verified">Verified in organizer account</option><option value="not-found">Payment not found</option><option value="duplicate">Duplicate transaction</option></select></div>
           <div class="field"><label for="adminRegistrationStatus">Registration status</label><select id="adminRegistrationStatus" required><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
-          <div class="field"><label for="adminSlot">Player number in selected lobby</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="50" placeholder="Required for confirmation"></div>
+          <div class="field"><label for="adminSlot">Player or team number in selected lobby</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="500" placeholder="Required for confirmation"></div>
           <div class="field admin-note-field"><label for="adminOrganizerNote">Private organizer note</label><textarea id="adminOrganizerNote" maxlength="500" rows="4" placeholder="Visible only to approved organizers"></textarea></div>
         </div>
         <div class="wizard-actions"><a class="button button--quiet" id="adminWhatsappPlayer" href="#" target="_blank" rel="noopener noreferrer">Message player</a><button class="button button--primary" id="adminSaveReview" type="submit">Save review</button></div>
@@ -122,9 +183,9 @@
   </dialog>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js"></script>
-  <script src="data/tournaments.js?v=20261006-lobbies"></script>
-  <script src="data/supabase-config.js"></script>
-  <script type="module" src="js/pages/admin-page.js?v=20261006-match-complete"></script>
+  <script src="data/config.js?v=20261011-lifecycle"></script>
+  <script src="data/tournaments.js?v=20261011-lifecycle"></script>
+  <script src="data/supabase-config.js?v=20261011-lifecycle"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261011-lifecycle"></script>
 </body>
 </html>

@@ -166,3 +166,403 @@
     padding: var(--space-3);
   }
 }
+
+/* Organizer operations tabs and safe match-card editor */
+.admin-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  padding: 0 0 var(--space-2);
+  scrollbar-color: var(--primary) var(--muted);
+  scrollbar-width: thin;
+}
+
+.admin-tab {
+  position: relative;
+  min-width: max-content;
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 800;
+}
+
+.admin-tab:hover {
+  border-color: var(--ring);
+  color: var(--foreground);
+}
+
+.admin-tab[aria-selected="true"] {
+  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--foreground);
+  box-shadow: inset 0 -3px 0 var(--primary);
+}
+
+.admin-tab[aria-selected="true"]::before {
+  content: "✓";
+  margin-right: var(--space-2);
+  color: var(--primary);
+}
+
+.admin-tab-panel {
+  min-width: 0;
+}
+
+.admin-tab-panel:focus {
+  outline: 0;
+}
+
+.admin-payment-match-picker {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+  background: var(--card);
+  padding: var(--space-4);
+}
+
+.admin-payment-match-picker h2,
+.admin-payment-match-picker p {
+  margin-bottom: 0;
+}
+
+.admin-payment-match-picker > div:first-child > p:last-child {
+  color: var(--muted-foreground);
+}
+
+.admin-payment-match-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: var(--space-2);
+}
+
+.admin-payment-match-card {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+  border: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--foreground);
+  padding: var(--space-3);
+  text-align: left;
+}
+
+.admin-payment-match-card:hover {
+  border-color: var(--ring);
+}
+
+.admin-payment-match-card[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: var(--accent);
+  box-shadow: inset 0 -3px 0 var(--primary);
+}
+
+.admin-payment-match-card span,
+.admin-payment-match-card small {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.admin-payment-match-card strong {
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.admin-payment-match-card b {
+  color: var(--primary);
+}
+
+.admin-match-editor {
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+  background: var(--card);
+  padding: var(--space-4);
+}
+
+.admin-match-editor__heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-4);
+}
+
+.admin-match-editor__heading h2,
+.admin-match-editor__heading p {
+  margin-bottom: 0;
+}
+
+.admin-match-editor__heading p:last-child {
+  max-width: 68ch;
+  color: var(--muted-foreground);
+}
+
+.admin-match-toolbar {
+  display: grid;
+  gap: var(--space-3);
+  align-items: end;
+  margin-top: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-4);
+}
+
+.admin-match-toolbar .field {
+  margin-bottom: 0;
+}
+
+.admin-match-version {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  padding: var(--space-3);
+}
+
+.admin-match-version span,
+.admin-match-version small {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.admin-match-version span {
+  text-transform: uppercase;
+}
+
+.admin-match-version code {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-family: var(--font-mono);
+}
+
+.admin-match-form-grid {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.admin-match-form-grid .field {
+  margin-bottom: 0;
+}
+
+.admin-match-form-grid textarea {
+  resize: vertical;
+}
+
+.admin-match-locked {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  padding: var(--space-4);
+}
+
+.admin-match-locked h3,
+.admin-match-locked p {
+  margin-bottom: 0;
+}
+
+.admin-match-locked dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.admin-match-locked dl > div {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-2);
+}
+
+.admin-match-locked dt {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-match-locked dd {
+  margin: var(--space-1) 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+}
+
+.admin-match-locked > p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+@media (min-width: 43.75rem) {
+  .admin-match-editor__heading {
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  .admin-match-toolbar {
+    grid-template-columns: minmax(14rem, 1fr) minmax(16rem, 1fr) auto;
+  }
+
+  .admin-match-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-match-wide {
+    grid-column: 1 / -1;
+  }
+
+  .admin-match-locked {
+    grid-template-columns: minmax(10rem, 0.5fr) minmax(18rem, 1fr);
+    align-items: start;
+  }
+
+  .admin-match-locked > p {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 60rem) {
+  .admin-tabs {
+    overflow: visible;
+  }
+
+  .admin-tab {
+    padding-inline: var(--space-5);
+  }
+}
+
+@media (max-width: 43.74rem) {
+  .admin-tabs {
+    margin-right: calc(-1 * var(--gutter));
+    margin-bottom: var(--space-3);
+    padding-right: var(--gutter);
+    scroll-snap-type: x proximity;
+  }
+
+  .admin-tab {
+    min-height: 2.75rem;
+    scroll-snap-align: start;
+  }
+
+  .admin-match-editor {
+    padding: var(--space-3);
+  }
+
+  .admin-match-locked {
+    padding: var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-tabs {
+    scroll-behavior: auto;
+  }
+}
+
+/* Task-first organizer layout: keep workspaces visible above long operational lists. */
+body[data-page="admin"] .page-intro__layout {
+  min-height: 0;
+  padding-block: var(--space-5);
+}
+
+body[data-page="admin"] .page-intro h1 {
+  margin-bottom: var(--space-2);
+  font-size: clamp(2.25rem, 1.9rem + 1.5vw, 3.25rem);
+}
+
+body[data-page="admin"] .page-intro__index {
+  width: 7rem;
+}
+
+body[data-page="admin"] .admin-access-section {
+  padding-block: var(--space-5);
+}
+
+body[data-page="admin"] .admin-tabs {
+  position: sticky;
+  z-index: 35;
+  top: calc(var(--header-row) + var(--space-2));
+  margin-inline: calc(-1 * var(--space-2));
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+  padding: var(--space-2);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 43.74rem) {
+  body[data-page="admin"] .page-intro__layout {
+    padding-block: var(--space-3);
+  }
+
+  body[data-page="admin"] .page-intro__layout > div:first-child > p:last-child,
+  body[data-page="admin"] .page-intro__index {
+    display: none;
+  }
+
+  body[data-page="admin"] .admin-access-section {
+    padding-block: var(--space-3);
+  }
+
+  body[data-page="admin"] .admin-tabs {
+    top: calc(var(--header-row) + var(--space-1));
+    margin-right: calc(-1 * var(--gutter));
+    margin-bottom: var(--space-3);
+    padding-right: var(--gutter);
+  }
+}
+
+/* State-driven Match Cards announcement controls */
+.admin-match-state-explainer {
+  display: grid;
+  gap: var(--space-1);
+  border-left: 3px solid var(--primary);
+  background: var(--muted);
+  padding: var(--space-3);
+}
+
+.admin-match-state-explainer strong {
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.admin-match-state-explainer span {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.admin-match-schedule-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+  background: color-mix(in oklab, var(--primary) 5%, var(--card));
+  padding: var(--space-3);
+}
+
+.admin-match-schedule-fields[hidden] {
+  display: none;
+}
+
+.admin-match-schedule-fields .field {
+  min-width: 0;
+}
+
+@media (max-width: 43.74rem) {
+  .admin-match-schedule-fields {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1339,3 +1339,96 @@ h3 {
     display: none;
   }
 }
+
+/* Final mobile hero compatibility — 2026-10-07. Keep the selected Free Fire art and review evidence visible. */
+@media (max-width: 43.74rem) {
+  .home-hero__layout {
+    min-height: 18rem;
+    padding-block: var(--space-4);
+  }
+
+  .home-hero__copy {
+    width: min(72%, 22rem);
+  }
+
+  .home-hero h1 {
+    max-width: 12ch;
+    font-size: clamp(2.15rem, 10vw, 2.75rem);
+  }
+
+  .home-hero__copy > p {
+    max-width: 28ch;
+    font-size: 0.8rem;
+  }
+
+  .home-hero .battle-poster {
+    right: calc(-1 * var(--gutter));
+    width: 62vw;
+  }
+
+  .home-hero .battle-poster__image {
+    object-position: 67% center;
+  }
+
+  .hero-proof {
+    display: flex;
+  }
+
+  .hero-proof span {
+    border-color: var(--border);
+    background: var(--card);
+    color: var(--card-foreground);
+  }
+
+  .review-rewards {
+    display: grid;
+  }
+}
+
+/* Organizer-controlled announcement presentation states */
+.announcement-strip {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-4) 0;
+  border: 1px solid color-mix(in oklab, var(--info) 55%, var(--border));
+  background: color-mix(in oklab, var(--info) 8%, var(--card));
+  padding: var(--space-3);
+}
+
+.announcement-strip strong {
+  color: var(--info);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+.announcement-strip span {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+.announcement-strip--completed,
+.event-card--completed {
+  border-color: color-mix(in oklab, var(--muted-foreground) 45%, var(--border));
+}
+
+.event-card--scheduled {
+  border-color: color-mix(in oklab, var(--info) 45%, var(--border));
+}
+
+.status-badge--coming-soon {
+  --status-color: var(--warning);
+}
+
+.status-badge--complete {
+  --status-color: var(--muted-foreground);
+}
+
+.event-hero--announcement .event-poster::before {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--info) 10%, transparent), transparent 50%);
+  content: "";
+  pointer-events: none;
+}

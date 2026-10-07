@@ -8,6 +8,7 @@ import {
   formatReward,
   getCapacity,
   getEventMedia,
+  getEventPresentation,
   getEventState,
   getEventTimeSlots,
   getOpenTimeSlots,
@@ -16,14 +17,15 @@ import {
   getTimeSlotState,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261006-match-complete";
+} from "../shared/data.js?v=20261011-lifecycle";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
 import {
   buildGroupJoinMessage,
   collectRegistration,
   createRegistrationId,
   registrationWhatsAppUrl,
   validateRegistration
-} from "../shared/registration.js?v=20261006-upi-manual";
+} from "../shared/registration.js?v=20261011-lifecycle";
 import {
   collectPaymentDetails,
   MAX_PAYMENT_PROOF_BYTES,
@@ -31,10 +33,10 @@ import {
   registrationSubmissionError,
   submitCompleteRegistration,
   validatePaymentDetails
-} from "../shared/registration-backend.js?v=20261006-upi-manual";
-import { isSupabaseConfigured } from "../shared/supabase.js";
-import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261006-mobile-compact-v2";
-import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js";
+} from "../shared/registration-backend.js?v=20261011-lifecycle";
+import { isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
+import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
+import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js?v=20261011-lifecycle";
 
 const form = document.querySelector("#registrationWizard");
 const panels = [...form.querySelectorAll("[data-step-panel]")];
@@ -60,12 +62,22 @@ const uploadStatus = document.querySelector("#registrationUploadProgress");
 const uploadLabel = document.querySelector("#registrationUploadLabel");
 const uploadMeter = document.querySelector("#registrationUploadMeter");
 const supabaseWarning = document.querySelector("#supabaseSetupWarning");
+const copyUpiButton = document.querySelector("#copyUpiId");
+const lobbyHelp = document.querySelector("#registrationLobbyHelp");
+const lobbyLegend = document.querySelector("#registrationLobbyLegend");
+const paymentHeading = document.querySelector("#registrationPaymentHeading");
+const paymentIntro = document.querySelector("#registrationPaymentIntro");
+const payLabel = document.querySelector("#registrationPayLabel");
+const paymentConsent = document.querySelector("#registrationPaymentConsent");
+const verificationCopy = document.querySelector("#registrationVerificationCopy");
+const registrationReady = isSupabaseConfigured() && config.upiSafe;
 let activeStep = 1;
 let selectedTournament = null;
 let selectedTimeSlot = null;
 let preparedGroupMessage = "";
 let submitted = false;
 let submitting = false;
+let refreshingTournamentState = false;
 
 function requiredLabel(text) {
   return `${text} <span class="required-label"><span aria-hidden="true">*</span><span class="visually-hidden"> required</span></span>`;
@@ -85,18 +97,18 @@ function playerFields(number, captain = false) {
 }
 
 function matchPickerCard(tournament, index) {
-  const state = getEventState(tournament);
+  const presentation = getEventPresentation(tournament);
+  const state = presentation.state;
   const capacity = getCapacity(tournament);
   const media = getEventMedia(tournament);
-  const comingSoon = tournament.comingSoon === true;
   const id = `matchPick${index + 1}`;
-  const price = comingSoon ? "Entry TBA" : `${formatCurrency(tournament.entryFee)} entry`;
-  const availability = comingSoon ? "Not open" : `${capacity.spotsLeft}/${capacity.capacity} open`;
+  const price = presentation.entryFee === null ? "Entry TBA" : `${formatCurrency(presentation.entryFee)} entry`;
+  const availability = state.open ? `${capacity.spotsLeft}/${capacity.capacity} available` : state.label;
   return `
     <input class="visually-hidden match-picker__input" id="${id}" name="tournament" type="radio" value="${escapeHtml(tournament.id)}" ${state.open ? "" : "disabled"} required>
     <label class="match-pick ${state.open ? "" : "match-pick--disabled"}" for="${id}">
       <span class="match-pick__image"><img src="${escapeHtml(media.src)}" alt="" width="480" height="270" loading="${index === 0 ? "eager" : "lazy"}" decoding="async" style="object-position:${escapeHtml(media.focus || "center")}"><i aria-hidden="true"></i><b aria-hidden="true">${escapeHtml(eventMark(tournament))}</b></span>
-      <span class="match-pick__body"><small>${escapeHtml(tournament.shortCode)} · ${escapeHtml(state.label)}</small><strong>${escapeHtml(tournament.name)}</strong><em>${escapeHtml(tournament.formatLabel)}</em><span><b>${escapeHtml(price)}</b><i>${escapeHtml(availability)}</i></span>${comingSoon ? "" : `<span class="match-pick__reward">${escapeHtml(formatReward(tournament))}</span>`}</span>
+      <span class="match-pick__body"><small>${escapeHtml(tournament.shortCode)} · ${escapeHtml(state.label)}</small><strong>${escapeHtml(tournament.name)}</strong><em>${escapeHtml(tournament.formatLabel)}</em><span><b>${escapeHtml(price)}</b><i>${escapeHtml(availability)}</i></span>${presentation.comingSoon ? "" : `<span class="match-pick__reward">${escapeHtml(presentation.reward)}</span>`}</span>
       <span class="match-pick__check" aria-hidden="true">${icon("check")}</span>
     </label>`;
 }
@@ -115,13 +127,18 @@ function lobbyChoice(tournament, timeSlot, index) {
     </label>`;
 }
 
-function renderLobbyChoices(tournament) {
+function renderLobbyChoices(tournament, preferredTimeSlotId = "") {
   selectedTimeSlot = null;
   const timeSlots = getEventTimeSlots(tournament);
   lobbyPicker.innerHTML = timeSlots.length
     ? timeSlots.map((timeSlot, index) => lobbyChoice(tournament, timeSlot, index)).join("")
     : '<div class="inline-empty">No lobby times are available.</div>';
   lobbyPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
+  const preferred = preferredTimeSlotId ? lobbyPicker.querySelector(`input[value="${CSS.escape(preferredTimeSlotId)}"]:not([disabled])`) : null;
+  if (preferred) {
+    preferred.checked = true;
+    selectedTimeSlot = getTimeSlot(tournament, preferredTimeSlotId);
+  }
 }
 
 function chooseLobby() {
@@ -157,8 +174,26 @@ function renderEventPreview(tournament) {
     eventPreview.textContent = "";
     return;
   }
+  const presentation = getEventPresentation(tournament);
   eventPreview.hidden = false;
-  eventPreview.innerHTML = `<span>Selected Solo match</span><strong>${escapeHtml(tournament.name)}</strong><small>${escapeHtml(formatLobbySchedule(tournament))} · ${escapeHtml(formatCurrency(tournament.entryFee))} entry · ${escapeHtml(formatReward(tournament))}</small>`;
+  eventPreview.innerHTML = `<span>Selected ${escapeHtml(tournament.type === "solo" ? "Solo match" : "squad match")}</span><strong>${escapeHtml(tournament.name)}</strong><small>${escapeHtml(formatLobbySchedule(tournament))} · ${escapeHtml(formatCurrency(presentation.entryFee))} entry · ${escapeHtml(presentation.reward)}</small>`;
+}
+
+function updateRegistrationCopy(tournament) {
+  if (!tournament) return;
+  const presentation = getEventPresentation(tournament);
+  const fee = formatCurrency(presentation.entryFee);
+  const unit = tournament.type === "solo" ? "player" : "4-player squad";
+  const capacity = presentation.capacity;
+  lobbyHelp.textContent = `Choose the available ${tournament.name} lobby. Capacity: ${capacity} ${tournament.type === "solo" ? "players" : "teams"}.`;
+  lobbyLegend.childNodes[0].textContent = `Choose your ${tournament.type === "solo" ? "Solo" : "squad"} lobby `;
+  paymentHeading.textContent = `Add the ${unit} details, pay ${fee}, and upload the payment proof.`;
+  paymentIntro.innerHTML = `<strong>Three steps:</strong> Copy the UPI ID, pay exactly ${escapeHtml(fee)} in any UPI app, then enter the transaction reference and upload the screenshot.`;
+  payLabel.textContent = `Pay ${fee} to this UPI ID`;
+  paymentConsent.textContent = `I paid ${fee} and attached the matching UTR and screenshot.`;
+  verificationCopy.textContent = `The organizer checks the incoming ${fee} payment in the organizer-controlled account. A screenshot or successful upload does not confirm a ${tournament.type === "solo" ? "player number" : "team number"}.`;
+  const upiHelp = document.querySelector("#upiAppHelp");
+  if (registrationReady) upiHelp.textContent = `Open any UPI app, paste this ID, check the recipient, and pay ${fee}. Never enter your UPI PIN here.`;
 }
 
 function centerSelectedBattle(behavior = preferredScrollBehavior()) {
@@ -175,12 +210,57 @@ function chooseTournament(event) {
   renderEventPreview(selectedTournament);
   renderLobbyChoices(selectedTournament);
   renderLineupFields(selectedTournament);
+  updateRegistrationCopy(selectedTournament);
   if (!submitted) result.hidden = true;
   window.requestAnimationFrame(() => centerSelectedBattle(event ? preferredScrollBehavior() : "auto"));
 }
 
 function fieldForName(name) {
   return name ? form.elements.namedItem(name) : null;
+}
+
+function nativeValidationMessage(field) {
+  const name = field.name || field.id;
+  const value = typeof field.value === "string" ? field.value.trim() : "";
+  if (/^player\d+Name$/.test(name) || name === "soloName") {
+    if (!value) return "Enter the player's in-game name.";
+    if (value.length < 2 || value.length > 32) return "Use an in-game name between 2 and 32 characters.";
+  }
+  if (/Uid$/.test(name) || name === "soloUid") {
+    if (!value) return "Enter the player's Free Fire UID.";
+    if (!/^[0-9]{6,12}$/.test(value)) return "Enter a Free Fire UID using 6 to 12 numbers.";
+  }
+  if (/Age$/.test(name) || name === "soloAge") {
+    const age = Number(value);
+    if (!value) return "Enter the player's age.";
+    if (!Number.isInteger(age) || age < config.minimumAge || age > 80) return `Enter an age from ${config.minimumAge} to 80.`;
+  }
+  if (name === "contactWhatsapp") {
+    if (!value) return "Enter the WhatsApp number used for registration updates.";
+    if (!/^[6-9][0-9]{9}$/.test(value)) return "Enter a valid 10-digit Indian WhatsApp number.";
+  }
+  if (name === "contactEmail") {
+    if (!value) return "Enter the email you will use for Custom Room access.";
+    if (value.length > 254 || !/^[^@\s]+@[^@\s]+$/.test(value)) return "Enter a valid email address.";
+  }
+  if (name === "paymentReference") {
+    if (!value) return "Enter the UTR or transaction reference from the payment app.";
+    if (!/^[A-Za-z0-9-]{6,40}$/.test(value)) return "Use 6 to 40 letters, numbers, or hyphens for the UTR.";
+  }
+  if (field.type === "file") {
+    const file = field.files?.[0];
+    if (!file) return "Upload the payment screenshot.";
+    if (!file.size) return "Choose a payment screenshot that is not empty.";
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return "Choose a JPG, PNG, or WebP payment screenshot.";
+    if (file.size > MAX_PAYMENT_PROOF_BYTES) return "Choose a payment screenshot no larger than 2 MB.";
+  }
+  return "";
+}
+
+function refreshNativeValidity(field) {
+  if (!(field instanceof HTMLInputElement)) return;
+  field.setCustomValidity("");
+  field.setCustomValidity(nativeValidationMessage(field));
 }
 
 function setError(message, field) {
@@ -217,6 +297,10 @@ function currentEventIsOpen() {
 
 function validateStep(step) {
   clearError();
+  if (refreshingTournamentState) {
+    setError("Refreshing the current match terms. Please wait before continuing.");
+    return false;
+  }
   const eventCheck = currentEventIsOpen();
   if (!eventCheck.valid) {
     setError(eventCheck.message, eventPicker.querySelector('input:not([disabled])'));
@@ -225,21 +309,17 @@ function validateStep(step) {
   chooseLobby();
   const openTimeSlotIds = new Set(getOpenTimeSlots(selectedTournament).map((timeSlot) => timeSlot.id));
   if (!selectedTimeSlot || !openTimeSlotIds.has(selectedTimeSlot.id)) {
-    setError("Choose one available Solo lobby time before continuing.", lobbyPicker.querySelector('input[name="timeSlot"]:not([disabled])'));
+    setError("Choose the available match lobby before continuing.", lobbyPicker.querySelector('input[name="timeSlot"]:not([disabled])'));
     return false;
   }
   if (step === 1) return true;
 
   if (step === 2) {
     const fields = [...panels[1].querySelectorAll("input, select")];
+    fields.forEach(refreshNativeValidity);
     const invalid = fields.find((field) => !field.checkValidity());
     if (invalid) {
-      const message = invalid.type === "file"
-        ? "Upload the required payment screenshot."
-        : invalid.validity.patternMismatch
-          ? "Use the requested format for this field."
-          : "Complete this required field.";
-      setError(message, invalid);
+      setError(invalid.validationMessage || "Complete this required field.", invalid);
       return false;
     }
     const formData = new FormData(form);
@@ -262,8 +342,8 @@ function validateStep(step) {
     setError("Accept every confirmation before submitting the complete registration.", missing);
     return false;
   }
-  if (!isSupabaseConfigured() || !config.upiSafe) {
-    setError("Registration is unavailable until Supabase and the verified UPI payment ID are configured.");
+  if (!registrationReady) {
+    setError("Registration is temporarily unavailable. Do not make a payment; please try again later or contact the organizer.");
     return false;
   }
   return true;
@@ -273,14 +353,16 @@ function renderReview() {
   const formData = new FormData(form);
   const registration = collectRegistration(selectedTournament, formData);
   const payment = collectPaymentDetails(formData);
+  const presentation = getEventPresentation(selectedTournament);
   const screenshotName = payment.screenshot instanceof File ? payment.screenshot.name : "Not selected";
   reviewMount.innerHTML = `
-    <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)}</p><div class="review-lobby"><small>Selected lobby</small><strong>${escapeHtml(selectedTimeSlot.label)}</strong><time datetime="${escapeHtml(selectedTimeSlot.startsAt)}">${escapeHtml(formatDateTime(selectedTimeSlot.startsAt, "long"))}</time></div></div>
+    <div class="review-event"><span class="kicker">${escapeHtml(selectedTournament.shortCode)} · Selected</span><h2>${escapeHtml(selectedTournament.name)}</h2><p>${escapeHtml(selectedTournament.formatLabel)}</p><div class="review-lobby"><small>Selected lobby</small><strong>${escapeHtml(selectedTimeSlot.label)}</strong><time datetime="${escapeHtml(selectedTimeSlot.startsAt)}">${escapeHtml(formatDateTime(selectedTimeSlot.startsAt, "long"))}</time></div><button class="button button--quiet review-edit" type="button" data-edit-step="1">Edit lobby</button></div>
     ${registration.teamName ? `<div class="review-team"><small>Squad</small><strong>${escapeHtml(registration.teamName)}</strong></div>` : ""}
     <div class="review-lineup">${registration.participants.map((participant, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(participant.name)}</strong><small>${escapeHtml(participant.uid)} · Age ${escapeHtml(participant.age)}${participant.captain && selectedTournament.type === "squad" ? " · Captain" : ""}</small></div></article>`).join("")}</div>
-    <div class="review-private"><div><small>Private WhatsApp</small><strong>${escapeHtml(payment.contactWhatsapp)}</strong></div><div><small>Payment method</small><strong>${escapeHtml(paymentMethodLabel(payment.paymentMethod))}</strong></div><div><small>Transaction reference</small><strong>${escapeHtml(payment.paymentReference)}</strong></div><div><small>Private screenshot</small><strong>${escapeHtml(screenshotName)}</strong></div></div>
-    <div class="review-price"><div><small>Entry paid</small><strong>${escapeHtml(formatCurrency(selectedTournament.entryFee))}</strong></div><span>${escapeHtml(selectedTournament.feeUnit)}</span></div>
-    <div class="review-rewards"><span><strong>${escapeHtml(formatCurrency(selectedTournament.killReward))}</strong><small>per confirmed kill</small></span><span><strong>${escapeHtml(formatCurrency(selectedTournament.booyahBonus))}</strong><small>additional Booyah bonus</small></span></div>`;
+    <div class="review-private"><div><small>Private WhatsApp</small><strong>${escapeHtml(payment.contactWhatsapp)}</strong></div><div><small>Registration email</small><strong>${escapeHtml(payment.contactEmail)}</strong></div><div><small>Payment method</small><strong>${escapeHtml(paymentMethodLabel(payment.paymentMethod))}</strong></div><div><small>Transaction reference</small><strong>${escapeHtml(payment.paymentReference)}</strong></div><div><small>Private screenshot</small><strong>${escapeHtml(screenshotName)}</strong></div></div>
+    <div class="review-edit-row"><button class="button button--quiet review-edit" type="button" data-edit-step="2">Edit details</button></div>
+    <div class="review-price"><div><small>Entry paid</small><strong>${escapeHtml(formatCurrency(presentation.entryFee))}</strong></div><span>${escapeHtml(selectedTournament.feeUnit)}</span></div>
+    <div class="review-rewards"><span><strong>${escapeHtml(presentation.reward)}</strong><small>published reward terms</small></span></div>`;
 }
 
 function goToStep(step, moveFocus = true) {
@@ -326,7 +408,7 @@ function consentsFromForm() {
 
 function setSubmitting(value) {
   submitting = value;
-  submitButton.disabled = value || !isSupabaseConfigured() || !config.upiSafe;
+  submitButton.disabled = value || !registrationReady;
   form.querySelectorAll("button, input, select").forEach((control) => {
     if (control !== submitButton) control.disabled = value || control.dataset.wasDisabled === "true";
   });
@@ -342,7 +424,9 @@ function setSubmitting(value) {
 
 async function submitRegistration(event) {
   event.preventDefault();
-  if (submitting || submitted || !validateStep(3)) return;
+  if (submitting || submitted) return;
+  const safeToContinue = await refreshWizardTournamentState({ beforeProgression: true });
+  if (!safeToContinue || !validateStep(3)) return;
   const formData = new FormData(form);
   const registration = collectRegistration(selectedTournament, formData);
   const payment = collectPaymentDetails(formData);
@@ -364,7 +448,7 @@ async function submitRegistration(event) {
       }
     });
 
-    preparedGroupMessage = buildGroupJoinMessage(selectedTournament, registration, reference);
+    preparedGroupMessage = buildGroupJoinMessage(selectedTournament, registration, reference, selectedTimeSlot);
     const privateUrl = registrationWhatsAppUrl(selectedTournament, registration, reference, payment, selectedTimeSlot);
     const groupUrl = config.whatsappGroupSafe ? config.whatsappGroupUrl : "";
     resultReference.textContent = reference;
@@ -401,11 +485,88 @@ function updateScreenshotState() {
     return;
   }
   const size = file.size / (1024 * 1024);
-  screenshotState.textContent = `${file.name} · ${size.toFixed(2)} MB${file.size > MAX_PAYMENT_PROOF_BYTES ? " · Too large" : " · Ready"}`;
+  refreshNativeValidity(screenshotInput);
+  screenshotState.textContent = `${file.name} · ${size.toFixed(2)} MB${screenshotInput.validationMessage ? ` · ${screenshotInput.validationMessage}` : " · Ready"}`;
 }
 
-function initializeWizard() {
+function applyRegistrationAvailability() {
+  const available = registrationReady && !refreshingTournamentState;
+  supabaseWarning.hidden = registrationReady;
+  document.querySelectorAll("[data-next-step]").forEach((button) => {
+    button.disabled = !available;
+    if (!registrationReady) button.setAttribute("aria-describedby", "supabaseSetupWarning");
+    else button.removeAttribute("aria-describedby");
+  });
+  copyUpiButton.disabled = !available;
+  submitButton.disabled = !available;
+}
+
+async function refreshWizardTournamentState({ beforeProgression = false } = {}) {
+  if (submitted || submitting) return !beforeProgression;
+  if (refreshingTournamentState) return false;
+  const previousTournamentId = selectedTournament?.id || "";
+  const previousType = selectedTournament?.type || "";
+  const previousCycle = Number(selectedTournament?.registrationCycle);
+  const previousSlotId = selectedTimeSlot?.id || "";
+  const previousPresentation = selectedTournament ? getEventPresentation(selectedTournament) : null;
+  const previousTerms = previousPresentation ? [
+    previousPresentation.mode,
+    previousPresentation.entryFee,
+    previousPresentation.scheduledAt,
+    previousPresentation.capacity
+  ].join("|") : "";
+
+  refreshingTournamentState = true;
+  applyRegistrationAvailability();
+  try {
+    await hydrateTournamentOverrides({ force: true, throwOnError: true });
+    const refreshedTournament = getTournament(previousTournamentId);
+    const refreshedPresentation = refreshedTournament ? getEventPresentation(refreshedTournament) : null;
+    const refreshedTerms = refreshedPresentation ? [
+      refreshedPresentation.mode,
+      refreshedPresentation.entryFee,
+      refreshedPresentation.scheduledAt,
+      refreshedPresentation.capacity
+    ].join("|") : "";
+    const refreshedSlot = refreshedTournament && previousSlotId ? getTimeSlot(refreshedTournament, previousSlotId) : null;
+    const slotStillOpen = !previousSlotId || (refreshedSlot && getTimeSlotState(refreshedTournament, refreshedSlot).open);
+    const sameCycle = refreshedTournament && previousCycle === Number(refreshedTournament.registrationCycle);
+    const safe = Boolean(refreshedTournament && refreshedPresentation?.state.open && sameCycle
+      && previousTerms === refreshedTerms && slotStillOpen);
+
+    eventPicker.innerHTML = tournaments.map(matchPickerCard).join("");
+    eventPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
+    const selectedInput = previousTournamentId ? eventPicker.querySelector(`input[value="${CSS.escape(previousTournamentId)}"]`) : null;
+    if (selectedInput) selectedInput.checked = true;
+    selectedTournament = refreshedTournament || null;
+    renderEventPreview(selectedTournament);
+    renderLobbyChoices(selectedTournament, safe ? previousSlotId : "");
+    if (!selectedTournament || previousType !== selectedTournament.type) renderLineupFields(selectedTournament);
+    if (selectedTournament) updateRegistrationCopy(selectedTournament);
+
+    if (!safe && (previousTerms !== refreshedTerms || !sameCycle || !refreshedPresentation?.state.open || previousSlotId)) {
+      const paymentReference = form.elements.namedItem("paymentReference");
+      if (paymentReference) paymentReference.value = "";
+      screenshotInput.value = "";
+      updateScreenshotState();
+      form.querySelectorAll("[data-consent]").forEach((checkbox) => { checkbox.checked = false; });
+      preparedGroupMessage = "";
+      if (activeStep > 1) goToStep(1, false);
+      setError("This match changed or closed while the page was open. Review the current match and lobby before entering payment details.", selectedInput || eventPicker.querySelector("input:not([disabled])"));
+    }
+    return safe;
+  } catch {
+    setError("Current match terms could not be refreshed. Progression is paused; check your connection and try again.");
+    return false;
+  } finally {
+    refreshingTournamentState = false;
+    applyRegistrationAvailability();
+  }
+}
+
+async function initializeWizard() {
   initializeShell();
+  await hydrateTournamentOverrides();
   form.dataset.enhanced = "true";
   eventPicker.innerHTML = tournaments.map(matchPickerCard).join("");
   eventPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
@@ -420,12 +581,24 @@ function initializeWizard() {
   chooseTournament();
   eventPicker.addEventListener("change", chooseTournament);
   lobbyPicker.addEventListener("change", chooseLobby);
-  document.querySelectorAll("[data-next-step]").forEach((button) => button.addEventListener("click", () => {
-    if (validateStep(activeStep)) transitionUpdate(() => goToStep(activeStep + 1));
+  document.querySelectorAll("[data-next-step]").forEach((button) => button.addEventListener("click", async () => {
+    const safeToContinue = await refreshWizardTournamentState({ beforeProgression: true });
+    if (safeToContinue && validateStep(activeStep)) transitionUpdate(() => goToStep(activeStep + 1));
   }));
   document.querySelectorAll("[data-previous-step]").forEach((button) => button.addEventListener("click", () => transitionUpdate(() => goToStep(activeStep - 1))));
   form.addEventListener("submit", submitRegistration);
+  form.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLInputElement) refreshNativeValidity(event.target);
+  });
+  form.addEventListener("change", (event) => {
+    if (event.target instanceof HTMLInputElement) refreshNativeValidity(event.target);
+  });
   screenshotInput.addEventListener("change", updateScreenshotState);
+  reviewMount.addEventListener("click", (event) => {
+    const editButton = event.target.closest("[data-edit-step]");
+    if (!editButton) return;
+    transitionUpdate(() => goToStep(Number(editButton.dataset.editStep)));
+  });
   copyButton.addEventListener("click", copyMessage);
   document.querySelector("#editRegistration")?.addEventListener("click", () => {
     form.hidden = false;
@@ -436,26 +609,30 @@ function initializeWizard() {
     showToast("Submitted fields are read-only. Contact the organizer with your reference for help.");
   });
   const upiIdMount = document.querySelector("#paymentUpiId");
-  const copyUpiButton = document.querySelector("#copyUpiId");
   const upiAppHelp = document.querySelector("#upiAppHelp");
-  if (config.upiSafe) {
+  if (registrationReady) {
     upiIdMount.textContent = config.upiId;
     copyUpiButton.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(config.upiId);
-        showToast("UPI ID copied. Open any UPI app, paste it, verify the recipient, and pay ₹10.", 7000);
+        const fee = formatCurrency(getEventPresentation(selectedTournament).entryFee);
+        showToast(`UPI ID copied. Open any UPI app, paste it, verify the recipient, and pay ${fee}.`, 7000);
       } catch {
-        showToast(`Copy unavailable. Enter ${config.upiId} in your UPI app and pay ₹10.`, 7000);
+        const fee = formatCurrency(getEventPresentation(selectedTournament).entryFee);
+        showToast(`Copy unavailable. Enter ${config.upiId} in your UPI app and pay ${fee}.`, 7000);
       }
     });
-    upiAppHelp.textContent = "Open any UPI app, paste this ID, check the recipient, and pay ₹10. Never enter your UPI PIN here.";
+    updateRegistrationCopy(selectedTournament);
   } else {
-    upiIdMount.textContent = "UPI payment unavailable";
-    copyUpiButton.disabled = true;
+    upiIdMount.textContent = "Payment unavailable — do not pay yet";
+    upiAppHelp.textContent = "Registration payments are paused. Please try again later or contact the organizer.";
   }
-  supabaseWarning.hidden = isSupabaseConfigured() && config.upiSafe;
-  submitButton.disabled = !isSupabaseConfigured() || !config.upiSafe;
+  applyRegistrationAvailability();
   goToStep(1, false);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshWizardTournamentState();
+  });
+  window.addEventListener("pageshow", () => refreshWizardTournamentState());
   initializeMotion();
 }
 

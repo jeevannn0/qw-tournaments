@@ -9,8 +9,8 @@
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
   <title>Tournaments — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261006-mobile-compact-v2">
-  <link rel="stylesheet" href="css/gaming.css?v=20261006-mobile-compact-v2">
+  <link rel="stylesheet" href="css/styles.css?v=20261011-lifecycle">
+  <link rel="stylesheet" href="css/gaming.css?v=20261011-lifecycle">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="tournaments">
@@ -26,7 +26,7 @@
           <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Tournaments</span></nav>
           <p class="kicker">Tournament board</p>
           <h1>Choose a match.</h1>
-          <p>Solo is open now. Squad and Clash Squad will be announced later.</p>
+          <p>Check Solo’s latest status. Squad and Clash Squad will be announced later.</p>
         </div>
         <div class="page-intro__index" aria-hidden="true" data-reveal><span>QW</span><strong>03</strong><small>active formats</small></div>
       </div>
@@ -57,24 +57,25 @@
             <select id="eventSort"><option value="date">Live first</option><option value="prize">Highest prize</option><option value="fee">Lowest entry fee</option></select>
           </div>
 
-          <div class="control-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><p><strong>Check the status.</strong> Only “Live now” accepts new Solo entries. Coming soon formats cannot register.</p></div>
+          <div class="control-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><p><strong>Check the status.</strong> Only Registration open accepts new Solo, Squad BR, or Clash Squad entries. Scheduled and Coming soon keep registration closed.</p></div>
         </aside>
 
         <div class="catalog-main">
-          <div class="catalog-main__heading" data-reveal><div><p class="kicker">Match lineup</p><h2 id="catalogTitle">Tournament lineup</h2></div><a class="button button--quiet" href="players.html">View confirmed players</a></div>
+          <div class="catalog-main__heading" data-reveal><div><p class="kicker">Match lineup</p><h2 id="catalogTitle">Tournament lineup</h2><span class="catalog-mobile-count" id="eventMobileResultCount" aria-hidden="true"></span></div><a class="button button--quiet" href="players.html">Confirmed players</a></div>
           <div class="event-grid event-grid--catalog" id="eventCatalog"></div>
         </div>
       </div>
     </section>
 
     <section class="section board-cta">
-      <div class="shell board-cta__inner" data-reveal><div><p class="kicker">Solo is live</p><h2>Register for ₹10. Earn ₹6 per kill.</h2></div><a class="button button--primary button--large" href="register.html?tournament=solo-survival-01">Join Solo <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+      <div class="shell board-cta__inner" data-reveal><div><p class="kicker">Live match board</p><h2>Solo, Squad BR, and Clash Squad.</h2></div><a class="button button--primary button--large" href="register.html">Choose an open match <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
     </section>
   </main>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js"></script>
-  <script src="data/tournaments.js?v=20261006-lobbies"></script>
-  <script type="module" src="js/pages/tournaments-page.js?v=20261006-match-complete"></script>
+  <script src="data/config.js?v=20261011-lifecycle"></script>
+  <script src="data/tournaments.js?v=20261011-lifecycle"></script>
+  <script src="data/supabase-config.js?v=20261011-lifecycle"></script>
+  <script type="module" src="js/pages/tournaments-page.js?v=20261011-lifecycle"></script>
 </body>
 </html>
