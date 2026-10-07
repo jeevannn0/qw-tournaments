@@ -1152,6 +1152,7 @@ h3 {
   .battle-poster__reticle,
   .battle-poster__corner,
   .hero-hud,
+  .hero-label::after,
   .glitch-word::before,
   .glitch-word::after {
     display: none;
