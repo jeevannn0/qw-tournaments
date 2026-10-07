@@ -200,3 +200,7 @@ Apply `supabase-migrations/2026-10-10-clear-custom-room.sql` after the Custom Ro
 ## Lifecycle reconciliation
 
 After the Custom Room clear migration, apply `supabase-migrations/2026-10-11-lifecycle-reconciliation.sql`. It makes room access expire when registration closes or the match starts, keeps closed current-cycle credentials clearable by organizers, adds optimistic registration-review locking, reconciles duplicate UTR status after deletion, supports dynamic winner publication for all three formats, restricts public rosters to the current cycle, publishes accurate occupancy, and retires stale RPC access. Payment verification still exposes archived cycles explicitly for organizer review while defaulting to the current match.
+
+## Automatic lobby numbers
+
+Apply `supabase-migrations/2026-10-12-auto-lobby-number.sql` after lifecycle reconciliation. In Payment verification, selecting **Verified in organizer account** automatically changes a nonterminal registration to Confirmed and assigns the lowest available player/team number for that exact lobby. The allocation is serialized in PostgreSQL and the existing unique constraint remains the backstop. Rejected or cancelled registrations have their number cleared and removed from the public roster, making that number available again. Existing confirmed registrations retain their assigned number.

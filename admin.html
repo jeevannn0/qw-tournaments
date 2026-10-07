@@ -174,7 +174,7 @@
         <div class="form-grid admin-review-grid">
           <div class="field"><label for="adminPaymentStatus">Payment review</label><select id="adminPaymentStatus" required><option value="pending">Pending</option><option value="verified">Verified in organizer account</option><option value="not-found">Payment not found</option><option value="duplicate">Duplicate transaction</option></select></div>
           <div class="field"><label for="adminRegistrationStatus">Registration status</label><select id="adminRegistrationStatus" required><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
-          <div class="field"><label for="adminSlot">Player or team number in selected lobby</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="500" placeholder="Required for confirmation"></div>
+          <div class="field"><label for="adminSlot">Assigned player or team number</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="500" placeholder="Assigned automatically after verification" readonly aria-readonly="true"><small>The database assigns the lowest available number when payment is verified.</small></div>
           <div class="field admin-note-field"><label for="adminOrganizerNote">Private organizer note</label><textarea id="adminOrganizerNote" maxlength="500" rows="4" placeholder="Visible only to approved organizers"></textarea></div>
         </div>
         <div class="wizard-actions"><a class="button button--quiet" id="adminWhatsappPlayer" href="#" target="_blank" rel="noopener noreferrer">Message player</a><button class="button button--primary" id="adminSaveReview" type="submit">Save review</button></div>
@@ -186,6 +186,6 @@
   <script src="data/config.js?v=20261011-lifecycle"></script>
   <script src="data/tournaments.js?v=20261011-lifecycle"></script>
   <script src="data/supabase-config.js?v=20261011-lifecycle"></script>
-  <script type="module" src="js/pages/admin-page.js?v=20261011-lifecycle"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261012-auto-number"></script>
 </body>
 </html>

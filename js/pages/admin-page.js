@@ -34,6 +34,9 @@ const proofView = document.querySelector("#adminProofView");
 const proofImage = document.querySelector("#adminProofImage");
 const loadProofButton = document.querySelector("#adminLoadProof");
 const reviewForm = document.querySelector("#adminReviewForm");
+const reviewPaymentStatus = document.querySelector("#adminPaymentStatus");
+const reviewRegistrationStatus = document.querySelector("#adminRegistrationStatus");
+const reviewSlot = document.querySelector("#adminSlot");
 const loginForm = document.querySelector("#adminLoginForm");
 const winnerForm = document.querySelector("#adminWinnerForm");
 const winnerMatch = document.querySelector("#adminWinnerMatch");
@@ -1075,6 +1078,19 @@ function detailPair(label, value) {
   return `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || "—")}</dd></div>`;
 }
 
+function effectiveReviewStatus() {
+  const requested = reviewRegistrationStatus.value;
+  if (["rejected", "cancelled"].includes(requested)) return requested;
+  return reviewPaymentStatus.value === "verified" ? "confirmed" : "pending";
+}
+
+function syncReviewRegistrationStatus() {
+  reviewRegistrationStatus.value = effectiveReviewStatus();
+  reviewSlot.placeholder = reviewPaymentStatus.value === "verified"
+    ? "Assigned automatically when saved"
+    : "Assigned after payment verification";
+}
+
 function openRegistration(registration) {
   activeRegistration = registration;
   resetProof();
@@ -1085,12 +1101,12 @@ function openRegistration(registration) {
     <section><h3>${registration.teamName ? escapeHtml(registration.teamName) : "Player"}</h3><dl class="admin-detail-list">${lineupDetails}${detailPair("Private WhatsApp", registration.contactWhatsapp)}</dl></section>
     <section><h3>Payment</h3><dl class="admin-detail-list">${detailPair("Amount", `₹${registration.payment.amount}`)}${detailPair("Method", paymentMethodLabel(registration.payment.method))}${detailPair("Transaction reference", registration.payment.transactionReference)}${detailPair("Automatic UTR check", registration.duplicateCount > 1 ? `Duplicate across ${registration.duplicateCount} registrations` : "Unique in current registrations")}${detailPair("File", `${registration.payment.contentType} · ${(registration.payment.size / (1024 * 1024)).toFixed(2)} MB`)}</dl></section>
     <section><h3>Submission</h3><dl class="admin-detail-list">${detailPair("Tournament", registration.tournamentName)}${detailPair("Selected lobby", `${registration.timeSlot.label} — ${formatTimestamp(registration.timeSlot.startsAt)} — ${registrationMatchState(registration).label}`)}${detailPair("Capacity", String(registration.slotCapacity))}${detailPair("Submitted", formatTimestamp(registration.submittedAt))}${detailPair("Updated", formatTimestamp(registration.updatedAt))}${detailPair("Database record", registration.id)}</dl></section>`;
-  document.querySelector("#adminPaymentStatus").value = registration.paymentStatus;
-  document.querySelector("#adminRegistrationStatus").value = registration.registrationStatus;
-  const slotInput = document.querySelector("#adminSlot");
-  slotInput.max = String(registration.slotCapacity);
-  slotInput.previousElementSibling.textContent = registration.teamName ? "Team number in selected lobby" : "Player number in selected lobby";
-  slotInput.value = registration.slot || "";
+  reviewPaymentStatus.value = registration.paymentStatus;
+  reviewRegistrationStatus.value = registration.registrationStatus;
+  reviewSlot.max = String(registration.slotCapacity);
+  reviewSlot.previousElementSibling.textContent = registration.teamName ? "Assigned team number" : "Assigned player number";
+  reviewSlot.value = registration.slot || "";
+  syncReviewRegistrationStatus();
   document.querySelector("#adminOrganizerNote").value = registration.organizerNote;
   const digits = registration.contactWhatsapp.replace(/\D/g, "");
   document.querySelector("#adminWhatsappPlayer").href = `https://wa.me/${digits}?text=${encodeURIComponent(`Hi, this is QW Tournaments regarding registration ${registration.reference}.`)}`;
@@ -1163,22 +1179,12 @@ async function loadPaymentProof() {
 async function saveReview(event) {
   event.preventDefault();
   if (!activeRegistration || !client) return;
-  const paymentStatus = document.querySelector("#adminPaymentStatus").value;
-  const registrationStatus = document.querySelector("#adminRegistrationStatus").value;
-  const slotValue = document.querySelector("#adminSlot").value;
-  const slot = slotValue ? Number(slotValue) : null;
+  const paymentStatus = reviewPaymentStatus.value;
+  const requestedRegistrationStatus = reviewRegistrationStatus.value;
+  const registrationStatus = ["rejected", "cancelled"].includes(requestedRegistrationStatus)
+    ? requestedRegistrationStatus
+    : paymentStatus === "verified" ? "confirmed" : "pending";
   const organizerNote = normalize(document.querySelector("#adminOrganizerNote").value).slice(0, 500);
-
-  if (registrationStatus === "confirmed" && paymentStatus !== "verified") {
-    detailStatus.hidden = false;
-    detailStatus.innerHTML = "<strong>Payment must be verified before confirmation.</strong>";
-    return;
-  }
-  if (registrationStatus === "confirmed" && (!Number.isInteger(slot) || slot < 1 || slot > activeRegistration.slotCapacity)) {
-    detailStatus.hidden = false;
-    detailStatus.innerHTML = `<strong>Assign a ${activeRegistration.teamName ? "team" : "player"} number from 1 to ${escapeHtml(activeRegistration.slotCapacity)} before confirmation.</strong>`;
-    return;
-  }
 
   const saveButton = document.querySelector("#adminSaveReview");
   saveButton.disabled = true;
@@ -1189,12 +1195,17 @@ async function saveReview(event) {
       p_registration_id: activeRegistration.id,
       p_payment_status: paymentStatus,
       p_registration_status: registrationStatus,
-      p_slot: slot,
+      p_slot: null,
       p_note: organizerNote,
       p_expected_updated_at: activeRegistration.updatedAt
     });
     if (error) throw error;
-    showToast(registrationStatus === "confirmed" ? "Registration confirmed and public roster updated." : "Private review saved.");
+    const successMessage = registrationStatus === "confirmed"
+      ? `Payment verified; registration confirmed and the ${activeRegistration.teamName ? "team" : "player"} number was assigned automatically.`
+      : ["rejected", "cancelled"].includes(registrationStatus)
+        ? "Registration updated and its lobby number is now available for reuse."
+        : "Private review saved.";
+    showToast(successMessage);
     closeDialog();
     await loadRegistrations();
   } catch (error) {
@@ -1415,6 +1426,10 @@ async function initializeAdmin() {
     dialog.addEventListener("click", (event) => { if (event.target === dialog) closeDialog(); });
     loadProofButton.addEventListener("click", loadPaymentProof);
     reviewForm.addEventListener("submit", saveReview);
+    reviewPaymentStatus.addEventListener("change", syncReviewRegistrationStatus);
+    reviewRegistrationStatus.addEventListener("change", () => {
+      if (!["rejected", "cancelled"].includes(reviewRegistrationStatus.value)) syncReviewRegistrationStatus();
+    });
     rows.addEventListener("click", (event) => {
       const reviewButton = event.target.closest("[data-open-registration]");
       if (reviewButton) {

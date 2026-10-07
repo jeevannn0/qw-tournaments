@@ -189,3 +189,7 @@ To enable removal of demo or outdated Room credentials, apply `supabase-migratio
 ## Lifecycle reconciliation migration
 
 Apply `supabase-migrations/2026-10-11-lifecycle-reconciliation.sql` after migrations 10-09 and 10-10. This final reconciliation expires Room access when a match closes/starts, keeps inactive credentials clearable, makes reviews conflict-safe, restores duplicate UTR state after deletion, enables cycle-aware winners for all formats, limits public rosters to the current cycle, and provides accurate current occupancy. The Payment verification tab keeps archived cycles accessible through explicitly labelled cards without mixing them into the current match.
+
+## Automatic lobby numbering
+
+Apply `supabase-migrations/2026-10-12-auto-lobby-number.sql` after lifecycle reconciliation. Verifying a payment automatically confirms a nonterminal registration, assigns the lowest free player/team number under a lobby-scoped database lock, and publishes the confirmed roster row. Cancellation or rejection clears the number for reuse; an already confirmed registration keeps its number.
