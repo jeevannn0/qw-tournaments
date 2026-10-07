@@ -7927,6 +7927,26 @@ select:disabled {
   }
 }
 
+@media (max-width: 20rem) {
+  body:not([data-page="register"]):not([data-page="admin"]) .mobile-dock {
+    grid-template-columns:
+      minmax(2.75rem, 0.9fr)
+      minmax(4.625rem, 1.45fr)
+      minmax(2.875rem, 0.95fr)
+      minmax(3rem, 1fr)
+      minmax(2.75rem, 0.9fr);
+  }
+
+  .mobile-dock__link {
+    padding-inline: 0;
+  }
+
+  .mobile-dock__link[href="tournaments.html"] {
+    font-size: 0.6rem;
+    letter-spacing: -0.02em;
+  }
+}
+
 @media (max-width: 22.49rem) {
   .form-grid--player,
   .payment-form-grid,
