@@ -1,4 +1,4 @@
-import { config, escapeHtml, supportUrl } from "./data.js?v=20261011-lifecycle";
+import { config, escapeHtml, supportUrl } from "./data.js?v=20261013-squad-results";
 
 const icons = {
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',

@@ -1,4 +1,4 @@
-import { getSupabaseClient, isSupabaseConfigured } from "./supabase.js?v=20261011-lifecycle";
+import { getSupabaseClient, isSupabaseConfigured } from "./supabase.js?v=20261013-squad-results";
 
 const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+$/;
 

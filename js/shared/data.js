@@ -197,16 +197,18 @@ function isDynamicRegistration(tournament, timeSlot = null) {
 
 export function getTimeSlotState(tournament, timeSlot, now = Date.now()) {
   const dynamicRegistration = isDynamicRegistration(tournament, timeSlot);
+  const startsAt = Date.parse(timeSlot?.startsAt);
+  // A lobby whose start time has passed is complete no matter what the card
+  // currently says; archived cycles of a "Coming soon" card were previously
+  // labelled "Coming soon" in organizer and roster views.
+  if (Number.isFinite(startsAt) && startsAt <= now) {
+    return { key: "complete", label: "Completed", open: false };
+  }
   if (tournament?.comingSoon === true && !dynamicRegistration) {
     return { key: "scheduled", label: "Coming soon", open: false };
   }
-
-  const startsAt = Date.parse(timeSlot?.startsAt);
   if (!Number.isFinite(startsAt)) {
     return { key: "unavailable", label: "Lobby unavailable", open: false };
-  }
-  if (startsAt <= now) {
-    return { key: "complete", label: "Completed", open: false };
   }
   if (!dynamicRegistration && tournament?.registrationOpen !== true) {
     return { key: "closed", label: "Registration closed", open: false };

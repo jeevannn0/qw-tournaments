@@ -566,3 +566,79 @@ body[data-page="admin"] .admin-tabs {
     grid-template-columns: 1fr;
   }
 }
+
+/* Squad lineups: organizer payment rows, winner picker results, public winner cards */
+.admin-lineup,
+.winner-card__lineup {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-lineup li,
+.winner-card__lineup li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+
+.admin-lineup li > span,
+.winner-card__lineup li > span {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+.admin-lineup li > b,
+.winner-card__lineup li > strong {
+  overflow-wrap: anywhere;
+}
+
+.admin-lineup li > code,
+.winner-card__lineup li > code {
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-lineup li > small,
+.winner-card__lineup li > small {
+  display: inline;
+  color: var(--primary);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.winner-card__lineup {
+  margin-top: var(--space-2);
+}
+
+.winner-card header > div {
+  flex: 1 1 auto;
+}
+
+.winner-card__lineup li {
+  border-top: 1px solid var(--border);
+  padding-top: 0.3rem;
+  font-size: 0.875rem;
+}
+
+.admin-winner-result .admin-lineup {
+  margin-top: 0.25rem;
+}
+
+/* Stacked mobile table cells are two-column grids (label | value); the lineup
+   list must span both columns instead of squeezing into the label column. */
+.responsive-table td > .admin-lineup {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}

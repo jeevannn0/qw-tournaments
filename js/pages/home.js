@@ -8,16 +8,16 @@ import {
   getEventMedia,
   getEventPresentation,
   getEventState,
+  getEventTimeSlots,
   getOpenTimeSlots,
   registrationUrl,
   supportUrl,
   tournaments
-} from "../shared/data.js?v=20261011-lifecycle";
-import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
-import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
-import { eventCard, eventStatusBadge } from "../shared/event-card.js?v=20261011-lifecycle";
-import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
+} from "../shared/data.js?v=20261013-squad-results";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261013-squad-results";
+import { eventCard, eventStatusBadge } from "../shared/event-card.js?v=20261013-squad-results";
+import { icon, initializeShell } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion } from "../shared/motion.js?v=20261013-squad-results";
 
 function renderFeaturedEvent(tournament) {
   const mount = document.querySelector("#featuredEvent");
@@ -30,7 +30,9 @@ function renderFeaturedEvent(tournament) {
     ? `<a class="button button--primary button--large" href="${registrationUrl(tournament)}">Register for ${escapeHtml(formatCurrency(presentation.entryFee))} ${icon("arrow")}</a>`
     : `<a class="button button--quiet button--large" href="${eventUrl(tournament)}">View ${presentation.comingSoon ? "preview" : "details"} ${icon("arrow")}</a>`;
   const announcementFacts = `<dl class="feature-event__facts"><div><dt>Schedule</dt><dd>${escapeHtml(presentation.schedule)}</dd></div><div><dt>Reward</dt><dd>${escapeHtml(presentation.reward)}</dd></div><div><dt>Entry</dt><dd>${escapeHtml(presentation.entry)}</dd></div><div><dt>Capacity</dt><dd>${escapeHtml(presentation.capacityLabel)}</dd></div></dl>`;
-  const canonicalFacts = `<div class="reward-strip reward-strip--feature" aria-label="Solo match rewards"><span><strong>${escapeHtml(formatCurrency(tournament.entryFee))}</strong><small>entry</small></span><span><strong>${escapeHtml(formatCurrency(tournament.killReward))}</strong><small>per confirmed kill</small></span><span><strong>${escapeHtml(formatCurrency(tournament.booyahBonus))}</strong><small>Booyah bonus</small></span></div><dl class="feature-event__facts"><div><dt>Lobbies</dt><dd>${escapeHtml(formatLobbySchedule(tournament))}</dd></div><div><dt>Map</dt><dd>${escapeHtml(tournament.map)}</dd></div><div><dt>Capacity</dt><dd>50 players per lobby</dd></div></dl><progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress>`;
+  const lobbyCapacity = Number(getEventTimeSlots(tournament)[0]?.capacity);
+  const capacityCopy = Number.isInteger(lobbyCapacity) && lobbyCapacity > 0 ? `${lobbyCapacity} ${capacity.unit} per lobby` : presentation.capacityLabel;
+  const canonicalFacts = `<div class="reward-strip reward-strip--feature" aria-label="Solo match rewards"><span><strong>${escapeHtml(formatCurrency(tournament.entryFee))}</strong><small>entry</small></span><span><strong>${escapeHtml(formatCurrency(tournament.killReward))}</strong><small>per confirmed kill</small></span><span><strong>${escapeHtml(formatCurrency(tournament.booyahBonus))}</strong><small>Booyah bonus</small></span></div><dl class="feature-event__facts"><div><dt>Lobbies</dt><dd>${escapeHtml(formatLobbySchedule(tournament))}</dd></div><div><dt>Map</dt><dd>${escapeHtml(tournament.map)}</dd></div><div><dt>Capacity</dt><dd>${escapeHtml(capacityCopy)}</dd></div></dl><progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress>`;
 
   mount.innerHTML = `
     <article class="feature-event ${presentation.hasOverride ? `feature-event--announcement feature-event--${presentation.mode}` : ""}">
@@ -101,18 +103,6 @@ function renderLiveFacts() {
   }
 }
 
-async function announcePublishedWinner() {
-  if (!isSupabaseConfigured()) return;
-  try {
-    const client = await getSupabaseClient();
-    const { data, error } = await client.from("match_results").select("display_name, time_slot_label, published_at").eq("published", true).order("published_at", { ascending: false }).limit(1).maybeSingle();
-    if (error || !data) return;
-    showToast(`Latest winner: ${String(data.display_name || "New winner").trim().slice(0, 32)} · ${String(data.time_slot_label || "match").trim().slice(0, 40)}.`, 15000, { label: "Check winner", href: "booyah.html" });
-  } catch {
-    // Winner announcements are optional; Home remains usable if Supabase is unavailable.
-  }
-}
-
 let presentationRefreshTimer;
 let homeRefreshGeneration = 0;
 function renderPresentationSurfaces() {
@@ -143,8 +133,8 @@ async function initializeHome() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshHomePresentation({ force: true });
   });
-  window.addEventListener("pageshow", () => refreshHomePresentation({ force: true }));
-  announcePublishedWinner();
+  // pageshow also fires on the initial load; only a back/forward cache restore needs a refresh.
+  window.addEventListener("pageshow", (event) => { if (event.persisted) refreshHomePresentation({ force: true }); });
   const support = document.querySelector("#homeSupportLink");
   const supportHref = supportUrl("joining an open tournament");
   if (support && supportHref) support.href = supportHref;

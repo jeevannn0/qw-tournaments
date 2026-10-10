@@ -1,5 +1,5 @@
-import { normalize, tournaments } from "./data.js?v=20261011-lifecycle";
-import { getSupabaseClient, isSupabaseConfigured } from "./supabase.js?v=20261011-lifecycle";
+import { normalize, tournaments } from "./data.js?v=20261013-squad-results";
+import { getSupabaseClient, isSupabaseConfigured } from "./supabase.js?v=20261013-squad-results";
 
 export const MATCH_CARD_IDS = Object.freeze([
   "solo-survival-01",
@@ -163,6 +163,12 @@ async function fetchSnapshot(client) {
     }
   }
   throw lastError || new Error("Match presentation could not be refreshed.");
+}
+
+// Re-applies the last fetched occupancy after presentation state was rebuilt
+// from a fresh organizer read, which otherwise resets spots left to capacity.
+export function restoreOccupancy() {
+  applyOccupancy(successfulSnapshot?.occupancy || []);
 }
 
 export async function hydrateTournamentOverrides({ force = false, throwOnError = false } = {}) {

@@ -1,10 +1,12 @@
 import {
+  config,
   escapeHtml,
   eventMark,
   formatCurrency,
   formatDateTime,
   formatLobbySchedule,
   formatReward,
+  formatTimeOnly,
   getCapacity,
   getEventMedia,
   getEventPresentation,
@@ -18,12 +20,12 @@ import {
   rosters,
   setDocumentTitle,
   tournaments
-} from "../shared/data.js?v=20261011-lifecycle";
-import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
-import { eventStatusBadge } from "../shared/event-card.js?v=20261011-lifecycle";
-import { getCustomRoomCredentials, isCustomRoomReady, validRegistrationEmail } from "../shared/custom-room-backend.js?v=20261011-lifecycle";
-import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
+} from "../shared/data.js?v=20261013-squad-results";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261013-squad-results";
+import { eventStatusBadge } from "../shared/event-card.js?v=20261013-squad-results";
+import { getCustomRoomCredentials, isCustomRoomReady, validRegistrationEmail } from "../shared/custom-room-backend.js?v=20261013-squad-results";
+import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion } from "../shared/motion.js?v=20261013-squad-results";
 
 const root = document.querySelector("#eventDetail");
 const roomDialog = document.querySelector("#customRoomDialog");
@@ -35,7 +37,12 @@ const roomResult = document.querySelector("#customRoomResult");
 const roomId = document.querySelector("#customRoomId");
 const roomPassword = document.querySelector("#customRoomPassword");
 let activeTournament = null;
-let roomRequestGeneration = 0;
+// One counter per concern: the dialog session, the email lookup, and the
+// readiness poll/copy checks. A shared counter let the 5-second poll cancel an
+// in-flight email lookup and leave the submit button stuck on "Checking…".
+let roomDialogGeneration = 0;
+let roomEmailGeneration = 0;
+let roomReadinessGeneration = 0;
 let roomReadinessTimer = 0;
 let detailRefreshGeneration = 0;
 
@@ -43,26 +50,34 @@ function customRoomButton() {
   return `<button class="button button--quiet button--large" type="button" data-custom-room>Custom Room details ${icon("lock")}</button>`;
 }
 
+const ROOM_CHECK_LABEL = "Show Room ID and password";
+
 function clearCustomRoomDialog() {
   roomEmailForm.hidden = true;
   roomResult.hidden = true;
   roomEmail.value = "";
   roomId.textContent = "";
   roomPassword.textContent = "";
+  roomCheck.disabled = false;
+  roomCheck.textContent = ROOM_CHECK_LABEL;
   roomStatus.hidden = false;
   roomStatus.innerHTML = "<strong>Checking Room details…</strong>";
+}
+
+function roomDialogStale(dialogGeneration, tournamentId) {
+  return dialogGeneration !== roomDialogGeneration || !roomDialog.open || activeTournament?.id !== tournamentId;
 }
 
 async function openCustomRoomDialog() {
   if (!activeTournament) return;
   const tournamentId = activeTournament.id;
-  const requestGeneration = ++roomRequestGeneration;
+  const dialogGeneration = ++roomDialogGeneration;
   clearCustomRoomDialog();
   if (typeof roomDialog.showModal === "function") roomDialog.showModal();
   else roomDialog.setAttribute("open", "");
   try {
     const ready = await isCustomRoomReady(tournamentId);
-    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (roomDialogStale(dialogGeneration, tournamentId)) return;
     if (!ready) {
       roomStatus.innerHTML = "<strong>Room details have not been published yet.</strong><p>Please wait for the organizer to add the Room ID and password, then try again.</p>";
       return;
@@ -73,13 +88,13 @@ async function openCustomRoomDialog() {
     roomEmailForm.hidden = false;
     roomEmail.focus();
   } catch {
-    if (requestGeneration !== roomRequestGeneration || !roomDialog.open) return;
+    if (roomDialogStale(dialogGeneration, tournamentId)) return;
     roomStatus.innerHTML = "<strong>Room details are temporarily unavailable.</strong><p>Please try again shortly.</p>";
   }
 }
 
 function closeCustomRoomDialog() {
-  roomRequestGeneration += 1;
+  roomDialogGeneration += 1;
   window.clearInterval(roomReadinessTimer);
   roomReadinessTimer = 0;
   clearCustomRoomDialog();
@@ -95,7 +110,8 @@ async function submitCustomRoomEmail(event) {
     return;
   }
   const tournamentId = activeTournament.id;
-  const requestGeneration = ++roomRequestGeneration;
+  const dialogGeneration = roomDialogGeneration;
+  const requestGeneration = ++roomEmailGeneration;
   roomCheck.disabled = true;
   roomCheck.textContent = "Checking registration…";
   roomId.textContent = "";
@@ -103,7 +119,7 @@ async function submitCustomRoomEmail(event) {
   roomResult.hidden = true;
   try {
     const credentials = await getCustomRoomCredentials(tournamentId, roomEmail.value);
-    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (requestGeneration !== roomEmailGeneration || roomDialogStale(dialogGeneration, tournamentId)) return;
     if (!credentials) {
       roomStatus.innerHTML = "<strong>No confirmed registration found for this email.</strong><p>Use the exact email entered for this match, or wait until the organizer confirms your registration.</p>";
       return;
@@ -113,12 +129,12 @@ async function submitCustomRoomEmail(event) {
     roomPassword.textContent = credentials.roomPassword;
     roomResult.hidden = false;
   } catch {
-    if (requestGeneration !== roomRequestGeneration || !roomDialog.open) return;
+    if (requestGeneration !== roomEmailGeneration || roomDialogStale(dialogGeneration, tournamentId)) return;
     roomStatus.innerHTML = "<strong>Room access could not be checked.</strong><p>Please try again shortly.</p>";
   } finally {
-    if (requestGeneration === roomRequestGeneration) {
+    if (requestGeneration === roomEmailGeneration) {
       roomCheck.disabled = false;
-      roomCheck.textContent = "Show Room ID and password";
+      roomCheck.textContent = ROOM_CHECK_LABEL;
     }
   }
 }
@@ -126,10 +142,11 @@ async function submitCustomRoomEmail(event) {
 async function refreshVisibleRoomReadiness() {
   if (!roomDialog.open || !activeTournament) return;
   const tournamentId = activeTournament.id;
-  const requestGeneration = ++roomRequestGeneration;
+  const dialogGeneration = roomDialogGeneration;
+  const requestGeneration = ++roomReadinessGeneration;
   try {
     const ready = await isCustomRoomReady(tournamentId);
-    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (requestGeneration !== roomReadinessGeneration || roomDialogStale(dialogGeneration, tournamentId)) return;
     if (!ready) {
       window.clearInterval(roomReadinessTimer);
       roomReadinessTimer = 0;
@@ -139,7 +156,7 @@ async function refreshVisibleRoomReadiness() {
       roomStatus.innerHTML = "<strong>Room details are no longer available.</strong><p>The organizer may be updating the lobby. Check again shortly.</p>";
     }
   } catch {
-    if (requestGeneration === roomRequestGeneration) {
+    if (requestGeneration === roomReadinessGeneration && !roomDialogStale(dialogGeneration, tournamentId)) {
       roomId.textContent = "";
       roomPassword.textContent = "";
       roomResult.hidden = true;
@@ -150,10 +167,11 @@ async function refreshVisibleRoomReadiness() {
 async function copyRoomValue(element, label) {
   if (!element?.textContent || !activeTournament || !roomDialog.open) return;
   const tournamentId = activeTournament.id;
-  const requestGeneration = ++roomRequestGeneration;
+  const dialogGeneration = roomDialogGeneration;
+  const requestGeneration = ++roomReadinessGeneration;
   try {
     const ready = await isCustomRoomReady(tournamentId);
-    if (requestGeneration !== roomRequestGeneration || !roomDialog.open || activeTournament?.id !== tournamentId) return;
+    if (requestGeneration !== roomReadinessGeneration || roomDialogStale(dialogGeneration, tournamentId)) return;
     if (!ready) {
       window.clearInterval(roomReadinessTimer);
       roomReadinessTimer = 0;
@@ -191,9 +209,10 @@ function scheduleContent(tournament) {
   if (timeSlots.length) {
     return `<ol class="timeline" data-reveal>${timeSlots.map((timeSlot, index) => {
       const timeSlotState = getTimeSlotState(tournament, timeSlot);
+      const unit = tournament.type === "solo" ? "player" : "team";
       const instruction = timeSlotState.key === "complete"
         ? "This lobby has finished accepting players. View the confirmed roster or Booyah results."
-        : "Choose this 50-player lobby during registration and use the player number assigned by the organizer.";
+        : `Choose this ${Number(timeSlot.capacity) || 50}-${unit} lobby during registration and use the ${unit} number assigned by the organizer.`;
       return `<li><span>0${index + 1}</span><div><small>${escapeHtml(timeSlot.label)} · ${escapeHtml(timeSlotState.label)}</small><strong>${escapeHtml(formatDateTime(timeSlot.startsAt, "long"))}</strong><p>${escapeHtml(instruction)}</p></div></li>`;
     }).join("")}</ol>`;
   }
@@ -211,8 +230,8 @@ function renderNotFound(hasConfiguredEvents = true) {
 function renderAnnouncementTournament(tournament, presentation) {
   setDocumentTitle(tournament.name);
   const media = getEventMedia(tournament);
-  const secondaryHref = tournament.type === "solo" ? rosterUrl(tournament) : "tournaments.html";
-  const secondaryLabel = tournament.type === "solo" ? "Player roster" : "Match board";
+  const secondaryHref = rosterUrl(tournament);
+  const secondaryLabel = tournament.type === "solo" ? "Player roster" : "Squad roster";
   const registrationOpen = presentation.state.open;
   const primaryAction = registrationOpen
     ? `<a class="button button--primary button--large" href="${registrationUrl(tournament)}">Register for ${escapeHtml(presentation.entry)} ${icon("arrow")}</a>`
@@ -266,7 +285,14 @@ function renderTournament(tournament) {
     : `<a class="button button--quiet button--large" href="${rosterUrl(tournament)}">${rosterLabel}</a>`;
   const registrationLabel = comingSoon ? "Schedule" : timeSlots.length ? "Lobbies" : alwaysOpen ? "Registration" : "Starts";
   const registrationValue = comingSoon ? "Pending" : timeSlots.length ? formatLobbySchedule(tournament) : alwaysOpen ? "Always open" : formatDateTime(tournament.matchAt);
-  const capacityValue = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : timeSlots.length ? "50 players per lobby" : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
+  // Lobby copy is derived from the checked-in schedule so data changes never contradict the page.
+  const lobbyCapacity = Number(timeSlots[0]?.capacity) || 50;
+  const lobbyTimes = timeSlots.map((timeSlot) => formatTimeOnly(timeSlot.startsAt).replace(` ${config.timezoneLabel}`, ""));
+  const lobbyTimesCopy = lobbyTimes.length > 1
+    ? `${lobbyTimes.slice(0, -1).join(", ")} or ${lobbyTimes.at(-1)} ${config.timezoneLabel}`
+    : `${lobbyTimes[0] || ""} ${config.timezoneLabel}`.trim();
+  const lobbyCountWord = ["zero", "one", "two", "three", "four", "five"][timeSlots.length] || String(timeSlots.length);
+  const capacityValue = comingSoon ? `${capacity.capacity} ${capacity.unit} planned` : timeSlots.length ? `${lobbyCapacity} ${capacity.unit} per lobby` : `${capacity.spotsLeft}/${capacity.capacity} ${capacity.unit}`;
 
   root.innerHTML = `
     <section class="event-hero ${comingSoon ? "event-hero--coming-soon" : ""}">
@@ -280,9 +306,9 @@ function renderTournament(tournament) {
       </div>
     </section>
     <nav class="event-local-nav" aria-label="Tournament sections"><div class="shell"><a href="#overview">Overview</a><a href="#prizes">Rewards</a><a href="#schedule">How to join</a><a href="#ruleset">Rules</a></div></nav>
-    <section class="section" id="overview"><div class="shell event-overview"><div data-reveal><p class="kicker">Current status</p><h2>${comingSoon ? "This format is preparing." : "Know the match before joining."}</h2><p class="section-lead">${comingSoon ? "No registration or payment is available for this event yet." : timeSlots.length ? "Choose the 7:30 PM or 9:00 PM IST lobby. Each lobby holds 50 players." : "Check the payout and availability before joining."}</p></div><div class="event-status-panel" data-reveal><div class="event-status-panel__top"><div>${eventStatusBadge(tournament)}<h3>${state.open ? "Solo registration open" : state.label}</h3></div><span class="event-status-panel__index">01</span></div><p>${state.open ? timeSlots.length ? `Choose one of the two 50-player lobbies. Each verified kill pays ${escapeHtml(formatCurrency(tournament.killReward))}, and Booyah adds ${escapeHtml(formatCurrency(tournament.booyahBonus))}.` : `Registration is open. Each verified kill pays ${escapeHtml(formatCurrency(tournament.killReward))}, and Booyah adds ${escapeHtml(formatCurrency(tournament.booyahBonus))}.` : escapeHtml(state.reason)}</p>${comingSoon ? "" : `<div class="capacity-block"><div><span>${timeSlots.length ? "Lobby capacity" : "Lobby occupancy"}</span><strong>${timeSlots.length ? "50 players in each of 2 lobbies" : `${capacity.filled} filled · ${capacity.spotsLeft} open`}</strong></div><progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress></div>`}<ul class="mini-checks"><li>${icon("check")} Organizer verifies ${comingSoon ? "all published terms" : "kills and Booyah"}</li><li>${icon("check")} Written reply confirms the slot</li><li>${icon("lock")} Room credentials stay private</li></ul></div><div class="event-info-grid"><article data-reveal><span class="info-icon">${icon("gamepad")}</span><small>Mode</small><strong>${escapeHtml(tournament.mode)}</strong><p>${escapeHtml(tournament.platform)} · ${escapeHtml(tournament.server)}</p></article><article data-reveal><span class="info-icon">${icon("team")}</span><small>Entry unit</small><strong>${tournament.type === "solo" ? "1 player" : "4 players"}</strong><p>${comingSoon ? "Registration not open" : timeSlots.length ? "Choose one lobby time" : "Registration open"}</p></article><article data-reveal><span class="info-icon">${icon("shield")}</span><small>Roster</small><strong>${comingSoon ? "Not open" : roster.published ? `${rosterCount} ${capacity.unit}` : "Not published"}</strong><p>${comingSoon ? "Available after registration opens" : `Published after organizer confirmation`}</p></article></div></div></section>
+    <section class="section" id="overview"><div class="shell event-overview"><div data-reveal><p class="kicker">Current status</p><h2>${comingSoon ? "This format is preparing." : "Know the match before joining."}</h2><p class="section-lead">${comingSoon ? "No registration or payment is available for this event yet." : timeSlots.length ? escapeHtml(`Choose the ${lobbyTimesCopy} lobby. Each lobby holds ${lobbyCapacity} ${capacity.unit}.`) : "Check the payout and availability before joining."}</p></div><div class="event-status-panel" data-reveal><div class="event-status-panel__top"><div>${eventStatusBadge(tournament)}<h3>${state.open ? `${tournament.type === "solo" ? "Solo" : "Squad"} registration open` : escapeHtml(state.label)}</h3></div><span class="event-status-panel__index">01</span></div><p>${state.open ? timeSlots.length ? escapeHtml(`Choose one of the ${lobbyCountWord} ${lobbyCapacity}-${tournament.type === "solo" ? "player" : "team"} lobbies. Each verified kill pays ${formatCurrency(tournament.killReward)}, and Booyah adds ${formatCurrency(tournament.booyahBonus)}.`) : `Registration is open. Each verified kill pays ${escapeHtml(formatCurrency(tournament.killReward))}, and Booyah adds ${escapeHtml(formatCurrency(tournament.booyahBonus))}.` : escapeHtml(state.reason)}</p>${comingSoon ? "" : `<div class="capacity-block"><div><span>${timeSlots.length ? "Lobby capacity" : "Lobby occupancy"}</span><strong>${timeSlots.length ? escapeHtml(`${lobbyCapacity} ${capacity.unit} in each of ${timeSlots.length} ${timeSlots.length === 1 ? "lobby" : "lobbies"}`) : `${capacity.filled} filled · ${capacity.spotsLeft} open`}</strong></div><progress class="capacity-meter capacity-meter--large" max="${capacity.capacity || 1}" value="${capacity.filled}" aria-label="${capacity.filled} of ${capacity.capacity} ${capacity.unit} filled">${capacity.percent}%</progress></div>`}<ul class="mini-checks"><li>${icon("check")} Organizer verifies ${comingSoon ? "all published terms" : "kills and Booyah"}</li><li>${icon("check")} Written reply confirms the slot</li><li>${icon("lock")} Room credentials stay private</li></ul></div><div class="event-info-grid"><article data-reveal><span class="info-icon">${icon("gamepad")}</span><small>Mode</small><strong>${escapeHtml(tournament.mode)}</strong><p>${escapeHtml(tournament.platform)} · ${escapeHtml(tournament.server)}</p></article><article data-reveal><span class="info-icon">${icon("team")}</span><small>Entry unit</small><strong>${tournament.type === "solo" ? "1 player" : "4 players"}</strong><p>${comingSoon ? "Registration not open" : timeSlots.length ? "Choose one lobby time" : "Registration open"}</p></article><article data-reveal><span class="info-icon">${icon("shield")}</span><small>Roster</small><strong>${comingSoon ? "Not open" : roster.published ? `${rosterCount} ${capacity.unit}` : "Not published"}</strong><p>${comingSoon ? "Available after registration opens" : `Published after organizer confirmation`}</p></article></div></div></section>
     <section class="section section--surface" id="prizes"><div class="shell"><div class="section-heading section-heading--split" data-reveal><div><p class="kicker">${comingSoon ? "Rewards pending" : "Solo payout"}</p><h2>${comingSoon ? "Coming soon." : "Kills pay. Booyah adds more."}</h2></div><p>${comingSoon ? "No fee or reward amount has been published for this format." : `${formatCurrency(tournament.killReward)} for each organizer-verified elimination, plus an additional ${formatCurrency(tournament.booyahBonus)} for the Booyah winner.`}</p></div><div class="prize-podium prize-podium--rewards">${rewardCards(tournament)}</div></div></section>
-    <section class="section" id="schedule"><div class="shell detail-columns"><div data-reveal><p class="kicker">${comingSoon ? "Schedule" : "How to join"}</p><h2>${comingSoon ? "Announcement pending." : timeSlots.length ? "Two times. One required choice." : "Follow the published schedule."}</h2><p class="section-lead">${comingSoon ? "Follow the match board for the announcement." : timeSlots.length ? "Select 7:30 PM or 9:00 PM IST during registration. Each lobby holds 50 players." : "Complete registration before the published deadline."}</p></div>${scheduleContent(tournament)}</div></section>
+    <section class="section" id="schedule"><div class="shell detail-columns"><div data-reveal><p class="kicker">${comingSoon ? "Schedule" : "How to join"}</p><h2>${comingSoon ? "Announcement pending." : timeSlots.length > 1 ? `${lobbyCountWord.charAt(0).toUpperCase()}${lobbyCountWord.slice(1)} times. One required choice.` : timeSlots.length ? "One lobby. One required choice." : "Follow the published schedule."}</h2><p class="section-lead">${comingSoon ? "Follow the match board for the announcement." : timeSlots.length ? escapeHtml(`Select ${lobbyTimesCopy} during registration. Each lobby holds ${lobbyCapacity} ${capacity.unit}.`) : "Complete registration before the published deadline."}</p></div>${scheduleContent(tournament)}</div></section>
     <section class="section section--surface" id="ruleset"><div class="shell detail-columns"><div data-reveal><p class="kicker">Rules</p><h2>${comingSoon ? "Terms publish before entry." : "Every payout is verified."}</h2><p class="section-lead">${comingSoon ? "Coming-soon formats cannot accept payment or registration." : "The organizer verifies eliminations, Booyah, check-in, disputes, and payouts."}</p><a class="button button--quiet" href="rules.html">Read all rules ${icon("arrow")}</a></div><div><div class="rule-chip-grid">${(tournament.ruleHighlights || []).map((rule, index) => `<article data-reveal><span>0${index + 1}</span><strong>${escapeHtml(rule)}</strong></article>`).join("")}</div><div class="map-list" data-reveal><span>Map</span>${(tournament.maps || [tournament.map]).map((map) => `<strong>${escapeHtml(map)}</strong>`).join("")}</div></div></div></section>
     <section class="event-final-cta section"><div class="shell event-final-cta__inner" data-reveal><div><p class="kicker">${escapeHtml(tournament.shortCode)}</p><h2>${state.open ? "Choose your Solo lobby." : escapeHtml(state.label)}</h2></div>${state.open ? primaryAction : '<a class="button button--primary button--large" href="tournaments.html">View match board</a>'}</div></section>`;
   initializeMotion(root);
@@ -323,7 +349,8 @@ async function initializeTournament() {
       refreshVisibleRoomReadiness();
     }
   });
-  window.addEventListener("pageshow", () => refreshTournamentPresentation({ force: true }));
+  // pageshow also fires on the initial load; only a back/forward cache restore needs a refresh.
+  window.addEventListener("pageshow", (event) => { if (event.persisted) refreshTournamentPresentation({ force: true }); });
 }
 
 root.addEventListener("click", (event) => {

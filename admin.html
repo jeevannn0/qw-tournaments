@@ -8,184 +8,201 @@
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#111824" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
-  <title>Organizer operations console — QW Tournaments</title>
+  <title>Organizer console — QW Tournaments</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261011-lifecycle">
-  <link rel="stylesheet" href="css/gaming.css?v=20261011-lifecycle">
-  <link rel="stylesheet" href="css/booyah-admin.css?v=20261011-lifecycle">
+  <link rel="stylesheet" href="css/styles.css?v=20261013-squad-results">
+  <link rel="stylesheet" href="css/gaming.css?v=20261013-squad-results">
+  <link rel="stylesheet" href="css/booyah-admin.css?v=20261013-squad-results">
+  <link rel="stylesheet" href="css/admin.css?v=20261013-squad-results">
   <script src="js/theme-init.js"></script>
 </head>
 <body data-page="admin">
-  <a class="skip-link" href="#adminContent">Skip to organizer dashboard</a>
+  <a class="skip-link" href="#adminContent">Skip to organizer console</a>
   <div id="siteHeader" class="site-header-mount"></div>
-  <noscript><div class="noscript-bar">JavaScript is required for the private organizer dashboard.</div></noscript>
+  <noscript><div class="noscript-bar">JavaScript is required for the private organizer console.</div></noscript>
 
-  <main id="adminContent">
-    <section class="page-intro page-intro--admin">
-      <div class="shell page-intro__layout">
-        <div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span>Organizer</span></nav><p class="kicker">Private organizer tools</p><h1>Operations console.</h1><p>Verify payments, publish Booyah winners, and maintain safe public match-card presentation.</p></div>
-        <div class="page-intro__index" aria-hidden="true"><span>QW</span><strong>ADM</strong><small>private</small></div>
-      </div>
-    </section>
+  <main id="adminContent" class="ops">
+    <div class="shell ops-access">
+      <div class="backend-status" id="adminSetup" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration to <code>data/supabase-config.js</code> before using this console.</p></div>
 
-    <section class="section admin-access-section">
-      <div class="shell">
-        <div class="backend-status" id="adminSetup" role="alert" hidden><strong>Supabase setup required</strong><p>Add the public Supabase Web App configuration to <code>data/supabase-config.js?v=20261011-lifecycle</code> before using this dashboard.</p></div>
+      <section class="admin-access-card" id="adminSignedOut" hidden>
+        <span class="admin-access-card__icon" aria-hidden="true">QW</span>
+        <p class="kicker">Organizer sign-in</p>
+        <h2>Organizer console</h2>
+        <p>Use the organizer email and password created in Supabase Authentication and approved in the private <code>admin_users</code> table.</p>
+        <form class="admin-login-form" id="adminLoginForm">
+          <div class="field"><label for="adminEmail">Organizer email</label><input id="adminEmail" name="adminEmail" type="email" autocomplete="username" required></div>
+          <div class="field"><label for="adminPassword">Password</label><input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" minlength="8" required></div>
+          <button class="button button--primary button--large" id="adminSignIn" type="submit">Sign in securely</button>
+        </form>
+      </section>
 
-        <section class="admin-access-card" id="adminSignedOut" hidden>
-          <span class="admin-access-card__icon" aria-hidden="true">QW</span>
-          <p class="kicker">Organizer authentication</p>
-          <h2>Sign in to organizer operations</h2>
-          <p>Use the organizer email and password created in Supabase Authentication and approved in the private <code>admin_users</code> table.</p>
-          <form class="admin-login-form" id="adminLoginForm">
-            <div class="field"><label for="adminEmail">Organizer email</label><input id="adminEmail" name="adminEmail" type="email" autocomplete="username" required></div>
-            <div class="field"><label for="adminPassword">Password</label><input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" minlength="8" required></div>
-            <button class="button button--primary button--large" id="adminSignIn" type="submit">Sign in securely</button>
-          </form>
-        </section>
+      <section class="admin-access-card" id="adminDenied" hidden>
+        <span class="admin-access-card__icon" aria-hidden="true">!</span>
+        <p class="kicker">Access denied</p>
+        <h2>This account is not an approved organizer</h2>
+        <p id="adminDeniedMessage"></p>
+        <button class="button button--quiet" id="adminDeniedSignOut" type="button">Sign out</button>
+      </section>
+    </div>
 
-        <section class="admin-access-card" id="adminDenied" hidden>
-          <span class="admin-access-card__icon" aria-hidden="true">!</span>
-          <p class="kicker">Access denied</p>
-          <h2>This account is not an approved organizer</h2>
-          <p id="adminDeniedMessage"></p>
-          <button class="button button--quiet" id="adminDeniedSignOut" type="button">Sign out</button>
-        </section>
+    <section class="ops-dashboard" id="adminDashboard" hidden>
+      <header class="ops-bar">
+        <div class="shell ops-bar__inner">
+          <div class="ops-bar__identity"><span>Organizer console</span><strong id="adminIdentity"></strong></div>
+          <p class="ops-bar__live" id="adminLiveSummary" role="status" aria-live="polite"></p>
+          <button class="button button--quiet ops-bar__signout" id="adminSignOut" type="button">Sign out</button>
+        </div>
+      </header>
 
-        <section class="admin-dashboard" id="adminDashboard" hidden>
-          <div class="admin-session-bar"><div><span>Signed in as</span><strong id="adminIdentity"></strong></div><button class="button button--quiet" id="adminSignOut" type="button">Sign out</button></div>
+      <nav class="ops-nav" aria-label="Organizer workspaces">
+        <div class="shell ops-nav__inner" role="tablist" aria-label="Organizer operations">
+          <button class="ops-nav__tab" id="adminTabPayments" type="button" role="tab" aria-controls="adminPanelPayments" aria-selected="true" tabindex="0" data-admin-tab="payments"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.4 7 10 4.1-1.6 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><span>Payments</span><b class="ops-nav__count" id="adminPendingBadge" hidden>0</b></button>
+          <button class="ops-nav__tab" id="adminTabBooyah" type="button" role="tab" aria-controls="adminPanelBooyah" aria-selected="false" tabindex="-1" data-admin-tab="booyah"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 7 4 4 5-7 5 7 4-4-2 11H5L3 7Z"/><path d="M5 21h14"/></svg><span>Booyah</span></button>
+          <button class="ops-nav__tab" id="adminTabMatches" type="button" role="tab" aria-controls="adminPanelMatches" aria-selected="false" tabindex="-1" data-admin-tab="matches"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>Matches</span></button>
+          <button class="ops-nav__tab" id="adminTabRooms" type="button" role="tab" aria-controls="adminPanelRooms" aria-selected="false" tabindex="-1" data-admin-tab="rooms"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Room</span></button>
+        </div>
+      </nav>
 
-          <div class="admin-tabs" role="tablist" aria-label="Organizer operations">
-            <button class="admin-tab" id="adminTabPayments" type="button" role="tab" aria-controls="adminPanelPayments" aria-selected="true" tabindex="0" data-admin-tab="payments">Payment verification</button>
-            <button class="admin-tab" id="adminTabBooyah" type="button" role="tab" aria-controls="adminPanelBooyah" aria-selected="false" tabindex="-1" data-admin-tab="booyah">Booyah cards</button>
-            <button class="admin-tab" id="adminTabMatches" type="button" role="tab" aria-controls="adminPanelMatches" aria-selected="false" tabindex="-1" data-admin-tab="matches">Match cards</button>
-            <button class="admin-tab" id="adminTabRooms" type="button" role="tab" aria-controls="adminPanelRooms" aria-selected="false" tabindex="-1" data-admin-tab="rooms">Custom Room</button>
-          </div>
+      <div class="shell ops-panels">
+        <section class="ops-panel" id="adminPanelPayments" role="tabpanel" aria-labelledby="adminTabPayments" tabindex="0" data-admin-panel="payments">
+          <div class="ops-match-switch" id="adminPaymentTournaments" role="group" aria-label="Choose a match"></div>
+          <div class="ops-cycle-switch" id="adminPaymentMatchCards" role="group" aria-label="Choose a registration cycle"></div>
+          <div class="ops-stats" id="adminStats" role="group" aria-label="Selected match summary and quick filters"></div>
 
-          <section class="admin-tab-panel" id="adminPanelPayments" role="tabpanel" aria-labelledby="adminTabPayments" tabindex="0" data-admin-panel="payments">
-          <section class="admin-payment-match-picker" aria-labelledby="adminPaymentMatchTitle">
-            <div><p class="kicker">Payment history</p><h2 id="adminPaymentMatchTitle">Choose a match and cycle</h2><p>Current and archived registration cycles remain reviewable. Metrics, lobby filters, the table, and exports stay scoped to the selected pair.</p></div>
-            <div class="admin-payment-match-cards" id="adminPaymentMatchCards" role="group" aria-label="Choose a match and registration cycle"></div>
-          </section>
-          <div class="admin-metrics" aria-label="Selected match registration summary">
-            <article><span>Total</span><strong id="adminTotal">0</strong></article>
-            <article><span>Pending review</span><strong id="adminPending">0</strong></article>
-            <article><span>Payment verified</span><strong id="adminPaid">0</strong></article>
-            <article><span>Confirmed</span><strong id="adminConfirmed">0</strong></article>
-            <article class="admin-metric--danger"><span>Duplicate UTRs</span><strong id="adminDuplicates">0</strong></article>
-          </div>
-
-          <div class="admin-controls">
-            <div class="field search-field"><label for="adminSearch">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Reference, name, UID, phone, or UTR" autocomplete="off"></div></div>
-            <div class="field"><label for="adminLobbyFilter">Lobby</label><select id="adminLobbyFilter"><option value="all">All match lobbies</option></select></div>
-            <div class="field"><label for="adminPaymentFilter">Payment</label><select id="adminPaymentFilter"><option value="all">All payment states</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="not-found">Not found</option><option value="duplicate">Marked duplicate</option></select></div>
-            <div class="field"><label for="adminRegistrationFilter">Registration</label><select id="adminRegistrationFilter"><option value="all">All registration states</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
-            <div class="field admin-filter-secondary"><label for="adminDuplicateFilter">UTR check</label><select id="adminDuplicateFilter"><option value="all">All transaction IDs</option><option value="duplicates">Duplicates only</option><option value="unique">Unique only</option></select></div>
-            <div class="field admin-filter-secondary"><label for="adminSort">Sort</label><select id="adminSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="lobby">Lobby then player</option><option value="player">Player name</option><option value="transaction">Transaction ID</option></select></div>
-          </div>
-
-          <div class="admin-export-actions"><button class="button button--quiet" id="adminExportFiltered" type="button">Export filtered PDF</button><button class="button button--primary" id="adminExportAll" type="button">Export all PDF</button></div>
-          <div class="admin-list-meta" id="adminListMeta" role="status" aria-live="polite">Loading registrations…</div>
-          <div class="responsive-table admin-table-wrap">
-            <table class="admin-table">
-              <thead><tr><th>Submitted</th><th>Player / squad</th><th>Lobby</th><th>Reference</th><th>Payment / UTR</th><th>Registration</th><th>Action</th></tr></thead>
-              <tbody id="adminRegistrationRows"></tbody>
-            </table>
-          </div>
-          <div class="empty-state" id="adminEmpty" hidden><span class="empty-state__mark" aria-hidden="true">0</span><h2>No payments for this match</h2><p>Choose another current match card, or wait for a new complete submission.</p></div>
-          </section>
-
-          <section class="admin-tab-panel" id="adminPanelBooyah" role="tabpanel" aria-labelledby="adminTabBooyah" tabindex="0" data-admin-panel="booyah" hidden>
-            <section class="admin-winner-panel" aria-labelledby="adminWinnerTitle">
-              <div class="admin-winner-panel__heading"><div><p class="kicker">Booyah publisher</p><h2 id="adminWinnerTitle">Publish a match winner</h2><p>Select a scheduled lobby and one of its confirmed players. Publishing creates or replaces that lobby’s public winner card.</p></div><a class="button button--quiet" href="booyah.html" target="_blank" rel="noopener noreferrer">View Booyah page</a></div>
-              <form id="adminWinnerForm">
-                <div class="form-grid admin-winner-form">
-                  <div class="field"><label for="adminWinnerMatch">Available match</label><select id="adminWinnerMatch" required></select></div>
-                  <div class="field"><label for="adminWinnerPlayer">Confirmed winner</label><select id="adminWinnerPlayer" required><option value="">Choose a match first</option></select><small>Name and Free Fire UID come from the confirmed public roster.</small></div>
-                  <div class="field"><label for="adminWinnerKills">Verified kills</label><input id="adminWinnerKills" type="number" inputmode="numeric" min="0" max="99" value="0" required></div>
-                  <div class="field"><label for="adminWinnerPrize">Prize paid (₹)</label><input id="adminWinnerPrize" type="number" inputmode="numeric" min="0" max="1000000" value="30" required><small>Defaults to the Booyah bonus plus verified kill rewards.</small></div>
-                  <div class="field"><label for="adminWinnerImage">Winner image</label><input id="adminWinnerImage" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="adminWinnerImageHelp"><small id="adminWinnerImageHelp">Required for a new card. JPG, PNG, or WebP; maximum 2 MB.</small></div>
-                  <div class="field"><label for="adminWinnerImageAlt">Image description</label><input id="adminWinnerImageAlt" type="text" maxlength="180" placeholder="Example: Player celebrating after the 7:30 PM lobby"><small>Describe what is visible for players using screen readers.</small></div>
-                </div>
-                <div class="backend-status" id="adminWinnerStatus" role="status" aria-live="polite" hidden></div>
-                <div class="wizard-actions"><button class="button button--primary" id="adminPublishWinner" type="submit">Publish winner card</button></div>
-              </form>
-              <div class="admin-winner-results"><div><h3>Published winner cards</h3><span id="adminWinnerCount">0 published</span></div><div id="adminWinnerList"></div></div>
-            </section>
-          </section>
-
-          <section class="admin-tab-panel" id="adminPanelMatches" role="tabpanel" aria-labelledby="adminTabMatches" tabindex="0" data-admin-panel="matches" hidden>
-            <section class="admin-match-editor" aria-labelledby="adminMatchEditorTitle">
-              <header class="admin-match-editor__heading"><div><p class="kicker">Match control</p><h2 id="adminMatchEditorTitle">Edit and open matches</h2><p>Publish a preview, announce a schedule, or open one match lobby for player or squad registration.</p></div><a class="button button--quiet" id="adminMatchPublicLink" href="tournament.html?tournament=solo-survival-01" target="_blank" rel="noopener noreferrer">View public card</a></header>
-              <div class="admin-match-toolbar">
-                <div class="field"><label for="adminMatchSelector">Match card</label><select id="adminMatchSelector"><option value="solo-survival-01">Solo Survival 01</option><option value="squad-last-circle-01">Squad Last Circle 01</option><option value="clash-squad-cup-01">Clash Squad Cup 01</option></select></div>
-                <div class="admin-match-version"><span>Immutable ID</span><code id="adminMatchId">solo-survival-01</code><small id="adminMatchVersion">Checked-in default · version 0</small></div>
-                <button class="button button--quiet" id="adminMatchReload" type="button">Reload server version</button>
+          <div class="ops-toolbar">
+            <div class="field search-field ops-search"><label for="adminSearch" class="visually-hidden">Search registrations</label><div class="input-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="adminSearch" type="search" placeholder="Name, UID, UTR, reference, phone" autocomplete="off"></div></div>
+            <details class="ops-filters" id="adminFilters">
+              <summary><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span><b class="ops-filters__count" id="adminFilterCount" hidden></b></summary>
+              <div class="ops-filters__body">
+                <div class="field"><label for="adminLobbyFilter">Lobby</label><select id="adminLobbyFilter"><option value="all">All lobbies</option></select></div>
+                <div class="field"><label for="adminPaymentFilter">Payment</label><select id="adminPaymentFilter"><option value="all">Any payment state</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="not-found">Not found</option><option value="duplicate">Marked duplicate</option></select></div>
+                <div class="field"><label for="adminRegistrationFilter">Registration</label><select id="adminRegistrationFilter"><option value="all">Any registration state</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
+                <div class="field"><label for="adminDuplicateFilter">UTR check</label><select id="adminDuplicateFilter"><option value="all">All transaction IDs</option><option value="duplicates">Duplicates only</option><option value="unique">Unique only</option></select></div>
+                <div class="field"><label for="adminSort">Sort</label><select id="adminSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="lobby">Lobby, then number</option><option value="player">Player or squad name</option><option value="transaction">Transaction ID</option></select></div>
+                <div class="ops-filters__actions"><button class="button button--text" id="adminClearFilters" type="button">Clear filters</button><button class="button button--quiet" id="adminExportFiltered" type="button">Export filtered PDF</button><button class="button button--quiet" id="adminExportAll" type="button">Export all PDF</button></div>
               </div>
-              <form id="adminMatchForm" novalidate>
-                <div class="form-grid admin-match-form-grid">
-                  <div class="field"><label for="adminMatchName">Public title/name</label><input id="adminMatchName" type="text" minlength="2" maxlength="80" required></div>
-                  <div class="field"><label for="adminMatchPresentationMode">Match state</label><select id="adminMatchPresentationMode" required><option value="coming_soon">Coming soon</option><option value="scheduled">Scheduled — registration closed</option><option value="registration_open">Registration open</option></select></div>
-                  <div class="admin-match-state-explainer admin-match-wide" id="adminMatchStateExplainer" role="status" aria-live="polite"></div>
-                  <div class="admin-match-schedule-fields admin-match-wide" id="adminMatchScheduleFields" hidden>
-                    <div class="field"><label for="adminMatchScheduledAt">Match lobby date &amp; time (IST)</label><input id="adminMatchScheduledAt" type="datetime-local" step="60"></div>
-                    <div class="field"><label for="adminMatchEntryFee">Entry fee in rupees</label><input id="adminMatchEntryFee" type="number" inputmode="numeric" min="0" max="100000"></div>
-                    <div class="field"><label for="adminMatchRewardLabel">Reward summary</label><input id="adminMatchRewardLabel" type="text" minlength="5" maxlength="120" placeholder="Example: ₹5,000 total prize pool"></div>
-                  </div>
-                  <div class="field admin-match-wide"><label for="adminMatchTagline">Tagline</label><input id="adminMatchTagline" type="text" minlength="5" maxlength="180" required></div>
-                  <div class="field admin-match-wide"><label for="adminMatchDescription">Description</label><textarea id="adminMatchDescription" minlength="20" maxlength="1000" rows="5" required></textarea></div>
-                  <div class="field"><label for="adminMatchMap">Map label</label><input id="adminMatchMap" type="text" minlength="2" maxlength="80" required></div>
-                  <div class="field"><label for="adminMatchRounds">Rounds label</label><input id="adminMatchRounds" type="text" minlength="2" maxlength="120" required></div>
-                  <div class="field"><label for="adminMatchCapacity">Lobby capacity</label><input id="adminMatchCapacity" type="number" inputmode="numeric" min="1" max="500" required><small id="adminMatchCapacityHelp">Use 1–500 players or teams.</small></div>
-                </div>
-                <aside class="admin-match-locked" aria-labelledby="adminMatchLockedTitle"><div><p class="kicker">Protected system facts</p><h3 id="adminMatchLockedTitle">Automatic safeguards</h3></div><dl id="adminMatchLockedFacts"></dl><p>Registration open creates one server-validated lobby for the selected match. Existing registrations, payment proofs, historical lobbies, rosters, and results are never rewritten.</p></aside>
-                <div class="backend-status" id="adminMatchStatus" role="status" aria-live="polite" hidden></div>
-                <div class="wizard-actions"><button class="button button--quiet" id="adminMatchRestore" type="button">Restore checked-in defaults</button><button class="button button--primary" id="adminMatchSave" type="submit">Save match card</button></div>
-              </form>
-            </section>
-          </section>
+            </details>
+          </div>
 
-          <section class="admin-tab-panel" id="adminPanelRooms" role="tabpanel" aria-labelledby="adminTabRooms" tabindex="0" data-admin-panel="rooms" hidden>
-            <section class="admin-match-editor admin-room-editor" aria-labelledby="adminRoomTitle">
-              <header class="admin-match-editor__heading"><div><p class="kicker">Private lobby access</p><h2 id="adminRoomTitle">Custom Room details</h2><p>Add the Room ID and password for a match with Registration open. Only confirmed players who enter their registered email can retrieve them.</p></div><button class="button button--quiet" id="adminRoomReload" type="button">Reload active matches</button></header>
-              <form id="adminRoomForm" novalidate>
-                <div class="form-grid admin-match-form-grid">
-                  <div class="field admin-match-wide"><label for="adminRoomMatch">Active match</label><select id="adminRoomMatch" required><option value="">No active matches</option></select><small id="adminRoomMatchMeta">Open registration for a future match first.</small></div>
-                  <div class="field"><label for="adminRoomId">Room ID</label><input id="adminRoomId" type="text" minlength="1" maxlength="64" autocomplete="off" required></div>
-                  <div class="field"><label for="adminRoomPassword">Room password</label><input id="adminRoomPassword" type="text" minlength="1" maxlength="64" autocomplete="off" required></div>
+          <div class="ops-list-meta" id="adminListMeta" role="status" aria-live="polite">Loading registrations…</div>
+          <ol class="ops-queue" id="adminRegistrationRows" aria-label="Registrations"></ol>
+          <div class="ops-empty" id="adminEmpty" hidden><strong>No registrations here</strong><p>Pick another match or cycle, clear the filters, or wait for a new submission.</p></div>
+        </section>
+
+        <section class="ops-panel" id="adminPanelBooyah" role="tabpanel" aria-labelledby="adminTabBooyah" tabindex="0" data-admin-panel="booyah" hidden>
+          <section class="ops-card-panel admin-winner-panel" aria-labelledby="adminWinnerTitle">
+            <header class="ops-panel-head"><div><p class="kicker">Booyah publisher</p><h2 id="adminWinnerTitle">Publish a match winner</h2></div><a class="button button--text" href="booyah.html" target="_blank" rel="noopener noreferrer">Public page</a></header>
+            <form id="adminWinnerForm">
+              <div class="ops-form">
+                <div class="field"><label for="adminWinnerMatch">Match</label><select id="adminWinnerMatch" required></select></div>
+                <div class="field"><label for="adminWinnerPlayer">Winner</label><select id="adminWinnerPlayer" required><option value="">Choose a match first</option></select><small>Names, UIDs, and squad lineups come from the confirmed public roster.</small></div>
+                <div class="ops-form__pair">
+                  <div class="field"><label for="adminWinnerKills">Verified kills</label><input id="adminWinnerKills" type="number" inputmode="numeric" min="0" max="99" value="0" required></div>
+                  <div class="field"><label for="adminWinnerPrize">Prize paid (₹)</label><input id="adminWinnerPrize" type="number" inputmode="numeric" min="0" max="1000000" value="30" required></div>
                 </div>
-                <div class="backend-status" id="adminRoomStatus" role="status" aria-live="polite" hidden></div>
-                <div class="wizard-actions"><button class="button button--quiet" id="adminRoomClear" type="button" disabled>Clear Room details</button><button class="button button--primary" id="adminRoomSave" type="submit">Publish Custom Room details</button></div>
-              </form>
-            </section>
+                <div class="field"><label for="adminWinnerImage">Winner image</label><input id="adminWinnerImage" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="adminWinnerImageHelp"><small id="adminWinnerImageHelp">Required for a new card. JPG, PNG, or WebP; maximum 2 MB.</small></div>
+                <div class="field"><label for="adminWinnerImageAlt">Image description</label><input id="adminWinnerImageAlt" type="text" maxlength="180" placeholder="What is visible in the image"></div>
+              </div>
+              <div class="backend-status" id="adminWinnerStatus" role="status" aria-live="polite" hidden></div>
+              <div class="ops-actions"><button class="button button--primary button--large" id="adminPublishWinner" type="submit">Publish winner card</button></div>
+            </form>
+            <div class="admin-winner-results ops-results"><div><h3>Published cards</h3><span id="adminWinnerCount">0 published</span></div><div id="adminWinnerList"></div></div>
+          </section>
+        </section>
+
+        <section class="ops-panel" id="adminPanelMatches" role="tabpanel" aria-labelledby="adminTabMatches" tabindex="0" data-admin-panel="matches" hidden>
+          <section class="ops-card-panel admin-match-editor" aria-labelledby="adminMatchEditorTitle">
+            <header class="ops-panel-head"><div><p class="kicker">Match control</p><h2 id="adminMatchEditorTitle">Open or schedule a match</h2></div><a class="button button--text" id="adminMatchPublicLink" href="tournament.html?tournament=solo-survival-01" target="_blank" rel="noopener noreferrer">Public card</a></header>
+            <div class="ops-match-switch ops-match-switch--editor" id="adminMatchSelectorCards" role="group" aria-label="Choose a match card"></div>
+            <div class="ops-version"><code id="adminMatchId">solo-survival-01</code><small id="adminMatchVersion">Checked-in default · version 0</small><button class="button button--text" id="adminMatchReload" type="button">Reload</button></div>
+            <select id="adminMatchSelector" class="visually-hidden" aria-label="Match card" tabindex="-1"><option value="solo-survival-01">Solo Survival 01</option><option value="squad-last-circle-01">Squad Last Circle 01</option><option value="clash-squad-cup-01">Clash Squad Cup 01</option></select>
+            <form id="adminMatchForm" novalidate>
+              <div class="ops-form">
+                <fieldset class="ops-state-picker"><legend>Match state</legend>
+                  <div class="ops-state-picker__options" id="adminMatchStateOptions">
+                    <input class="visually-hidden" type="radio" name="matchState" id="adminStateComingSoon" value="coming_soon"><label for="adminStateComingSoon"><strong>Coming soon</strong><span>Hide schedule, fee, and rewards</span></label>
+                    <input class="visually-hidden" type="radio" name="matchState" id="adminStateScheduled" value="scheduled"><label for="adminStateScheduled"><strong>Scheduled</strong><span>Announce facts, keep registration closed</span></label>
+                    <input class="visually-hidden" type="radio" name="matchState" id="adminStateOpen" value="registration_open"><label for="adminStateOpen"><strong>Registration open</strong><span>Publish one lobby and accept payments</span></label>
+                  </div>
+                </fieldset>
+                <select id="adminMatchPresentationMode" class="visually-hidden" aria-label="Match state" tabindex="-1" required><option value="coming_soon">Coming soon</option><option value="scheduled">Scheduled — registration closed</option><option value="registration_open">Registration open</option></select>
+                <div class="ops-state-explainer" id="adminMatchStateExplainer" role="status" aria-live="polite"></div>
+                <div class="ops-schedule-fields" id="adminMatchScheduleFields" hidden>
+                  <div class="field"><label for="adminMatchScheduledAt">Match date and time (IST)</label><input id="adminMatchScheduledAt" type="datetime-local" step="60"></div>
+                  <div class="ops-form__pair">
+                    <div class="field"><label for="adminMatchEntryFee">Entry fee (₹)</label><input id="adminMatchEntryFee" type="number" inputmode="numeric" min="0" max="100000"></div>
+                    <div class="field"><label for="adminMatchCapacity">Lobby capacity</label><input id="adminMatchCapacity" type="number" inputmode="numeric" min="1" max="500" required><small id="adminMatchCapacityHelp">1–500 players or teams.</small></div>
+                  </div>
+                  <div class="field"><label for="adminMatchRewardLabel">Reward summary</label><input id="adminMatchRewardLabel" type="text" minlength="5" maxlength="120" placeholder="Example: ₹500 to the winning squad"></div>
+                </div>
+                <details class="ops-disclosure" id="adminMatchCopy">
+                  <summary><span>Public copy and map</span><small>Title, tagline, description, map, rounds</small></summary>
+                  <div class="ops-disclosure__body">
+                    <div class="field"><label for="adminMatchName">Public title</label><input id="adminMatchName" type="text" minlength="2" maxlength="80" required></div>
+                    <div class="field"><label for="adminMatchTagline">Tagline</label><input id="adminMatchTagline" type="text" minlength="5" maxlength="180" required></div>
+                    <div class="field"><label for="adminMatchDescription">Description</label><textarea id="adminMatchDescription" minlength="20" maxlength="1000" rows="4" required></textarea></div>
+                    <div class="ops-form__pair">
+                      <div class="field"><label for="adminMatchMap">Map</label><input id="adminMatchMap" type="text" minlength="2" maxlength="80" required></div>
+                      <div class="field"><label for="adminMatchRounds">Rounds</label><input id="adminMatchRounds" type="text" minlength="2" maxlength="120" required></div>
+                    </div>
+                    <dl class="ops-locked" id="adminMatchLockedFacts"></dl>
+                  </div>
+                </details>
+              </div>
+              <div class="backend-status" id="adminMatchStatus" role="status" aria-live="polite" hidden></div>
+              <div class="ops-actions"><button class="button button--primary button--large" id="adminMatchSave" type="submit">Save match card</button><button class="button button--text" id="adminMatchRestore" type="button">Restore checked-in defaults</button></div>
+            </form>
+          </section>
+        </section>
+
+        <section class="ops-panel" id="adminPanelRooms" role="tabpanel" aria-labelledby="adminTabRooms" tabindex="0" data-admin-panel="rooms" hidden>
+          <section class="ops-card-panel admin-room-editor" aria-labelledby="adminRoomTitle">
+            <header class="ops-panel-head"><div><p class="kicker">Private lobby access</p><h2 id="adminRoomTitle">Custom Room details</h2></div><button class="button button--text" id="adminRoomReload" type="button">Reload</button></header>
+            <p class="ops-help">Only confirmed players who enter their registered email can read these details, and only while the match stays Registration open.</p>
+            <form id="adminRoomForm" novalidate>
+              <div class="ops-form">
+                <div class="field"><label for="adminRoomMatch">Match</label><select id="adminRoomMatch" required><option value="">No active matches</option></select><small id="adminRoomMatchMeta">Open registration for a future match first.</small></div>
+                <div class="ops-form__pair">
+                  <div class="field"><label for="adminRoomId">Room ID</label><input id="adminRoomId" type="text" inputmode="numeric" minlength="1" maxlength="64" autocomplete="off" required></div>
+                  <div class="field"><label for="adminRoomPassword">Password</label><input id="adminRoomPassword" type="text" minlength="1" maxlength="64" autocomplete="off" required></div>
+                </div>
+              </div>
+              <div class="backend-status" id="adminRoomStatus" role="status" aria-live="polite" hidden></div>
+              <div class="ops-actions"><button class="button button--primary button--large" id="adminRoomSave" type="submit">Publish Room details</button><button class="button admin-delete-button" id="adminRoomClear" type="button" disabled>Clear Room details</button></div>
+            </form>
           </section>
         </section>
       </div>
     </section>
   </main>
 
-  <dialog class="admin-detail-dialog" id="adminDetailDialog" aria-labelledby="adminDetailTitle">
-    <div class="admin-detail-dialog__panel">
-      <header><div><p class="kicker">Private registration</p><h2 id="adminDetailTitle">Registration details</h2></div><button class="icon-button" id="adminDetailClose" type="button" aria-label="Close registration details"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+  <dialog class="admin-detail-dialog ops-sheet" id="adminDetailDialog" aria-labelledby="adminDetailTitle">
+    <div class="admin-detail-dialog__panel ops-sheet__panel">
+      <header class="ops-sheet__head"><div><p class="kicker" id="adminDetailKicker">Registration</p><h2 id="adminDetailTitle">Registration details</h2></div><button class="icon-button" id="adminDetailClose" type="button" aria-label="Close registration details"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
       <div class="backend-status" id="adminDetailStatus" role="status" aria-live="polite" hidden></div>
-      <div class="admin-detail-content" id="adminDetailContent"></div>
-      <section class="admin-proof-panel" aria-labelledby="adminProofTitle"><div><p class="kicker">Private file</p><h3 id="adminProofTitle">Payment screenshot</h3><p>The image loads only when requested by an approved organizer.</p></div><button class="button button--quiet" id="adminLoadProof" type="button">Load private screenshot</button><div class="admin-proof-view" id="adminProofView" hidden><img id="adminProofImage" alt="Payment screenshot submitted with this registration"></div></section>
-      <form id="adminReviewForm">
-        <div class="form-grid admin-review-grid">
-          <div class="field"><label for="adminPaymentStatus">Payment review</label><select id="adminPaymentStatus" required><option value="pending">Pending</option><option value="verified">Verified in organizer account</option><option value="not-found">Payment not found</option><option value="duplicate">Duplicate transaction</option></select></div>
-          <div class="field"><label for="adminRegistrationStatus">Registration status</label><select id="adminRegistrationStatus" required><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
-          <div class="field"><label for="adminSlot">Assigned player or team number</label><input id="adminSlot" type="number" inputmode="numeric" min="1" max="500" placeholder="Assigned automatically after verification" readonly aria-readonly="true"><small>The database assigns the lowest available number when payment is verified.</small></div>
-          <div class="field admin-note-field"><label for="adminOrganizerNote">Private organizer note</label><textarea id="adminOrganizerNote" maxlength="500" rows="4" placeholder="Visible only to approved organizers"></textarea></div>
-        </div>
-        <div class="wizard-actions"><a class="button button--quiet" id="adminWhatsappPlayer" href="#" target="_blank" rel="noopener noreferrer">Message player</a><button class="button button--primary" id="adminSaveReview" type="submit">Save review</button></div>
-      </form>
+      <div class="ops-sheet__body">
+        <div class="admin-detail-content ops-detail" id="adminDetailContent"></div>
+        <section class="ops-proof" aria-labelledby="adminProofTitle"><div><h3 id="adminProofTitle">Payment screenshot</h3><p>Private; loads only on request.</p></div><button class="button button--quiet" id="adminLoadProof" type="button">Load screenshot</button><div class="admin-proof-view" id="adminProofView" hidden><img id="adminProofImage" alt="Payment screenshot submitted with this registration"></div></section>
+        <form id="adminReviewForm">
+          <div class="ops-form">
+            <div class="ops-form__pair">
+              <div class="field"><label for="adminPaymentStatus">Payment</label><select id="adminPaymentStatus" required><option value="pending">Pending</option><option value="verified">Verified in account</option><option value="not-found">Not found</option><option value="duplicate">Duplicate</option></select></div>
+              <div class="field"><label for="adminRegistrationStatus">Registration</label><select id="adminRegistrationStatus" required><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select></div>
+            </div>
+            <div class="ops-slot" id="adminSlotNote"><span id="adminSlotLabel">Assigned number</span><strong id="adminSlotValue">—</strong><small id="adminSlotHint">Assigned automatically when payment is verified.</small><input id="adminSlot" type="hidden" value=""></div>
+            <div class="field admin-note-field"><label for="adminOrganizerNote">Private note</label><textarea id="adminOrganizerNote" maxlength="500" rows="2" placeholder="Visible only to organizers"></textarea></div>
+          </div>
+          <div class="ops-sheet__actions"><a class="button button--quiet" id="adminWhatsappPlayer" href="#" target="_blank" rel="noopener noreferrer">Message</a><button class="button admin-delete-button" id="adminDeleteRegistration" type="button" hidden>Delete</button><button class="button button--primary" id="adminSaveReview" type="submit">Save review</button></div>
+        </form>
+      </div>
     </div>
   </dialog>
 
   <div id="siteFooter"></div>
-  <script src="data/config.js?v=20261011-lifecycle"></script>
-  <script src="data/tournaments.js?v=20261011-lifecycle"></script>
-  <script src="data/supabase-config.js?v=20261011-lifecycle"></script>
-  <script type="module" src="js/pages/admin-page.js?v=20261012-auto-number"></script>
+  <script src="data/config.js?v=20261013-squad-results"></script>
+  <script src="data/tournaments.js?v=20261013-squad-results"></script>
+  <script src="data/supabase-config.js?v=20261013-squad-results"></script>
+  <script type="module" src="js/pages/admin-page.js?v=20261013-squad-results"></script>
 </body>
 </html>

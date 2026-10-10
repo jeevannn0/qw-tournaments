@@ -1,24 +1,39 @@
-import { escapeHtml, getEventPresentation, getTimeSlotState, normalize, tournaments } from "../shared/data.js?v=20261011-lifecycle";
-import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
+import { escapeHtml, getEventPresentation, getTimeSlotState, normalize, tournaments } from "../shared/data.js?v=20261013-squad-results";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261013-squad-results";
 import {
   applyMatchCardOverride,
   getMatchCardDefaults,
   hydrateTournamentOverrides,
   loadAdminMatchCardOverrides,
   MATCH_CARD_IDS,
-  resetMatchCardPresentation
-} from "../shared/tournament-backend.js?v=20261011-lifecycle";
-import { paymentMethodLabel } from "../shared/registration-backend.js?v=20261011-lifecycle";
-import { clearCustomRoomCredentials, loadActiveCustomRooms, saveCustomRoomCredentials } from "../shared/custom-room-backend.js?v=20261011-lifecycle";
-import { initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
+  resetMatchCardPresentation,
+  restoreOccupancy
+} from "../shared/tournament-backend.js?v=20261013-squad-results";
+import { paymentMethodLabel } from "../shared/registration-backend.js?v=20261013-squad-results";
+import { clearCustomRoomCredentials, loadActiveCustomRooms, saveCustomRoomCredentials } from "../shared/custom-room-backend.js?v=20261013-squad-results";
+import { initializeShell, showToast } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion } from "../shared/motion.js?v=20261013-squad-results";
 
 const setup = document.querySelector("#adminSetup");
 const signedOut = document.querySelector("#adminSignedOut");
 const denied = document.querySelector("#adminDenied");
 const dashboard = document.querySelector("#adminDashboard");
 const rows = document.querySelector("#adminRegistrationRows");
+const paymentTournaments = document.querySelector("#adminPaymentTournaments");
 const paymentMatchCards = document.querySelector("#adminPaymentMatchCards");
+const statsStrip = document.querySelector("#adminStats");
+const filtersDisclosure = document.querySelector("#adminFilters");
+const filterCount = document.querySelector("#adminFilterCount");
+const liveSummary = document.querySelector("#adminLiveSummary");
+const pendingBadge = document.querySelector("#adminPendingBadge");
+const matchSelectorCards = document.querySelector("#adminMatchSelectorCards");
+const matchStateOptions = document.querySelector("#adminMatchStateOptions");
+const matchCopyDisclosure = document.querySelector("#adminMatchCopy");
+const slotLabel = document.querySelector("#adminSlotLabel");
+const slotValue = document.querySelector("#adminSlotValue");
+const slotHint = document.querySelector("#adminSlotHint");
+const detailKicker = document.querySelector("#adminDetailKicker");
+const deleteButton = document.querySelector("#adminDeleteRegistration");
 const empty = document.querySelector("#adminEmpty");
 const listMeta = document.querySelector("#adminListMeta");
 const search = document.querySelector("#adminSearch");
@@ -103,6 +118,8 @@ let activeCustomRooms = [];
 let activeAdminTab = "payments";
 let authTransitionToken = 0;
 let adminDataGeneration = 0;
+let activeOrganizerId = "";
+let approvalCheckGeneration = 0;
 
 const adminTabKeys = new Set(["payments", "booyah", "matches", "rooms"]);
 const matchFieldRules = [
@@ -125,8 +142,8 @@ function setRoomStatus(title, message = "") {
 
 function renderCustomRoomEditor(preferredId = roomMatch.value) {
   roomMatch.innerHTML = activeCustomRooms.length
-    ? activeCustomRooms.map((room) => `<option value="${escapeHtml(room.tournamentId)}">${escapeHtml(room.tournamentName)} · ${room.active ? "Active" : "Inactive"}</option>`).join("")
-    : '<option value="">No current-cycle matches</option>';
+    ? activeCustomRooms.map((room) => `<option value="${escapeHtml(room.tournamentId)}">${escapeHtml(room.tournamentName)} · ${escapeHtml(shortMatchDate(room.scheduledAt))} · ${room.active ? "Open" : "Closed"}</option>`).join("")
+    : '<option value="">No match is open</option>';
   const selected = activeCustomRooms.find((room) => room.tournamentId === preferredId) || activeCustomRooms.find((room) => room.active) || activeCustomRooms[0] || null;
   if (selected) roomMatch.value = selected.tournamentId;
   const canSave = Boolean(selected?.active);
@@ -139,7 +156,7 @@ function renderCustomRoomEditor(preferredId = roomMatch.value) {
   roomId.value = selected?.roomId || "";
   roomPassword.value = selected?.roomPassword || "";
   roomMatchMeta.textContent = selected
-    ? `${formatTimestamp(selected.scheduledAt)} · registration cycle ${selected.registrationCycle} · ${selected.active ? "active" : "inactive"}${hasCredentials ? " · details published" : " · waiting for details"}`
+    ? `${shortMatchDate(selected.scheduledAt)} IST · ${selected.active ? "registration open" : "closed"}${hasCredentials ? " · details published" : " · waiting for details"}`
     : "Open registration for a future match first.";
   if (selected) roomStatus.hidden = true;
 }
@@ -162,7 +179,7 @@ async function loadCustomRoomEditor({ announce = false } = {}) {
     setRoomStatus("Custom Room migration required", `${error?.message || "The Custom Room functions are unavailable."} Apply supabase-migrations/2026-10-09-custom-room-details.sql in Supabase SQL Editor.`);
   } finally {
     roomReload.disabled = false;
-    roomReload.textContent = "Reload active matches";
+    roomReload.textContent = "Reload";
   }
 }
 
@@ -192,7 +209,7 @@ async function submitCustomRoom(event) {
   } finally {
     const current = activeCustomRooms.find((room) => room.tournamentId === roomMatch.value);
     roomSave.disabled = !current?.active;
-    roomSave.textContent = "Publish Custom Room details";
+    roomSave.textContent = "Publish Room details";
   }
 }
 
@@ -254,19 +271,53 @@ function syncMatchPresentationFields() {
     field.required = hasMatchFacts;
     if (!hasMatchFacts) field.removeAttribute("aria-invalid");
   });
+  matchStateOptions.querySelectorAll('input[name="matchState"]').forEach((radio) => { radio.checked = radio.value === mode; });
   matchStateExplainer.innerHTML = mode === "registration_open"
-    ? "<strong>Registration open</strong><span>Publishes one lobby and lets players or squads submit registration and payment proof.</span>"
+    ? "<strong>Registration open</strong><span>Publishes one lobby and lets players or squads submit registration and payment proof. Closing it later starts a new registration cycle.</span>"
     : mode === "scheduled"
-      ? "<strong>Scheduled</strong><span>Publishes match facts while keeping registration and payment closed.</span>"
-      : "<strong>Coming soon</strong><span>Hides unpublished schedule, entry, and reward terms.</span>";
+      ? "<strong>Scheduled</strong><span>Publishes date, fee, and reward while keeping registration and payment closed.</span>"
+      : "<strong>Coming soon</strong><span>Hides schedule, entry, and reward terms until you schedule the next match.</span>";
+}
+
+function shortMatchDate(value) {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.valueOf())) return "Date pending";
+  return new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(date);
+}
+
+function lobbyLabelIsGeneric(match) {
+  return !match.timeSlotLabel || match.timeSlotLabel === `${match.tournamentName} lobby`;
+}
+
+function shortStateLabel(state) {
+  return state.key === "open" ? "Open" : state.key === "complete" ? "Played" : state.label;
 }
 
 function setWinnerMatchOptions(preferredValue = winnerMatch.value) {
   const matches = availableWinnerMatches();
-  winnerMatch.innerHTML = matches.map((match) => `<option value="${escapeHtml(match.key)}">${escapeHtml(match.tournamentName)} · cycle ${escapeHtml(match.registrationCycle)} · ${escapeHtml(match.timeSlotLabel)} · ${escapeHtml(match.state.label)} · ${escapeHtml(formatTimestamp(match.startsAt))}</option>`).join("");
+  winnerMatch.innerHTML = matches.map((match) => {
+    const lobby = lobbyLabelIsGeneric(match) ? "" : ` · ${match.timeSlotLabel}`;
+    return `<option value="${escapeHtml(match.key)}">${escapeHtml(match.tournamentName)}${escapeHtml(lobby)} · ${escapeHtml(shortMatchDate(match.startsAt))} · ${escapeHtml(shortStateLabel(match.state))}</option>`;
+  }).join("");
   winnerMatch.disabled = !matches.length;
   if (matches.some((match) => match.key === preferredValue)) winnerMatch.value = preferredValue;
   syncWinnerEditor();
+}
+
+function restoreDataFocus(container, attribute, value) {
+  if (!value) return;
+  container.querySelector(`[${attribute}="${CSS.escape(value)}"]`)?.focus({ preventScroll: true });
+}
+
+function renderMatchSelectorCards() {
+  const focused = matchSelectorCards.contains(document.activeElement) ? document.activeElement.dataset.matchCard : "";
+  matchSelectorCards.innerHTML = tournaments.map((tournament) => {
+    const presentation = getEventPresentation(tournament);
+    const override = matchOverrides.get(tournament.id);
+    const selected = tournament.id === matchSelector.value;
+    return `<button class="ops-pill" type="button" aria-pressed="${selected}" data-match-card="${escapeHtml(tournament.id)}"><span class="ops-pill__code">${escapeHtml(tournament.shortCode)}</span><strong>${escapeHtml(tournament.name)}</strong><small><i class="ops-dot ops-dot--${escapeHtml(presentation.state.key)}" aria-hidden="true"></i>${escapeHtml(presentation.state.label)}${override ? ` · v${escapeHtml(override.version)}` : ""}</small></button>`;
+  }).join("");
+  restoreDataFocus(matchSelectorCards, "data-match-card", focused);
 }
 
 function matchEditorValues() {
@@ -308,17 +359,19 @@ function renderMatchEditor() {
   matchCapacity.value = String(override?.capacity ?? tournament.capacity);
   matchCapacity.disabled = false;
   matchCapacity.readOnly = false;
-  document.querySelector("#adminMatchCapacityHelp").textContent = `Use 1–500 ${tournament.type === "solo" ? "players" : "teams"} for this lobby.`;
+  document.querySelector("#adminMatchCapacityHelp").textContent = `1–500 ${tournament.type === "solo" ? "players" : "teams"}.`;
   syncMatchPresentationFields();
+  renderMatchSelectorCards();
   matchVersion.textContent = override
-    ? `Version ${override.version} · cycle ${override.registrationCycle} · last updated ${formatTimestamp(override.updatedAt)}`
-    : "Checked-in default · version 0 · not yet saved";
+    ? `v${override.version} · cycle ${override.registrationCycle} · saved ${shortMatchDate(override.updatedAt)}`
+    : "Checked-in default · not yet saved";
   matchLockedFacts.innerHTML = [
     ["Type", tournament.type],
     ["Format", tournament.formatLabel],
     ["Server", tournament.server],
     ["Platform", tournament.platform]
   ].map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("");
+  matchCopyDisclosure.open = false;
   matchEditorDirty = false;
   matchForm.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute("aria-invalid"));
   if (matchEditorAvailable) matchStatus.hidden = true;
@@ -355,7 +408,7 @@ async function loadMatchEditor({ announce = false } = {}) {
   matchReload.textContent = "Reloading…";
   const response = await loadAdminMatchCardOverrides(client);
   matchReload.disabled = false;
-  matchReload.textContent = "Reload server version";
+  matchReload.textContent = "Reload";
   if (generation !== adminDataGeneration || dashboard.hidden) return;
   if (response.error) {
     matchEditorAvailable = false;
@@ -369,6 +422,7 @@ async function loadMatchEditor({ announce = false } = {}) {
   matchOverrides = new Map(response.rows.map((row) => [row.tournamentId, row]));
   resetMatchCardPresentation();
   response.rows.forEach(applyMatchCardOverride);
+  restoreOccupancy();
   renderMatchEditor();
   renderPaymentMatchCards();
   syncRegistrationLobbyFilter();
@@ -382,6 +436,7 @@ function validateMatchEditor() {
     if (values[key].length < minimum || values[key].length > maximum) {
       setMatchStatus("Check the match card", message);
       field.setAttribute("aria-invalid", "true");
+      matchCopyDisclosure.open = true;
       field.focus();
       return null;
     }
@@ -454,6 +509,7 @@ async function saveMatchEditor(event) {
     const saved = { ...values, version: Number(data), updatedAt: new Date().toISOString() };
     matchOverrides.set(values.tournamentId, saved);
     applyMatchCardOverride(saved);
+    restoreOccupancy();
     matchEditorDirty = false;
     setWinnerMatchOptions();
     await loadMatchEditor();
@@ -616,6 +672,21 @@ function selectedWinnerMatch() {
   return availableWinnerMatches().find((match) => match.key === winnerMatch.value) || null;
 }
 
+function projectedLineup(players) {
+  return Array.isArray(players) ? players.slice(0, 4).map((player) => ({
+    displayName: normalize(player?.displayName).slice(0, 32),
+    uid: normalize(player?.uid).slice(0, 12)
+  })) : [];
+}
+
+function lineupListHtml(players) {
+  return `<ol class="admin-lineup">${players.map((player, index) => `<li><span>${index + 1}</span><b>${escapeHtml(player.displayName || "Player")}</b><code>${escapeHtml(player.uid || "—")}</code>${index === 0 ? "<small>Captain</small>" : ""}</li>`).join("")}</ol>`;
+}
+
+function winnerLabel(entry) {
+  return entry?.teamName || entry?.displayName || "Winner";
+}
+
 function projectedWinnerCandidate(row) {
   return {
     id: normalize(row.id).slice(0, 50),
@@ -626,6 +697,8 @@ function projectedWinnerCandidate(row) {
     startsAt: row.time_slot_at || null,
     displayName: normalize(row.display_name).slice(0, 32),
     uid: normalize(row.ff_uid).slice(0, 12),
+    teamName: normalize(row.team_name).slice(0, 40),
+    players: projectedLineup(row.players),
     slot: Number(row.slot)
   };
 }
@@ -640,6 +713,8 @@ function projectedMatchResult(row) {
     registrationCycle: Number(row.registration_cycle),
     displayName: normalize(row.display_name).slice(0, 32),
     uid: normalize(row.ff_uid).slice(0, 12),
+    teamName: normalize(row.team_name).slice(0, 40),
+    players: projectedLineup(row.players),
     kills: row.kills === null ? null : Number(row.kills),
     prizeAmount: Number(row.prize_amount),
     imagePath: normalize(row.image_path).slice(0, 400),
@@ -671,7 +746,7 @@ function renderWinnerResults() {
   winnerCount.textContent = `${matchResults.length} ${matchResults.length === 1 ? "card" : "cards"} published`;
   winnerList.innerHTML = matchResults.length ? matchResults.map((result) => `
     <article class="admin-winner-result">
-      <div><span>${escapeHtml(result.timeSlotLabel)}</span><strong>${escapeHtml(result.displayName)}</strong><code>${escapeHtml(result.uid)}</code></div>
+      <div><span>${escapeHtml(result.timeSlotLabel)}</span><strong>${escapeHtml(winnerLabel(result))}</strong>${result.teamName && result.players.length ? lineupListHtml(result.players) : `<code>${escapeHtml(result.uid)}</code>`}</div>
       <div><span>${result.kills === null ? "Kills not recorded" : `${escapeHtml(result.kills)} verified kills`}</span><strong>₹${escapeHtml(result.prizeAmount)}</strong><small>${escapeHtml(formatTimestamp(result.publishedAt))}</small></div>
       <button class="button admin-delete-button" type="button" data-remove-winner="${escapeHtml(result.id)}">Remove card</button>
     </article>`).join("") : '<p class="admin-winner-empty">No winner cards published yet.</p>';
@@ -688,7 +763,7 @@ function syncWinnerEditor({ preserveValues = false } = {}) {
     .sort((a, b) => a.slot - b.slot);
 
   winnerPlayer.innerHTML = candidates.length
-    ? `<option value="">Choose confirmed player</option>${candidates.map((player) => `<option value="${escapeHtml(player.id)}">No. ${escapeHtml(player.slot)} · ${escapeHtml(player.displayName)} · ${escapeHtml(player.uid)}</option>`).join("")}`
+    ? `<option value="">Choose confirmed ${match?.tournamentId === "solo-survival-01" ? "player" : "squad"}</option>${candidates.map((player) => `<option value="${escapeHtml(player.id)}">No. ${escapeHtml(player.slot)} · ${escapeHtml(player.teamName ? `${player.teamName} · Captain ${player.displayName}` : `${player.displayName} · ${player.uid}`)}</option>`).join("")}`
     : '<option value="">No confirmed players in this lobby</option>';
   winnerPlayer.disabled = !candidates.length;
   if (result && candidates.some((player) => player.id === result.winnerPublicPlayerId)) {
@@ -720,7 +795,7 @@ async function loadWinnerData() {
     const generation = adminDataGeneration;
     const [playersResponse, resultsResponse] = await Promise.all([
       client.rpc("get_admin_public_players"),
-      client.from("match_results").select("id, tournament_id, registration_cycle, time_slot_id, time_slot_label, time_slot_at, winner_public_player_id, display_name, ff_uid, kills, prize_amount, image_path, image_alt, published_at").order("time_slot_at", { ascending: false })
+      client.from("match_results").select("id, tournament_id, registration_cycle, time_slot_id, time_slot_label, time_slot_at, winner_public_player_id, display_name, ff_uid, team_name, players, kills, prize_amount, image_path, image_alt, published_at").order("time_slot_at", { ascending: false })
     ]);
     if (generation !== adminDataGeneration || dashboard.hidden) return;
     if (playersResponse.error) throw playersResponse.error;
@@ -799,7 +874,7 @@ async function publishWinner(event) {
     }
 
     const imageAlt = normalize(winnerImageAlt.value).slice(0, 180)
-      || `${player.displayName} celebrates winning ${match.timeSlotLabel}`;
+      || `${winnerLabel(player)} celebrates winning ${match.timeSlotLabel}`;
     const { error: publishError } = await client.rpc("publish_match_result", {
       p_tournament_id: match.tournamentId,
       p_registration_cycle: match.registrationCycle,
@@ -831,7 +906,7 @@ async function publishWinner(event) {
 }
 
 async function removeWinner(result, button) {
-  if (!result || !window.confirm(`Remove ${result.displayName}'s ${result.timeSlotLabel} winner card?`)) return;
+  if (!result || !window.confirm(`Remove the ${result.timeSlotLabel} winner card for ${winnerLabel(result)}?`)) return;
   button.disabled = true;
   button.textContent = "Removing…";
   try {
@@ -846,13 +921,6 @@ async function removeWinner(result, button) {
     button.textContent = "Remove card";
     setWinnerStatus("Winner card not removed", error?.message || "Supabase rejected the request.");
   }
-}
-
-function statusBadge(value) {
-  const success = value === "verified" || value === "confirmed";
-  const warning = value === "pending";
-  const key = success ? "open" : warning ? "closing" : "closed";
-  return `<span class="status-badge status-badge--${key}"><i aria-hidden="true"></i>${escapeHtml(value.replaceAll("-", " "))}</span>`;
 }
 
 function annotateDuplicateTransactions(items) {
@@ -908,36 +976,177 @@ function paymentMatchRegistrations() {
     && registration.registrationCycle === selected.registrationCycle);
 }
 
+function cycleRegistrations(configuration) {
+  return registrations.filter((registration) => registration.tournamentId === configuration.tournamentId
+    && registration.registrationCycle === configuration.registrationCycle);
+}
+
+function cycleStartsAt(configuration) {
+  const fromRows = cycleRegistrations(configuration).map((registration) => registration.timeSlot.startsAt).find(Boolean);
+  if (fromRows) return fromRows;
+  return configuration.current ? configuration.tournament?.presentationScheduledAt || null : null;
+}
+
+// A cycle is worth a chip when it holds payments or is the live, open match.
+// Empty "Coming soon" cycles are reachable through the tournament pill but are
+// not listed as separate matches.
+function cycleIsRelevant(configuration) {
+  if (cycleRegistrations(configuration).length) return true;
+  return configuration.current && configuration.tournament && getEventPresentation(configuration.tournament).state.open;
+}
+
+function cycleLabel(configuration) {
+  const startsAt = cycleStartsAt(configuration);
+  const lobbies = new Set(cycleRegistrations(configuration).map((registration) => registration.timeSlot.id)).size;
+  const live = configuration.current && configuration.tournament && getEventPresentation(configuration.tournament).state.open;
+  const played = Number.isFinite(Date.parse(startsAt)) && Date.parse(startsAt) <= Date.now();
+  const date = !startsAt
+    ? "Not scheduled"
+    : lobbies > 1
+      ? `${new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" }).format(new Date(startsAt))} · ${lobbies} lobbies`
+      : shortMatchDate(startsAt);
+  return {
+    date,
+    state: live ? "Open now" : played ? "Played" : configuration.current ? "Current" : "Archived",
+    key: live ? "open" : played ? "complete" : configuration.current ? "scheduled" : "closed"
+  };
+}
+
+function tournamentGroups() {
+  const groups = new Map();
+  paymentMatchConfigurations().forEach((configuration) => {
+    const group = groups.get(configuration.tournamentId) || {
+      tournamentId: configuration.tournamentId,
+      tournament: configuration.tournament,
+      tournamentName: configuration.tournamentName,
+      shortCode: configuration.tournament?.shortCode || configuration.tournamentId.toUpperCase(),
+      cycles: []
+    };
+    group.cycles.push(configuration);
+    groups.set(configuration.tournamentId, group);
+  });
+  groups.forEach((group) => {
+    group.cycles.sort((a, b) => Number(b.current) - Number(a.current) || b.registrationCycle - a.registrationCycle);
+    const rowsInGroup = registrations.filter((registration) => registration.tournamentId === group.tournamentId);
+    group.total = rowsInGroup.length;
+    group.pending = rowsInGroup.filter((registration) => registration.registrationStatus === "pending").length;
+    group.state = group.tournament ? getEventPresentation(group.tournament).state : { key: "closed", label: "Archived" };
+    group.relevantCycles = group.cycles.filter(cycleIsRelevant);
+  });
+  const order = tournaments.map((tournament) => tournament.id);
+  return [...groups.values()].sort((a, b) => Number(b.state.open) - Number(a.state.open) || b.pending - a.pending || order.indexOf(a.tournamentId) - order.indexOf(b.tournamentId));
+}
+
+function preferredCycleFor(group) {
+  const open = group.cycles.find((cycle) => cycle.current && cycle.tournament && getEventPresentation(cycle.tournament).state.open);
+  const withPending = group.cycles.find((cycle) => cycleRegistrations(cycle).some((registration) => registration.registrationStatus === "pending"));
+  const populated = group.cycles.find((cycle) => cycleRegistrations(cycle).length);
+  return open || withPending || populated || group.cycles[0];
+}
+
 function renderPaymentMatchCards() {
+  const focusedTournament = paymentTournaments.contains(document.activeElement) ? document.activeElement.dataset.paymentTournament : "";
+  const focusedCycle = paymentMatchCards.contains(document.activeElement) ? document.activeElement.dataset.paymentMatch : "";
+  const groups = tournamentGroups();
   const configurations = paymentMatchConfigurations();
   if (!configurations.some((item) => item.key === selectedPaymentMatchKey)) {
-    const openMatch = configurations.find((item) => item.current && item.tournament && getEventPresentation(item.tournament).state.open);
-    const currentMatch = configurations.find((item) => item.current);
-    const populatedMatch = configurations.find((item) => registrations.some((registration) => registration.tournamentId === item.tournamentId
-      && registration.registrationCycle === item.registrationCycle));
-    selectedPaymentMatchKey = (openMatch || currentMatch || populatedMatch || configurations[0])?.key || "";
+    const firstGroup = groups.find((group) => group.state.open) || groups.find((group) => group.pending) || groups.find((group) => group.total) || groups[0];
+    selectedPaymentMatchKey = firstGroup ? preferredCycleFor(firstGroup).key : "";
   }
-  paymentMatchCards.innerHTML = configurations.length
-    ? configurations.map((configuration) => {
-      const selected = configuration.key === selectedPaymentMatchKey;
-      const lifecycleLabel = configuration.current ? "Current" : configuration.registrationCycle === 0 ? "Legacy" : "Archived";
-      const stateLabel = configuration.current && configuration.tournament
-        ? getEventPresentation(configuration.tournament).state.label
-        : lifecycleLabel;
-      const count = registrations.filter((registration) => registration.tournamentId === configuration.tournamentId
-        && registration.registrationCycle === configuration.registrationCycle).length;
-      const code = configuration.tournament?.shortCode || configuration.tournamentId;
-      return `<button class="admin-payment-match-card" type="button" aria-pressed="${selected}" data-payment-match="${escapeHtml(configuration.key)}"><span>${escapeHtml(code)} · ${escapeHtml(lifecycleLabel)} · ${escapeHtml(stateLabel)}</span><strong>${escapeHtml(configuration.tournamentName)}</strong><small>${escapeHtml(lifecycleLabel)} cycle ${escapeHtml(configuration.registrationCycle)} · <b>${escapeHtml(count)}</b> payment${count === 1 ? "" : "s"}</small></button>`;
+  const selected = selectedPaymentMatch();
+  paymentTournaments.innerHTML = groups.length
+    ? groups.map((group) => {
+      const active = group.tournamentId === selected?.tournamentId;
+      const detail = group.pending ? `${group.pending} pending` : group.total ? `${group.total} paid` : group.state.label;
+      return `<button class="ops-pill" type="button" aria-pressed="${active}" data-payment-tournament="${escapeHtml(group.tournamentId)}"><span class="ops-pill__code">${escapeHtml(group.shortCode)}</span><strong>${escapeHtml(group.tournamentName)}</strong><small><i class="ops-dot ops-dot--${escapeHtml(group.state.key)}" aria-hidden="true"></i>${escapeHtml(group.state.label)}${group.total ? ` · ${escapeHtml(detail)}` : ""}</small>${group.pending ? `<b class="ops-pill__count">${escapeHtml(group.pending)}</b>` : ""}</button>`;
     }).join("")
-    : '<div class="inline-empty">No current or archived registrations are available.</div>';
+    : '<div class="ops-empty"><strong>No matches configured</strong></div>';
+  restoreDataFocus(paymentTournaments, "data-payment-tournament", focusedTournament);
+
+  const group = groups.find((item) => item.tournamentId === selected?.tournamentId);
+  const cycles = group ? group.relevantCycles.length ? group.relevantCycles : group.cycles.slice(0, 1) : [];
+  if (!group || cycles.length <= 1) {
+    const only = cycles[0];
+    const label = only ? cycleLabel(only) : null;
+    paymentMatchCards.innerHTML = only
+      ? `<p class="ops-cycle-note"><i class="ops-dot ops-dot--${escapeHtml(label.key)}" aria-hidden="true"></i>${escapeHtml(label.date)} · ${escapeHtml(label.state)}</p>`
+      : "";
+    return;
+  }
+  paymentMatchCards.innerHTML = `<span class="ops-cycle-switch__label">Match</span>${cycles.map((cycle) => {
+    const label = cycleLabel(cycle);
+    const count = cycleRegistrations(cycle).length;
+    return `<button class="ops-chip" type="button" aria-pressed="${cycle.key === selectedPaymentMatchKey}" data-payment-match="${escapeHtml(cycle.key)}"><i class="ops-dot ops-dot--${escapeHtml(label.key)}" aria-hidden="true"></i><strong>${escapeHtml(label.date)}</strong><span>${escapeHtml(label.state)} · ${escapeHtml(count)}</span></button>`;
+  }).join("")}`;
+  restoreDataFocus(paymentMatchCards, "data-payment-match", focusedCycle);
+}
+
+function selectPaymentTournament(tournamentId) {
+  const group = tournamentGroups().find((item) => item.tournamentId === tournamentId);
+  if (!group) return;
+  selectedPaymentMatchKey = preferredCycleFor(group).key;
+  lobbyFilter.value = "all";
+  syncRegistrationLobbyFilter();
+  renderRegistrations();
 }
 
 function syncRegistrationLobbyFilter() {
   const previous = lobbyFilter.value;
   const lobbies = [...new Map(paymentMatchRegistrations().map((registration) => [registration.timeSlot.id, registration.timeSlot])).values()]
     .sort((a, b) => String(a.startsAt).localeCompare(String(b.startsAt)));
-  lobbyFilter.innerHTML = `<option value="all">All match lobbies</option>${lobbies.map((lobby) => `<option value="${escapeHtml(lobby.id)}">${escapeHtml(lobby.label)}</option>`).join("")}`;
+  lobbyFilter.innerHTML = `<option value="all">All lobbies</option>${lobbies.map((lobby) => `<option value="${escapeHtml(lobby.id)}">${escapeHtml(lobby.label)}</option>`).join("")}`;
   lobbyFilter.value = previous === "all" || lobbies.some((lobby) => lobby.id === previous) ? previous : "all";
+  lobbyFilter.closest(".field").hidden = lobbies.length < 2;
+}
+
+function scopeHasMultipleLobbies() {
+  return new Set(paymentMatchRegistrations().map((registration) => registration.timeSlot.id)).size > 1;
+}
+
+function activeFilterCount() {
+  return [paymentFilter, registrationFilter, duplicateFilter].filter((control) => control.value !== "all").length
+    + (lobbyFilter.value !== "all" ? 1 : 0)
+    + (sortControl.value !== "newest" ? 1 : 0);
+}
+
+function clearFilters() {
+  [lobbyFilter, paymentFilter, registrationFilter, duplicateFilter].forEach((control) => { control.value = "all"; });
+  sortControl.value = "newest";
+  search.value = "";
+  renderRegistrations();
+}
+
+const quickFilters = [
+  { key: "pending", label: "Pending", control: () => registrationFilter, value: "pending", count: (scope) => scope.filter((item) => item.registrationStatus === "pending").length, tone: "warning" },
+  { key: "verified", label: "Verified", control: () => paymentFilter, value: "verified", count: (scope) => scope.filter((item) => item.paymentStatus === "verified").length, tone: "success" },
+  { key: "confirmed", label: "Confirmed", control: () => registrationFilter, value: "confirmed", count: (scope) => scope.filter((item) => item.registrationStatus === "confirmed").length, tone: "success" },
+  { key: "duplicates", label: "Duplicates", control: () => duplicateFilter, value: "duplicates", count: (scope) => new Set(scope.filter((item) => item.duplicateCount > 1).map((item) => item.payment.transactionReference)).size, tone: "danger" }
+];
+
+function toggleQuickFilter(key) {
+  const quick = quickFilters.find((item) => item.key === key);
+  if (!quick) return;
+  const control = quick.control();
+  control.value = control.value === quick.value ? "all" : quick.value;
+  renderRegistrations();
+}
+
+function registrationVerdict(registration) {
+  const { paymentStatus, registrationStatus, slot, teamName, duplicateCount } = registration;
+  if (registrationStatus === "confirmed") return { key: "open", label: slot ? `Confirmed · ${teamName ? "Team" : "No."} ${slot}` : "Confirmed" };
+  if (registrationStatus === "rejected") return { key: "closed", label: "Rejected" };
+  if (registrationStatus === "cancelled") return { key: "closed", label: "Cancelled" };
+  if (paymentStatus === "duplicate" || duplicateCount > 1) return { key: "closed", label: `Duplicate UTR${duplicateCount > 1 ? ` ×${duplicateCount}` : ""}` };
+  if (paymentStatus === "not-found") return { key: "closed", label: "Payment not found" };
+  if (paymentStatus === "verified") return { key: "open", label: "Verified · confirm pending" };
+  return { key: "closing", label: "Needs review" };
+}
+
+function compactLineupHtml(registration) {
+  if (!registration.teamName) {
+    return `<div class="ops-card__solo"><span>UID</span><code>${escapeHtml(registration.participant.uid)}</code><span>Age ${escapeHtml(registration.participant.age)}</span></div>`;
+  }
+  return `<ol class="ops-lineup">${registration.participants.map((participant, index) => `<li><b>${escapeHtml(participant.displayName || "Player")}</b><code>${escapeHtml(participant.uid || "—")}</code>${index === 0 ? '<small>Captain</small>' : ""}</li>`).join("")}</ol>`;
 }
 
 function visibleRegistrations() {
@@ -963,45 +1172,78 @@ function visibleRegistrations() {
   return visible.sort((a, b) => {
     if (sortControl.value === "oldest") return timestampDate(a.submittedAt) - timestampDate(b.submittedAt);
     if (sortControl.value === "lobby") return String(a.timeSlot.startsAt).localeCompare(String(b.timeSlot.startsAt)) || Number(a.slot || 999) - Number(b.slot || 999);
-    if (sortControl.value === "player") return a.participant.displayName.localeCompare(b.participant.displayName);
+    if (sortControl.value === "player") return (a.teamName || a.participant.displayName).localeCompare(b.teamName || b.participant.displayName);
     if (sortControl.value === "transaction") return a.payment.transactionReference.localeCompare(b.payment.transactionReference);
     return timestampDate(b.submittedAt) - timestampDate(a.submittedAt);
   });
 }
 
-function renderMetrics(scope = paymentMatchRegistrations()) {
-  document.querySelector("#adminTotal").textContent = String(scope.length);
-  document.querySelector("#adminPending").textContent = String(scope.filter((item) => item.registrationStatus === "pending").length);
-  document.querySelector("#adminPaid").textContent = String(scope.filter((item) => item.paymentStatus === "verified").length);
-  document.querySelector("#adminConfirmed").textContent = String(scope.filter((item) => item.registrationStatus === "confirmed").length);
-  document.querySelector("#adminDuplicates").textContent = String(new Set(scope.filter((item) => item.duplicateCount > 1).map((item) => item.payment.transactionReference)).size);
+function renderStats(scope = paymentMatchRegistrations()) {
+  const focused = statsStrip.contains(document.activeElement) ? document.activeElement.dataset.quickFilter : "";
+  statsStrip.innerHTML = quickFilters.map((quick) => {
+    const count = quick.count(scope);
+    const control = quick.control();
+    const pressed = control.value === quick.value;
+    return `<button class="ops-stat ops-stat--${quick.tone}${count ? "" : " ops-stat--zero"}" type="button" aria-pressed="${pressed}" data-quick-filter="${quick.key}"><strong>${escapeHtml(count)}</strong><span>${escapeHtml(quick.label)}</span></button>`;
+  }).join("") + `<div class="ops-stat ops-stat--total"><strong>${escapeHtml(scope.length)}</strong><span>Total</span></div>`;
+  restoreDataFocus(statsStrip, "data-quick-filter", focused);
+}
+
+function renderLiveSummary() {
+  const open = tournaments.find((tournament) => getEventPresentation(tournament).state.open);
+  const pending = registrations.filter((registration) => registration.registrationStatus === "pending").length;
+  pendingBadge.hidden = pending === 0;
+  pendingBadge.textContent = String(pending);
+  if (open) {
+    const presentation = getEventPresentation(open);
+    const openPending = registrations.filter((registration) => registration.tournamentId === open.id
+      && registration.registrationCycle === Number(open.registrationCycle) && registration.registrationStatus === "pending").length;
+    liveSummary.innerHTML = `<i class="ops-dot ops-dot--open" aria-hidden="true"></i><strong>${escapeHtml(open.name)}</strong> open · ${escapeHtml(shortMatchDate(presentation.scheduledAt))} IST · ${escapeHtml(presentation.capacityLabel)} · <b>${escapeHtml(openPending)}</b> pending`;
+  } else {
+    liveSummary.innerHTML = `<i class="ops-dot ops-dot--closed" aria-hidden="true"></i>No match open · <b>${escapeHtml(pending)}</b> pending in history`;
+  }
 }
 
 function renderRegistrations() {
   const focusedAction = rows.contains(document.activeElement)
-    ? ["data-open-registration", "data-delete-registration"].map((attribute) => [attribute, document.activeElement.getAttribute(attribute)]).find(([, value]) => value)
+    ? document.activeElement.getAttribute("data-open-registration")
     : null;
   renderPaymentMatchCards();
+  renderLiveSummary();
   const scope = paymentMatchRegistrations();
-  renderMetrics(scope);
+  renderStats(scope);
   const visible = visibleRegistrations();
   const selected = selectedPaymentMatch();
+  const filters = activeFilterCount();
+  filterCount.hidden = filters === 0;
+  filterCount.textContent = String(filters);
+  const multiLobby = scopeHasMultipleLobbies();
   listMeta.textContent = selected
-    ? `${visible.length} of ${scope.length} registrations shown for ${selected.tournamentName} · ${selected.current ? "current" : "archived"} cycle ${selected.registrationCycle}`
-    : "No current match card is available.";
+    ? `${visible.length === scope.length ? scope.length : `${visible.length} of ${scope.length}`} registration${scope.length === 1 ? "" : "s"}${filters || search.value ? " · filtered" : ""}`
+    : "No match card is available.";
   empty.hidden = visible.length !== 0;
-  document.querySelector(".admin-table-wrap").hidden = visible.length === 0;
-  rows.innerHTML = visible.map((registration) => `
-    <tr>
-      <td data-label="Submitted">${escapeHtml(formatTimestamp(registration.submittedAt))}</td>
-      <td data-label="Player"><strong>${escapeHtml(registration.teamName || registration.participant.displayName || "Unnamed")}</strong><small>${escapeHtml(registration.teamName ? `${registration.participants.length} players · Captain ${registration.participant.displayName}` : registration.participant.uid)}</small></td>
-      <td data-label="Lobby"><strong>${escapeHtml(registration.timeSlot.label)}</strong><small>${escapeHtml(formatTimestamp(registration.timeSlot.startsAt))} · ${escapeHtml(registrationMatchState(registration).label)}</small></td>
-      <td data-label="Reference"><code>${escapeHtml(registration.reference)}</code></td>
-      <td data-label="Payment / UTR"><div class="admin-payment-cell">${statusBadge(registration.paymentStatus)}<code>${escapeHtml(registration.payment.transactionReference)}</code>${registration.duplicateCount > 1 ? `<span class="duplicate-warning">Duplicate ×${registration.duplicateCount}</span>` : ""}</div></td>
-      <td data-label="Registration">${statusBadge(registration.registrationStatus)}</td>
-      <td data-label="Action"><div class="admin-row-actions"><button class="button button--quiet" type="button" data-open-registration="${escapeHtml(registration.id)}">Review</button><button class="button admin-delete-button" type="button" data-delete-registration="${escapeHtml(registration.id)}" ${["cancelled", "rejected"].includes(registration.registrationStatus) ? "" : 'disabled title="Cancel or reject before deleting"'}>Delete</button></div></td>
-    </tr>`).join("");
-  if (focusedAction) rows.querySelector(`[${focusedAction[0]}="${CSS.escape(focusedAction[1])}"]`)?.focus();
+  rows.innerHTML = visible.map((registration) => {
+    const verdict = registrationVerdict(registration);
+    const title = registration.teamName || registration.participant.displayName || "Unnamed";
+    const subtitle = registration.teamName ? `Captain ${registration.participant.displayName}` : registration.reference;
+    return `
+    <li class="ops-card ops-card--${escapeHtml(verdict.key)}">
+      <div class="ops-card__head">
+        <div class="ops-card__title"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(subtitle)}</span></div>
+        <span class="status-badge status-badge--${escapeHtml(verdict.key)}"><i aria-hidden="true"></i>${escapeHtml(verdict.label)}</span>
+      </div>
+      ${compactLineupHtml(registration)}
+      <dl class="ops-card__meta">
+        <div><dt>UTR</dt><dd><code>${escapeHtml(registration.payment.transactionReference)}</code></dd></div>
+        <div><dt>Paid</dt><dd>₹${escapeHtml(registration.payment.amount)}</dd></div>
+        <div><dt>Sent</dt><dd>${escapeHtml(shortMatchDate(registration.submittedAt))}</dd></div>
+        ${multiLobby ? `<div><dt>Lobby</dt><dd>${escapeHtml(registration.timeSlot.label)}</dd></div>` : ""}
+        ${registration.teamName ? `<div><dt>Ref</dt><dd><code>${escapeHtml(registration.reference)}</code></dd></div>` : ""}
+      </dl>
+      <button class="button button--quiet ops-card__action" type="button" data-open-registration="${escapeHtml(registration.id)}">Review</button>
+    </li>`;
+  }).join("");
+  if (focusedAction) rows.querySelector(`[data-open-registration="${CSS.escape(focusedAction)}"]`)?.focus();
 }
 
 function exportPaymentReport(items, scopeLabel) {
@@ -1020,12 +1262,17 @@ function exportPaymentReport(items, scopeLabel) {
   const duplicateReferences = new Set(items.filter((item) => item.duplicateCount > 1).map((item) => item.payment.transactionReference));
   const verifiedCount = items.filter((item) => item.paymentStatus === "verified").length;
   const totalAmount = items.reduce((sum, item) => sum + Number(item.payment.amount || 0), 0);
+  const squadReport = items.some((item) => item.teamName);
+  const lineupCell = (item) => item.teamName
+    ? `<ol class="lineup">${item.participants.map((participant, index) => `<li>${escapeHtml(participant.displayName)} <code>${escapeHtml(participant.uid)}</code>${index === 0 ? " <small>Captain</small>" : ""}</li>`).join("")}</ol>`
+    : `${escapeHtml(item.participant.displayName)}<br><small>${escapeHtml(item.participant.uid)}</small>`;
   const rowsHtml = items.map((item) => `
     <tr class="${item.duplicateCount > 1 ? "duplicate" : ""}">
       <td class="check">☐</td>
       <td>${escapeHtml(formatTimestamp(item.submittedAt))}</td>
       <td><strong>${escapeHtml(item.timeSlot.label)}</strong><br>${escapeHtml(formatTimestamp(item.timeSlot.startsAt))}<br><small>${escapeHtml(registrationMatchState(item).label)}</small></td>
-      <td>${escapeHtml(item.participant.displayName)}<br><small>${escapeHtml(item.participant.uid)}</small></td>
+      ${squadReport ? `<td><strong>${escapeHtml(item.teamName || "—")}</strong></td>` : ""}
+      <td>${lineupCell(item)}</td>
       <td>${escapeHtml(item.contactWhatsapp)}</td>
       <td><code>${escapeHtml(item.payment.transactionReference)}</code>${item.duplicateCount > 1 ? `<br><b>Duplicate ×${item.duplicateCount}</b>` : ""}</td>
       <td>₹${escapeHtml(item.payment.amount)}</td>
@@ -1050,12 +1297,15 @@ function exportPaymentReport(items, scopeLabel) {
     code { font-family: Consolas, monospace; font-size: 8px; }
     b { color: #b42318; }
     small { color: #555; }
+    ol.lineup { margin: 0; padding-left: 14px; }
+    ol.lineup li { padding: 1px 0; }
+    ol.lineup small { font-weight: 700; color: #1d4ed8; }
     footer { margin-top: 10px; color: #555; }
   </style></head><body>
     <h1>QW Tournaments — Payment Reconciliation</h1>
     <div class="meta"><span><strong>Scope:</strong> ${escapeHtml(scopeLabel)}</span><span><strong>Records:</strong> ${items.length}</span><span><strong>Claimed total:</strong> ₹${totalAmount}</span><span><strong>Verified:</strong> ${verifiedCount}</span><span><strong>Duplicate UTRs:</strong> ${duplicateReferences.size}</span><span><strong>Generated:</strong> ${escapeHtml(formatTimestamp(new Date()))}</span></div>
     <div class="warning">Private organizer report. Cross-check every UTR against the actual receiving account. A screenshot is not payment confirmation. Do not share this PDF publicly.</div>
-    <table><thead><tr><th>Match</th><th>Submitted</th><th>Lobby</th><th>Player / UID</th><th>WhatsApp</th><th>UTR</th><th>Amount</th><th>Payment</th><th>Registration</th><th>Player no.</th><th>Reference</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+    <table><thead><tr><th>Checked</th><th>Submitted</th><th>Lobby</th>${squadReport ? "<th>Squad</th>" : ""}<th>${squadReport ? "Players / UIDs" : "Player / UID"}</th><th>WhatsApp</th><th>UTR</th><th>Amount</th><th>Payment</th><th>Registration</th><th>${squadReport ? "Team no." : "Player no."}</th><th>Reference</th></tr></thead><tbody>${rowsHtml}</tbody></table>
     <footer>Payment screenshots are intentionally excluded. Review them only inside the protected organizer dashboard.</footer>
   </body></html>`);
   reportWindow.document.close();
@@ -1071,11 +1321,7 @@ function resetProof() {
   proofImage.removeAttribute("src");
   proofView.hidden = true;
   loadProofButton.disabled = false;
-  loadProofButton.textContent = "Load private screenshot";
-}
-
-function detailPair(label, value) {
-  return `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || "—")}</dd></div>`;
+  loadProofButton.textContent = "Load screenshot";
 }
 
 function effectiveReviewStatus() {
@@ -1086,37 +1332,67 @@ function effectiveReviewStatus() {
 
 function syncReviewRegistrationStatus() {
   reviewRegistrationStatus.value = effectiveReviewStatus();
-  reviewSlot.placeholder = reviewPaymentStatus.value === "verified"
-    ? "Assigned automatically when saved"
-    : "Assigned after payment verification";
+  const registration = activeRegistration;
+  const unit = registration?.teamName ? "Team" : "Player";
+  slotLabel.textContent = `${unit} number`;
+  if (registration?.slot) {
+    slotValue.textContent = String(registration.slot);
+    slotHint.textContent = reviewRegistrationStatus.value === "confirmed"
+      ? `Keeps number ${registration.slot} of ${registration.slotCapacity}.`
+      : "Saving this status releases the number for reuse.";
+  } else {
+    slotValue.textContent = "—";
+    slotHint.textContent = reviewPaymentStatus.value === "verified"
+      ? `Lowest free number of ${registration?.slotCapacity ?? 50} is assigned when you save.`
+      : "Assigned automatically once payment is verified.";
+  }
+}
+
+function lineupTableHtml(registration) {
+  const squad = Boolean(registration.teamName);
+  return `<table class="ops-lineup-table"><thead><tr><th scope="col">#</th><th scope="col">${squad ? "Player" : "In-game name"}</th><th scope="col">Free Fire UID</th><th scope="col">Age</th></tr></thead><tbody>${registration.participants.map((participant, index) => `<tr><td>${index + 1}${squad && index === 0 ? "<small>C</small>" : ""}</td><td>${escapeHtml(participant.displayName)}</td><td><code>${escapeHtml(participant.uid)}</code></td><td>${escapeHtml(Number.isFinite(participant.age) ? participant.age : "—")}</td></tr>`).join("")}</tbody></table>`;
 }
 
 function openRegistration(registration) {
   activeRegistration = registration;
   resetProof();
   detailStatus.hidden = true;
-  document.querySelector("#adminDetailTitle").textContent = registration.reference;
-  const lineupDetails = registration.participants.map((participant, index) => `${detailPair(registration.teamName ? `Player ${index + 1}${index === 0 ? " (Captain)" : ""}` : "In-game name", participant.displayName)}${detailPair("Free Fire UID", participant.uid)}${detailPair("Age", String(participant.age))}`).join("");
+  const verdict = registrationVerdict(registration);
+  detailKicker.textContent = `${registration.teamName ? "Squad" : "Solo"} · ${registration.reference}`;
+  document.querySelector("#adminDetailTitle").textContent = registration.teamName || registration.participant.displayName;
+  const digits = registration.contactWhatsapp.replace(/\D/g, "");
   detailContent.innerHTML = `
-    <section><h3>${registration.teamName ? escapeHtml(registration.teamName) : "Player"}</h3><dl class="admin-detail-list">${lineupDetails}${detailPair("Private WhatsApp", registration.contactWhatsapp)}</dl></section>
-    <section><h3>Payment</h3><dl class="admin-detail-list">${detailPair("Amount", `₹${registration.payment.amount}`)}${detailPair("Method", paymentMethodLabel(registration.payment.method))}${detailPair("Transaction reference", registration.payment.transactionReference)}${detailPair("Automatic UTR check", registration.duplicateCount > 1 ? `Duplicate across ${registration.duplicateCount} registrations` : "Unique in current registrations")}${detailPair("File", `${registration.payment.contentType} · ${(registration.payment.size / (1024 * 1024)).toFixed(2)} MB`)}</dl></section>
-    <section><h3>Submission</h3><dl class="admin-detail-list">${detailPair("Tournament", registration.tournamentName)}${detailPair("Selected lobby", `${registration.timeSlot.label} — ${formatTimestamp(registration.timeSlot.startsAt)} — ${registrationMatchState(registration).label}`)}${detailPair("Capacity", String(registration.slotCapacity))}${detailPair("Submitted", formatTimestamp(registration.submittedAt))}${detailPair("Updated", formatTimestamp(registration.updatedAt))}${detailPair("Database record", registration.id)}</dl></section>`;
+    <div class="ops-detail__status"><span class="status-badge status-badge--${escapeHtml(verdict.key)}"><i aria-hidden="true"></i>${escapeHtml(verdict.label)}</span><span class="ops-detail__state">Payment <b>${escapeHtml(registration.paymentStatus.replaceAll("-", " "))}</b> · Registration <b>${escapeHtml(registration.registrationStatus)}</b></span></div>
+    ${lineupTableHtml(registration)}
+    <dl class="ops-facts">
+      <div><dt>UTR</dt><dd><code>${escapeHtml(registration.payment.transactionReference)}</code>${registration.duplicateCount > 1 ? `<b class="ops-facts__flag">Duplicate across ${escapeHtml(registration.duplicateCount)} registrations</b>` : ""}</dd></div>
+      <div><dt>Amount</dt><dd>₹${escapeHtml(registration.payment.amount)} · ${escapeHtml(paymentMethodLabel(registration.payment.method))}</dd></div>
+      <div><dt>WhatsApp</dt><dd><a href="https://wa.me/${escapeHtml(digits)}" target="_blank" rel="noopener noreferrer">${escapeHtml(registration.contactWhatsapp)}</a></dd></div>
+      <div><dt>Submitted</dt><dd>${escapeHtml(shortMatchDate(registration.submittedAt))}</dd></div>
+      <div><dt>Match</dt><dd>${escapeHtml(registration.tournamentName)}${scopeHasMultipleLobbies() ? ` · ${escapeHtml(registration.timeSlot.label)}` : ""} · ${escapeHtml(shortMatchDate(registration.timeSlot.startsAt))}</dd></div>
+      <div><dt>Capacity</dt><dd>${escapeHtml(registration.slotCapacity)} ${registration.teamName ? "teams" : "players"}</dd></div>
+    </dl>
+    <details class="ops-disclosure ops-disclosure--quiet"><summary><span>Technical details</span></summary><dl class="ops-facts"><div><dt>Record</dt><dd><code>${escapeHtml(registration.id)}</code></dd></div><div><dt>Updated</dt><dd>${escapeHtml(formatTimestamp(registration.updatedAt))}</dd></div><div><dt>File</dt><dd>${escapeHtml(registration.payment.contentType)} · ${escapeHtml((registration.payment.size / (1024 * 1024)).toFixed(2))} MB</dd></div><div><dt>Reference</dt><dd><code>${escapeHtml(registration.reference)}</code></dd></div></dl></details>`;
   reviewPaymentStatus.value = registration.paymentStatus;
   reviewRegistrationStatus.value = registration.registrationStatus;
-  reviewSlot.max = String(registration.slotCapacity);
-  reviewSlot.previousElementSibling.textContent = registration.teamName ? "Assigned team number" : "Assigned player number";
   reviewSlot.value = registration.slot || "";
   syncReviewRegistrationStatus();
   document.querySelector("#adminOrganizerNote").value = registration.organizerNote;
-  const digits = registration.contactWhatsapp.replace(/\D/g, "");
   document.querySelector("#adminWhatsappPlayer").href = `https://wa.me/${digits}?text=${encodeURIComponent(`Hi, this is QW Tournaments regarding registration ${registration.reference}.`)}`;
+  deleteButton.hidden = !["cancelled", "rejected"].includes(registration.registrationStatus);
+  deleteButton.disabled = false;
+  deleteButton.textContent = "Delete";
   if (typeof dialog.showModal === "function") dialog.showModal();
   else dialog.setAttribute("open", "");
+  dialog.querySelector(".ops-sheet__body")?.scrollTo({ top: 0 });
 }
 
 function closeDialog() {
   resetProof();
   activeRegistration = null;
+  detailContent.replaceChildren();
+  detailStatus.replaceChildren();
+  detailStatus.hidden = true;
   if (typeof dialog.close === "function" && dialog.open) dialog.close();
   else dialog.removeAttribute("open");
 }
@@ -1156,7 +1432,7 @@ async function loadPaymentProof() {
   if (!activeRegistration?.payment.screenshotPath || !client) return;
   const registrationId = activeRegistration.id;
   loadProofButton.disabled = true;
-  loadProofButton.textContent = "Loading private screenshot…";
+  loadProofButton.textContent = "Loading…";
   try {
     const { data, error } = await client.storage
       .from("payment-proofs")
@@ -1170,7 +1446,7 @@ async function loadPaymentProof() {
   } catch (error) {
     if (activeRegistration?.id !== registrationId || !dialog.open) return;
     loadProofButton.disabled = false;
-    loadProofButton.textContent = "Try loading screenshot again";
+    loadProofButton.textContent = "Try again";
     detailStatus.hidden = false;
     detailStatus.innerHTML = `<strong>Screenshot unavailable</strong><p>${escapeHtml(error?.message || "Supabase denied the file request.")}</p>`;
   }
@@ -1289,15 +1565,46 @@ function clearAdminState() {
   renderCustomRoomEditor();
 }
 
-function refreshAdminData() {
+function denyOrganizer(user, message) {
+  clearAdminState();
+  activeOrganizerId = "";
+  signedOut.hidden = true;
+  dashboard.hidden = true;
+  denied.hidden = false;
+  document.querySelector("#adminDeniedMessage").textContent = message || `${user?.email || "This account"} is not on the active organizer list.`;
+}
+
+async function revalidateOrganizerAccess(user) {
+  const userId = user?.id || activeOrganizerId;
+  if (!client || !userId || dashboard.hidden) return false;
+  const generation = ++approvalCheckGeneration;
+  const { data, error } = await client
+    .from("admin_users")
+    .select("active")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (generation !== approvalCheckGeneration || userId !== activeOrganizerId || dashboard.hidden) return false;
+  if (error) {
+    denyOrganizer(user, "Organizer approval could not be verified. Sign in again when the connection is available.");
+    return false;
+  }
+  if (!data || data.active !== true || user?.is_anonymous) {
+    denyOrganizer(user);
+    return false;
+  }
+  return true;
+}
+
+async function refreshAdminData(checkApproval = true) {
+  if (checkApproval && !await revalidateOrganizerAccess()) return;
   loadRegistrations();
   loadWinnerData();
 }
 
 function startRegistrationFeed() {
   stopRegistrationFeed();
-  refreshAdminData();
-  refreshTimer = window.setInterval(refreshAdminData, 30000);
+  refreshAdminData(false);
+  refreshTimer = window.setInterval(() => refreshAdminData(true), 30000);
 }
 
 async function showAuthenticatedState(user, transitionToken) {
@@ -1312,13 +1619,10 @@ async function showAuthenticatedState(user, transitionToken) {
   if (transitionToken !== authTransitionToken) return;
   if (error) throw error;
   if (!data || data.active !== true || user.is_anonymous) {
-    clearAdminState();
-    signedOut.hidden = true;
-    dashboard.hidden = true;
-    denied.hidden = false;
-    document.querySelector("#adminDeniedMessage").textContent = `${user.email || "This account"} is signed in but is not on the active organizer list.`;
+    denyOrganizer(user);
     return;
   }
+  activeOrganizerId = user.id;
   dashboard.hidden = false;
   document.querySelector("#adminIdentity").textContent = user.email || user.id;
   startRegistrationFeed();
@@ -1330,6 +1634,7 @@ async function showSession(session) {
   const user = session?.user;
   if (!user || user.is_anonymous) {
     clearAdminState();
+    activeOrganizerId = "";
     if (transitionToken !== authTransitionToken) return;
     signedOut.hidden = false;
     denied.hidden = true;
@@ -1396,7 +1701,10 @@ async function initializeAdmin() {
       const result = matchResults.find((item) => item.id === button.dataset.removeWinner);
       if (result) removeWinner(result, button);
     });
-    matchForm.addEventListener("input", () => { matchEditorDirty = true; });
+    matchForm.addEventListener("input", (event) => {
+      if (event.target instanceof HTMLInputElement && event.target.name === "matchState") return;
+      matchEditorDirty = true;
+    });
     matchPresentationMode.addEventListener("change", () => {
       syncMatchPresentationFields();
       matchEditorDirty = true;
@@ -1432,16 +1740,19 @@ async function initializeAdmin() {
     });
     rows.addEventListener("click", (event) => {
       const reviewButton = event.target.closest("[data-open-registration]");
-      if (reviewButton) {
-        const registration = registrations.find((item) => item.id === reviewButton.dataset.openRegistration);
-        if (registration) openRegistration(registration);
-        return;
-      }
-      const deleteButton = event.target.closest("[data-delete-registration]");
-      if (deleteButton) {
-        const registration = registrations.find((item) => item.id === deleteButton.dataset.deleteRegistration);
-        if (registration) deleteRegistration(registration, deleteButton);
-      }
+      if (!reviewButton) return;
+      const registration = registrations.find((item) => item.id === reviewButton.dataset.openRegistration);
+      if (registration) openRegistration(registration);
+    });
+    deleteButton.addEventListener("click", async () => {
+      const registration = activeRegistration;
+      if (!registration) return;
+      await deleteRegistration(registration, deleteButton);
+      if (!registrations.some((item) => item.id === registration.id)) closeDialog();
+    });
+    paymentTournaments.addEventListener("click", (event) => {
+      const pill = event.target.closest("[data-payment-tournament]");
+      if (pill) selectPaymentTournament(pill.dataset.paymentTournament);
     });
     paymentMatchCards.addEventListener("click", (event) => {
       const matchCard = event.target.closest("[data-payment-match]");
@@ -1451,19 +1762,43 @@ async function initializeAdmin() {
       syncRegistrationLobbyFilter();
       renderRegistrations();
     });
+    statsStrip.addEventListener("click", (event) => {
+      const stat = event.target.closest("[data-quick-filter]");
+      if (stat) toggleQuickFilter(stat.dataset.quickFilter);
+    });
+    matchSelectorCards.addEventListener("click", (event) => {
+      const card = event.target.closest("[data-match-card]");
+      if (!card || card.dataset.matchCard === matchSelector.value) return;
+      matchSelector.value = card.dataset.matchCard;
+      matchSelector.dispatchEvent(new Event("change"));
+    });
+    matchStateOptions.addEventListener("change", (event) => {
+      if (!(event.target instanceof HTMLInputElement) || event.target.name !== "matchState") return;
+      matchPresentationMode.value = event.target.value;
+      matchPresentationMode.dispatchEvent(new Event("change"));
+    });
+    document.querySelector("#adminClearFilters").addEventListener("click", clearFilters);
     search.addEventListener("input", renderRegistrations);
     [lobbyFilter, paymentFilter, registrationFilter, duplicateFilter, sortControl]
       .forEach((control) => control.addEventListener("change", renderRegistrations));
-    document.querySelector("#adminExportFiltered").addEventListener("click", () => {
+    const exportScopeLabel = (suffix = "") => {
       const selected = selectedPaymentMatch();
-      exportPaymentReport(visibleRegistrations(), selected ? `${selected.tournamentName} · ${selected.current ? "current" : "archived"} cycle ${selected.registrationCycle} · current filters` : "Selected match · current filters");
-    });
-    document.querySelector("#adminExportAll").addEventListener("click", () => {
-      const selected = selectedPaymentMatch();
-      exportPaymentReport(paymentMatchRegistrations(), selected ? `${selected.tournamentName} · ${selected.current ? "current" : "archived"} cycle ${selected.registrationCycle}` : "Selected match");
-    });
+      if (!selected) return `Selected match${suffix}`;
+      const label = cycleLabel(selected);
+      return `${selected.tournamentName} · ${label.date} · ${label.state}${suffix}`;
+    };
+    document.querySelector("#adminExportFiltered").addEventListener("click", () => exportPaymentReport(visibleRegistrations(), exportScopeLabel(" · current filters")));
+    document.querySelector("#adminExportAll").addEventListener("click", () => exportPaymentReport(paymentMatchRegistrations(), exportScopeLabel()));
     const initialSessionToken = authTransitionToken;
-    client.auth.onAuthStateChange((_event, session) => {
+    client.auth.onAuthStateChange((event, session) => {
+      // getSession() handles the initial state. Later refreshes and repeated
+      // same-user events revalidate approval without tearing down authorized UI.
+      if (event === "INITIAL_SESSION") return;
+      const nextUserId = session?.user?.id || "";
+      if (nextUserId && nextUserId === activeOrganizerId && !dashboard.hidden) {
+        window.setTimeout(() => revalidateOrganizerAccess(session.user), 0);
+        return;
+      }
       window.setTimeout(() => showSession(session), 0);
     });
     const { data, error } = await client.auth.getSession();

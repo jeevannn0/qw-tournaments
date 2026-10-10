@@ -17,15 +17,15 @@ import {
   getTimeSlotState,
   getTournament,
   tournaments
-} from "../shared/data.js?v=20261011-lifecycle";
-import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
+} from "../shared/data.js?v=20261013-squad-results";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261013-squad-results";
 import {
   buildGroupJoinMessage,
   collectRegistration,
   createRegistrationId,
   registrationWhatsAppUrl,
   validateRegistration
-} from "../shared/registration.js?v=20261011-lifecycle";
+} from "../shared/registration.js?v=20261013-squad-results";
 import {
   collectPaymentDetails,
   MAX_PAYMENT_PROOF_BYTES,
@@ -33,10 +33,10 @@ import {
   registrationSubmissionError,
   submitCompleteRegistration,
   validatePaymentDetails
-} from "../shared/registration-backend.js?v=20261011-lifecycle";
-import { isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
-import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js?v=20261011-lifecycle";
+} from "../shared/registration-backend.js?v=20261013-squad-results";
+import { isSupabaseConfigured } from "../shared/supabase.js?v=20261013-squad-results";
+import { icon, initializeShell, showToast } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion, preferredScrollBehavior, transitionUpdate } from "../shared/motion.js?v=20261013-squad-results";
 
 const form = document.querySelector("#registrationWizard");
 const panels = [...form.querySelectorAll("[data-step-panel]")];
@@ -134,10 +134,14 @@ function renderLobbyChoices(tournament, preferredTimeSlotId = "") {
     ? timeSlots.map((timeSlot, index) => lobbyChoice(tournament, timeSlot, index)).join("")
     : '<div class="inline-empty">No lobby times are available.</div>';
   lobbyPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
-  const preferred = preferredTimeSlotId ? lobbyPicker.querySelector(`input[value="${CSS.escape(preferredTimeSlotId)}"]:not([disabled])`) : null;
-  if (preferred) {
-    preferred.checked = true;
-    selectedTimeSlot = getTimeSlot(tournament, preferredTimeSlotId);
+  const openInputs = [...lobbyPicker.querySelectorAll('input[name="timeSlot"]:not([disabled])')];
+  const preferred = preferredTimeSlotId ? openInputs.find((input) => input.value === preferredTimeSlotId) : null;
+  // A dynamic match publishes exactly one lobby; pre-select it so the player
+  // is not blocked by a required single-option choice.
+  const chosen = preferred || (openInputs.length === 1 ? openInputs[0] : null);
+  if (chosen) {
+    chosen.checked = true;
+    selectedTimeSlot = getTimeSlot(tournament, chosen.value);
   }
 }
 
@@ -501,6 +505,11 @@ function applyRegistrationAvailability() {
   submitButton.disabled = !available;
 }
 
+function syncOpenMatchCount() {
+  const openCount = tournaments.filter((tournament) => getEventState(tournament).open).length;
+  document.body.classList.toggle("single-open-match", openCount === 1);
+}
+
 async function refreshWizardTournamentState({ beforeProgression = false } = {}) {
   if (submitted || submitting) return !beforeProgression;
   if (refreshingTournamentState) return false;
@@ -531,16 +540,27 @@ async function refreshWizardTournamentState({ beforeProgression = false } = {}) 
     const refreshedSlot = refreshedTournament && previousSlotId ? getTimeSlot(refreshedTournament, previousSlotId) : null;
     const slotStillOpen = !previousSlotId || (refreshedSlot && getTimeSlotState(refreshedTournament, refreshedSlot).open);
     const sameCycle = refreshedTournament && previousCycle === Number(refreshedTournament.registrationCycle);
-    const safe = Boolean(refreshedTournament && refreshedPresentation?.state.open && sameCycle
+    // With no match selected there is nothing that could have changed under the
+    // player; let validateStep() report "Choose an open match" instead of a
+    // misleading "match changed or closed" error.
+    const nothingSelected = !previousTournamentId;
+    const safe = nothingSelected || Boolean(refreshedTournament && refreshedPresentation?.state.open && sameCycle
       && previousTerms === refreshedTerms && slotStillOpen);
 
     eventPicker.innerHTML = tournaments.map(matchPickerCard).join("");
+    syncOpenMatchCount();
     eventPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
-    const selectedInput = previousTournamentId ? eventPicker.querySelector(`input[value="${CSS.escape(previousTournamentId)}"]`) : null;
-    if (selectedInput) selectedInput.checked = true;
-    selectedTournament = refreshedTournament || null;
+    const openInputs = [...eventPicker.querySelectorAll('input[name="tournament"]:not([disabled])')];
+    const previousInput = previousTournamentId
+      ? eventPicker.querySelector(`input[value="${CSS.escape(previousTournamentId)}"]:not([disabled])`)
+      : null;
+    const soleOpenInput = openInputs.length === 1 ? openInputs[0] : null;
+    const nextInput = previousInput || soleOpenInput;
+    if (nextInput) nextInput.checked = true;
+    const autoSwitched = Boolean(nextInput && nextInput.value !== previousTournamentId);
+    selectedTournament = getTournament(nextInput?.value) || null;
     renderEventPreview(selectedTournament);
-    renderLobbyChoices(selectedTournament, safe ? previousSlotId : "");
+    renderLobbyChoices(selectedTournament, safe && !autoSwitched ? previousSlotId : "");
     if (!selectedTournament || previousType !== selectedTournament.type) renderLineupFields(selectedTournament);
     if (selectedTournament) updateRegistrationCopy(selectedTournament);
 
@@ -552,7 +572,7 @@ async function refreshWizardTournamentState({ beforeProgression = false } = {}) 
       form.querySelectorAll("[data-consent]").forEach((checkbox) => { checkbox.checked = false; });
       preparedGroupMessage = "";
       if (activeStep > 1) goToStep(1, false);
-      setError("This match changed or closed while the page was open. Review the current match and lobby before entering payment details.", selectedInput || eventPicker.querySelector("input:not([disabled])"));
+      setError("This match changed or closed while the page was open. Review the current match and lobby before entering payment details.", autoSwitched ? null : previousInput || openInputs[0]);
     }
     return safe;
   } catch {
@@ -569,6 +589,7 @@ async function initializeWizard() {
   await hydrateTournamentOverrides();
   form.dataset.enhanced = "true";
   eventPicker.innerHTML = tournaments.map(matchPickerCard).join("");
+  syncOpenMatchCount();
   eventPicker.querySelectorAll("input[disabled]").forEach((input) => { input.dataset.wasDisabled = "true"; });
   const requested = getRequestedTournament();
   if (requested && getEventState(requested).open) {
@@ -632,7 +653,8 @@ async function initializeWizard() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshWizardTournamentState();
   });
-  window.addEventListener("pageshow", () => refreshWizardTournamentState());
+  // pageshow also fires on the initial load; only a back/forward cache restore needs a refresh.
+  window.addEventListener("pageshow", (event) => { if (event.persisted) refreshWizardTournamentState(); });
   initializeMotion();
 }
 

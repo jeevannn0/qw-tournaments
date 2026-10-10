@@ -8,11 +8,11 @@ import {
   getTournament,
   normalize,
   winners
-} from "../shared/data.js?v=20261011-lifecycle";
-import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
-import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
-import { icon, initializeShell } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
+} from "../shared/data.js?v=20261013-squad-results";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261013-squad-results";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261013-squad-results";
+import { icon, initializeShell } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion } from "../shared/motion.js?v=20261013-squad-results";
 
 const winnerGrid = document.querySelector("#winnerGrid");
 const winnerCount = document.querySelector("#winnerCount");
@@ -45,9 +45,17 @@ function projectWinner(entry) {
     : null;
   const prizeAmount = Number(entry.prizeAmount);
 
+  const teamName = tournament.type === "solo" ? "" : normalize(entry.teamName).slice(0, 40);
+  const players = Array.isArray(entry.players) ? entry.players.slice(0, 4).map((player) => ({
+    displayName: normalize(player?.displayName).slice(0, 40),
+    uid: normalize(player?.uid).slice(0, 20)
+  })).filter((player) => player.displayName) : [];
+
   return {
     id,
     displayName,
+    teamName,
+    players,
     uid: normalize(entry.uid).slice(0, 20),
     kills: verifiedKills,
     tournamentName: normalize(tournament.name).slice(0, 80),
@@ -66,15 +74,23 @@ function fact(label, value, emphasis = false) {
   return `<div class="winner-card__fact"><span>${escapeHtml(label)}</span><strong${emphasis ? ' class="winner-card__reward"' : ""}>${escapeHtml(value)}</strong></div>`;
 }
 
+function squadLineup(winner) {
+  const players = winner.players.length ? winner.players : [{ displayName: winner.displayName, uid: winner.uid }];
+  return `<ol class="winner-card__lineup" aria-label="Winning squad lineup">${players.map((player, playerIndex) => `<li><span>${playerIndex + 1}</span><strong>${escapeHtml(player.displayName)}</strong><code>${escapeHtml(player.uid || "UID unavailable")}</code>${playerIndex === 0 ? "<small>Captain</small>" : ""}</li>`).join("")}</ol>`;
+}
+
 function winnerCard(winner, index) {
-  const playerCode = winner.uid ? `<span>Free Fire UID <code>${escapeHtml(winner.uid)}</code></span>` : "";
+  const title = winner.teamName || winner.displayName;
+  const identity = winner.teamName
+    ? squadLineup(winner)
+    : winner.uid ? `<span>Free Fire UID <code>${escapeHtml(winner.uid)}</code></span>` : "";
   const kills = winner.kills !== null ? fact("Verified kills", String(winner.kills)) : "";
   const reward = winner.totalReward !== null ? fact("Prize", formatCurrency(winner.totalReward), true) : "";
   const date = winner.matchAt
     ? `<time datetime="${escapeHtml(winner.matchAt)}">${escapeHtml(formatDateTime(winner.matchAt, "long"))}</time>`
     : '<span class="winner-card__date">Match time unavailable</span>';
   const image = winner.imageUrl
-    ? `<figure class="winner-card__media"><img src="${escapeHtml(winner.imageUrl)}" alt="${escapeHtml(winner.imageAlt || `${winner.displayName} after winning ${winner.matchLabel}`)}"></figure>`
+    ? `<figure class="winner-card__media"><img src="${escapeHtml(winner.imageUrl)}" alt="${escapeHtml(winner.imageAlt || `${title} after winning ${winner.matchLabel}`)}"></figure>`
     : "";
 
   return `<article class="winner-card" data-reveal>
@@ -83,7 +99,7 @@ function winnerCard(winner, index) {
       ${image}
       <div class="winner-card__content">
         <header>
-          <div><p>${escapeHtml(winner.matchLabel)}</p><h2>${escapeHtml(winner.displayName)}</h2>${playerCode}</div>
+          <div><p>${escapeHtml(winner.matchLabel)}</p><h2>${escapeHtml(title)}</h2>${identity}</div>
           <span class="winner-card__badge">${icon("trophy")} Booyah</span>
         </header>
         <div class="winner-card__match"><strong>${escapeHtml(winner.tournamentName)}</strong>${date}<span class="status-badge status-badge--${escapeHtml(winner.matchState.key)}"><i aria-hidden="true"></i>${escapeHtml(winner.matchState.label)}</span></div>
@@ -113,7 +129,7 @@ async function loadPublishedWinners() {
   const client = await getSupabaseClient();
   const { data, error } = await client
     .from("match_results")
-    .select("id, tournament_id, time_slot_id, time_slot_label, time_slot_at, display_name, ff_uid, kills, prize_amount, image_path, image_alt, published_at")
+    .select("id, tournament_id, time_slot_id, time_slot_label, time_slot_at, display_name, ff_uid, team_name, players, kills, prize_amount, image_path, image_alt, published_at")
     .eq("published", true)
     .order("time_slot_at", { ascending: false });
   if (error && ["42P01", "PGRST205"].includes(error.code)) return winners.map(projectWinner).filter(Boolean);
@@ -127,6 +143,8 @@ async function loadPublishedWinners() {
     matchAt: row.time_slot_at,
     displayName: row.display_name,
     uid: row.ff_uid,
+    teamName: row.team_name,
+    players: row.players,
     kills: row.kills,
     prizeAmount: row.prize_amount,
     imagePath: row.image_path,
@@ -187,7 +205,8 @@ async function initializeBooyah() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshBooyah({ force: true });
   });
-  window.addEventListener("pageshow", () => refreshBooyah({ force: true }));
+  // pageshow also fires on the initial load; only a back/forward cache restore needs a refresh.
+  window.addEventListener("pageshow", (event) => { if (event.persisted) refreshBooyah({ force: true }); });
   renderWinners();
   initializeMotion();
 }

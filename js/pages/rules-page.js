@@ -1,6 +1,6 @@
-import { preferredScrollBehavior } from "../shared/motion.js?v=20261011-lifecycle";
-import { initializeMotion } from "../shared/motion.js?v=20261011-lifecycle";
-import { initializeShell, showToast } from "../shared/shell.js?v=20261011-lifecycle";
+import { preferredScrollBehavior } from "../shared/motion.js?v=20261013-squad-results";
+import { initializeMotion } from "../shared/motion.js?v=20261013-squad-results";
+import { initializeShell, showToast } from "../shared/shell.js?v=20261013-squad-results";
 
 initializeShell();
 initializeMotion();

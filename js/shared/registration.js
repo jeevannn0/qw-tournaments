@@ -1,4 +1,4 @@
-import { config, formatCurrency, formatDateTime, getEventPresentation, normalize, whatsappUrl } from "./data.js?v=20261011-lifecycle";
+import { config, formatCurrency, formatDateTime, getEventPresentation, normalize, whatsappUrl } from "./data.js?v=20261013-squad-results";
 
 export function createRegistrationId(tournament) {
   const now = new Date();

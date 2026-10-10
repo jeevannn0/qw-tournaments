@@ -1,8 +1,8 @@
-import { getEventPresentation, isTdm, normalize, tournaments } from "../shared/data.js?v=20261011-lifecycle";
-import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
-import { eventCard } from "../shared/event-card.js?v=20261011-lifecycle";
-import { initializeShell } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion, transitionUpdate } from "../shared/motion.js?v=20261011-lifecycle";
+import { getEventPresentation, isTdm, normalize, tournaments } from "../shared/data.js?v=20261013-squad-results";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261013-squad-results";
+import { eventCard } from "../shared/event-card.js?v=20261013-squad-results";
+import { initializeShell } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion, transitionUpdate } from "../shared/motion.js?v=20261013-squad-results";
 
 const grid = document.querySelector("#eventCatalog");
 const count = document.querySelector("#eventResultCount");
@@ -33,9 +33,20 @@ function getVisibleEvents() {
     return matchesFormat(tournament, filter) && (!query || haystack.includes(query));
   });
 
+  // Fees come from the organizer-published presentation (not the static
+  // fallback), and unannounced values sort last instead of as ₹0.
+  const publishedFee = (tournament) => {
+    const fee = getEventPresentation(tournament).entryFee;
+    // Number(null) is 0, so an unannounced fee must be excluded before coercion.
+    return fee === null || fee === undefined || !Number.isFinite(Number(fee)) ? Number.POSITIVE_INFINITY : Number(fee);
+  };
+  const publishedPrize = (tournament) => {
+    const prize = Number(tournament.prizePool);
+    return Number.isFinite(prize) && tournament.prizePool !== null ? prize : -1;
+  };
   return visible.sort((a, b) => {
-    if (sort.value === "prize") return Number(b.prizePool) - Number(a.prizePool);
-    if (sort.value === "fee") return Number(a.entryFee) - Number(b.entryFee);
+    if (sort.value === "prize") return publishedPrize(b) - publishedPrize(a);
+    if (sort.value === "fee") return publishedFee(a) - publishedFee(b);
     return Number(getEventPresentation(b).state.open) - Number(getEventPresentation(a).state.open);
   });
 }
@@ -55,11 +66,15 @@ function syncUrl() {
 
 function hydrateFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  search.value = normalize(params.get("q") || "").slice(0, 80);
+  const compact = window.matchMedia("(max-width: 43.74rem)").matches;
+  // Mobile exposes the format choices as compact chips but intentionally omits
+  // search and sort controls. Reset hidden URL-only state instead of silently
+  // constraining the visible rail.
+  search.value = compact ? "" : normalize(params.get("q") || "").slice(0, 80);
   const format = params.get("format") || "all";
   const filter = filters.find((input) => input.value === format && validFormats.has(format)) || filters[0];
   filter.checked = true;
-  const requestedSort = params.get("sort") || "date";
+  const requestedSort = compact ? "date" : params.get("sort") || "date";
   sort.value = validSorts.has(requestedSort) ? requestedSort : "date";
 }
 
@@ -128,7 +143,8 @@ async function initializeTournaments() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshTournamentBoard({ force: true });
   });
-  window.addEventListener("pageshow", () => refreshTournamentBoard({ force: true }));
+  // pageshow also fires on the initial load; only a back/forward cache restore needs a refresh.
+  window.addEventListener("pageshow", (event) => { if (event.persisted) refreshTournamentBoard({ force: true }); });
   initializeMotion();
 }
 

@@ -3,19 +3,21 @@ import {
   escapeHtml,
   formatDateTime,
   getRequestedTournament,
+  getEventPresentation,
   getEventTimeSlots,
   getTimeSlotState,
   getTournament,
   normalize,
   rosters,
   tournaments
-} from "../shared/data.js?v=20261011-lifecycle";
-import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261011-lifecycle";
-import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261011-lifecycle";
-import { icon, initializeShell } from "../shared/shell.js?v=20261011-lifecycle";
-import { initializeMotion, transitionUpdate } from "../shared/motion.js?v=20261011-lifecycle";
+} from "../shared/data.js?v=20261013-squad-results";
+import { hydrateTournamentOverrides } from "../shared/tournament-backend.js?v=20261013-squad-results";
+import { getSupabaseClient, isSupabaseConfigured } from "../shared/supabase.js?v=20261013-squad-results";
+import { icon, initializeShell } from "../shared/shell.js?v=20261013-squad-results";
+import { initializeMotion, transitionUpdate } from "../shared/motion.js?v=20261013-squad-results";
 
 const eventSelect = document.querySelector("#rosterEvent");
+const eventCards = document.querySelector("#rosterEventCards");
 const lobbySelect = document.querySelector("#rosterLobby");
 const search = document.querySelector("#rosterSearch");
 const content = document.querySelector("#rosterContent");
@@ -85,8 +87,28 @@ function playerRow(entry) {
   </li>`;
 }
 
-function combinedLobbySlots(tournament) {
-  return getEventTimeSlots(tournament);
+function combinedLobbySlots(tournament, entries = []) {
+  // Confirmed roster rows keep their lobby id even after the match card leaves
+  // "Registration open", when getEventTimeSlots falls back to the checked-in
+  // schedule. Merge both sources so every confirmed player has a board.
+  const slots = getEventTimeSlots(tournament).map((slot) => ({ ...slot }));
+  const known = new Set(slots.map((slot) => slot.id));
+  entries.forEach((entry) => {
+    if (!entry?.timeSlotId || known.has(entry.timeSlotId)) return;
+    known.add(entry.timeSlotId);
+    slots.push({
+      id: entry.timeSlotId,
+      label: entry.timeSlotLabel || `${tournament?.name || "Match"} lobby`,
+      startsAt: entry.timeSlotAt,
+      capacity: entry.slotCapacity,
+      spotsLeft: 0
+    });
+  });
+  if (!entries.length) return slots;
+  const populated = new Set(entries.map((entry) => entry.timeSlotId));
+  return slots
+    .filter((slot) => populated.has(slot.id) || getTimeSlotState(tournament, slot).open)
+    .sort((a, b) => String(a.startsAt || "").localeCompare(String(b.startsAt || "")));
 }
 
 function soloLobbyBoards(allEntries, visibleEntries, tournament, selectedLobby, query) {
@@ -121,6 +143,7 @@ function syncLobbyOptions(tournament, requestedLobby = "all", entries = []) {
   const validLobby = requestedLobby === "all" || slots.some((slot) => slot.id === requestedLobby);
   lobbySelect.value = validLobby ? requestedLobby : "all";
   lobbySelect.disabled = !slots.length;
+  lobbySelect.closest(".field").hidden = slots.length <= 1;
 }
 
 function syncRosterUrl(tournament) {
@@ -229,6 +252,10 @@ async function renderRoster({ force = false } = {}) {
   const unit = tournament.type === "solo" ? "players" : "teams";
 
   const update = () => {
+    const orbitCount = document.querySelector("#rosterOrbitCount");
+    const orbitLabel = document.querySelector("#rosterOrbitLabel");
+    if (orbitCount) orbitCount.textContent = String(allEntries.length).padStart(2, "0");
+    if (orbitLabel) orbitLabel.textContent = `confirmed ${unit}`;
     const sourceLabel = roster.live ? "Public roster" : roster.updatedAt ? formatDateTime(roster.updatedAt, "long") : "Not published";
     meta.innerHTML = `<div><span class="eyebrow-label">Selected match</span><strong>${escapeHtml(tournament.name)}</strong></div><div class="roster-meta__end"><span>${escapeHtml(sourceLabel)}</span><strong>${visibleEntries.length} shown · ${allEntries.length} confirmed ${unit}</strong><button class="button button--quiet roster-refresh" type="button" data-roster-action="refresh">Refresh</button></div>`;
 
@@ -239,7 +266,9 @@ async function renderRoster({ force = false } = {}) {
       return;
     }
     if (!allEntries.length) {
-      content.innerHTML = emptyState("No confirmed players yet", "Complete registrations appear here only after the organizer verifies payment and assigns a player number.");
+      content.innerHTML = getEventPresentation(tournament).comingSoon
+        ? emptyState("Match coming soon", "Registration and roster publication are not open for this match yet.")
+        : emptyState(`No confirmed ${unit} yet`, `Complete registrations appear here only after the organizer verifies payment and assigns a ${tournament.type === "solo" ? "player" : "team"} number.`);
       return;
     }
     if (!visibleEntries.length && (query || selectedLobby !== "all")) {
@@ -273,9 +302,20 @@ function handleRosterAction(event) {
   if (action === "retry" || action === "refresh") refreshRoster();
 }
 
+function renderEventCards() {
+  const focused = eventCards.contains(document.activeElement) ? document.activeElement.dataset.rosterEvent : "";
+  eventCards.innerHTML = tournaments.map((tournament) => {
+    const presentation = getEventPresentation(tournament);
+    const selected = tournament.id === eventSelect.value;
+    return `<button class="roster-match-pill" type="button" aria-pressed="${selected}" data-roster-event="${escapeHtml(tournament.id)}"><strong>${escapeHtml(tournament.name)}</strong><small>${escapeHtml(presentation.state.label)}</small></button>`;
+  }).join("");
+  if (focused) eventCards.querySelector(`[data-roster-event="${CSS.escape(focused)}"]`)?.focus({ preventScroll: true });
+}
+
 function syncEventOptions(preferredId = eventSelect.value) {
   eventSelect.innerHTML = tournaments.map((tournament) => `<option value="${escapeHtml(tournament.id)}">${escapeHtml(tournament.name)} · ${escapeHtml(tournament.formatLabel)}</option>`).join("");
   if (tournaments.some((tournament) => tournament.id === preferredId)) eventSelect.value = preferredId;
+  renderEventCards();
 }
 
 async function refreshPlayersPage() {
@@ -296,11 +336,19 @@ async function initializePlayers() {
   const requested = getRequestedTournament();
   const firstPublished = tournaments.find((tournament) => rosters[tournament.id]?.published);
   eventSelect.value = (requested || firstPublished || tournaments[0])?.id || "";
+  renderEventCards();
   search.value = normalize(params.get("q") || "").slice(0, 80);
   syncLobbyOptions(getTournament(eventSelect.value), params.get("lobby") || "all");
 
+  eventCards.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-roster-event]");
+    if (!card || card.dataset.rosterEvent === eventSelect.value) return;
+    eventSelect.value = card.dataset.rosterEvent;
+    eventSelect.dispatchEvent(new Event("change"));
+  });
   eventSelect.addEventListener("change", () => {
     search.value = "";
+    renderEventCards();
     syncLobbyOptions(getTournament(eventSelect.value), "all");
     renderRoster();
   });
@@ -310,6 +358,7 @@ async function initializePlayers() {
     const nextParams = new URLSearchParams(window.location.search);
     const requestedTournament = getTournament(nextParams.get("tournament"));
     if (requestedTournament) eventSelect.value = requestedTournament.id;
+    renderEventCards();
     search.value = normalize(nextParams.get("q") || "").slice(0, 80);
     syncLobbyOptions(getTournament(eventSelect.value), nextParams.get("lobby") || "all");
     renderRoster();
@@ -319,7 +368,8 @@ async function initializePlayers() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshPlayersPage();
   });
-  window.addEventListener("pageshow", refreshPlayersPage);
+  // pageshow also fires on the initial load; only a back/forward cache restore needs a refresh.
+  window.addEventListener("pageshow", (event) => { if (event.persisted) refreshPlayersPage(); });
   renderRoster();
   initializeMotion();
 }

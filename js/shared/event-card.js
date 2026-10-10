@@ -8,8 +8,8 @@ import {
   getEventPresentation,
   getEventState,
   registrationUrl
-} from "./data.js?v=20261011-lifecycle";
-import { icon } from "./shell.js?v=20261011-lifecycle";
+} from "./data.js?v=20261013-squad-results";
+import { icon } from "./shell.js?v=20261013-squad-results";
 
 export function eventStatusBadge(tournament, providedState = null) {
   const state = providedState || getEventState(tournament);

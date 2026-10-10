@@ -1,6 +1,6 @@
-import { getEventState, getTimeSlot, normalize } from "./data.js?v=20261011-lifecycle";
-import { normalizeRegistrationEmail, validRegistrationEmail } from "./custom-room-backend.js?v=20261011-lifecycle";
-import { ensureAnonymousPlayer, getSupabaseClient } from "./supabase.js?v=20261011-lifecycle";
+import { getEventState, getTimeSlot, normalize } from "./data.js?v=20261013-squad-results";
+import { normalizeRegistrationEmail, validRegistrationEmail } from "./custom-room-backend.js?v=20261013-squad-results";
+import { ensureAnonymousPlayer, getSupabaseClient } from "./supabase.js?v=20261013-squad-results";
 
 export const MAX_PAYMENT_PROOF_BYTES = 2 * 1024 * 1024;
 const PAYMENT_METHODS = new Set(["upi"]);

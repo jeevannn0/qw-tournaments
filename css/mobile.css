@@ -1,0 +1,694 @@
+/* Final mobile task-path layer. Loaded after structural and gaming CSS.
+   It adapts composition rather than shrinking the desktop layout. */
+
+.roster-match-switch {
+  display: none;
+}
+
+@media (max-width: 43.74rem) {
+  /* Task pages use the fixed quick-navigation dock; their full desktop footer
+     repeats navigation and support information without helping the task. */
+  body:not([data-page="home"]):not([data-page="admin"]):not([data-page="register"]) #siteFooter {
+    display: none;
+  }
+
+  .page-intro__layout {
+    padding-block: 0.9rem;
+  }
+
+  .page-intro h1 {
+    font-size: clamp(2.1rem, 11vw, 2.75rem);
+  }
+
+  .page-intro p:last-child {
+    font-size: 0.875rem;
+  }
+
+  /* Tournament board: one decision-complete card at a time, swiped horizontally. */
+  .catalog-section {
+    padding-block: 0.75rem 1rem;
+  }
+
+  .catalog-layout {
+    gap: 0.75rem;
+  }
+
+  .catalog-controls {
+    display: block !important;
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  .catalog-controls__heading,
+  .catalog-controls .search-field,
+  .catalog-controls > .field:not(.search-field),
+  .catalog-controls .control-note {
+    display: none !important;
+  }
+
+  .catalog-controls .segment-field {
+    display: block;
+    margin: 0;
+  }
+
+  .catalog-controls .segments {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .catalog-controls .segments label {
+    min-height: 2.5rem;
+    padding: 0.45rem 0.25rem;
+    font-size: 0.6875rem;
+  }
+
+  .catalog-main__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .catalog-main__heading h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .catalog-main__heading .catalog-mobile-count {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+
+  .catalog-main__heading > .button {
+    min-height: 2.5rem;
+    flex: 0 0 auto;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .event-grid--catalog {
+    display: flex !important;
+    gap: 0.75rem;
+    margin-right: calc(-1 * var(--gutter));
+    overflow-x: auto;
+    padding: 0 14vw 0.35rem 0;
+    scroll-padding-inline: 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .event-grid--catalog::-webkit-scrollbar {
+    display: none;
+  }
+
+  .event-grid--catalog .event-card {
+    display: flex !important;
+    width: min(82vw, 20rem);
+    min-height: 0;
+    flex: 0 0 min(82vw, 20rem);
+    scroll-snap-align: start;
+  }
+
+  .event-grid--catalog .event-card__art {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 7;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .event-grid--catalog .event-card__image {
+    position: static;
+  }
+
+  .event-grid--catalog .event-card__code {
+    display: block;
+  }
+
+  .event-grid--catalog .event-card__body {
+    padding: 0.7rem;
+  }
+
+  .event-grid--catalog .event-card__identity {
+    min-height: 0;
+  }
+
+  .event-grid--catalog .event-card h3 {
+    margin-bottom: 0.4rem;
+    font-size: 1.2rem;
+  }
+
+  .event-grid--catalog .event-card__tagline {
+    display: -webkit-box;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    font-size: 0.75rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .event-grid--catalog .reward-strip,
+  .event-grid--catalog .capacity-meter,
+  .event-grid--catalog .coming-soon-strip {
+    display: none !important;
+  }
+
+  .event-grid--catalog .announcement-strip {
+    margin-bottom: 0.55rem;
+    padding: 0.45rem 0.55rem;
+  }
+
+  .event-grid--catalog .announcement-strip span {
+    display: none;
+  }
+
+  .event-grid--catalog .event-card__facts {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .event-grid--catalog .event-card__facts > div {
+    display: block !important;
+  }
+
+  .event-grid--catalog .event-card__facts dt {
+    font-size: 0.6rem;
+  }
+
+  .event-grid--catalog .event-card__facts dd {
+    font-size: 0.75rem;
+  }
+
+  .event-grid--catalog .event-card__actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.35rem;
+    padding-top: 0.55rem;
+  }
+
+  .event-grid--catalog .event-card__actions .button {
+    min-height: 2.5rem;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .event-grid--catalog .event-card__actions .button--text {
+    display: inline-flex;
+  }
+
+  .board-cta {
+    display: none !important;
+  }
+
+  /* Dynamic match detail: the hero already holds the decision facts. Hide only
+     repeated announcement sections; retain the safety path and rules link. */
+  #eventDetail .event-hero {
+    padding-block: 0.8rem 0;
+  }
+
+  #eventDetail .event-hero__layout {
+    gap: 0.75rem;
+    padding: 0 !important;
+  }
+
+  #eventDetail .event-hero__copy .inline-badges {
+    margin-bottom: 0.5rem;
+  }
+
+  #eventDetail .event-hero__copy h1 {
+    margin-bottom: 0.45rem;
+    font-size: clamp(2.25rem, 12vw, 3rem);
+  }
+
+  #eventDetail .event-hero__copy > p:not(.kicker) {
+    display: none !important;
+  }
+
+  #eventDetail .event-hero__copy .button-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  #eventDetail .event-hero__copy .button--primary {
+    grid-column: 1 / -1;
+  }
+
+  #eventDetail .event-hero__copy .button--quiet {
+    display: inline-flex !important;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  #eventDetail .event-poster {
+    display: block !important;
+    aspect-ratio: 16 / 6;
+  }
+
+  #eventDetail .event-fact-bar {
+    margin-top: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #eventDetail .event-fact-bar > div,
+  #eventDetail .event-fact-bar > div:first-child,
+  #eventDetail .event-fact-bar > div:nth-child(odd):not(:first-child),
+  #eventDetail .event-fact-bar > div:last-child {
+    display: block;
+    grid-column: auto;
+    border-right: 1px solid var(--border);
+    padding: 0.5rem 0.6rem;
+  }
+
+  #eventDetail .event-fact-bar > div:nth-child(even) {
+    border-right: 0;
+  }
+
+  #eventDetail .event-fact-bar > div:nth-child(4) {
+    display: none;
+  }
+
+  #eventDetail .event-fact-bar dt {
+    font-size: 0.6rem;
+  }
+
+  #eventDetail .event-fact-bar dd {
+    font-size: 0.75rem;
+  }
+
+  #eventDetail .event-local-nav,
+  #eventDetail .event-hero--announcement ~ #overview,
+  #eventDetail .event-hero--announcement ~ #match-facts,
+  #eventDetail .event-final-cta {
+    display: none !important;
+  }
+
+  #eventDetail #ruleset {
+    padding-block: 1rem;
+  }
+
+  #eventDetail #ruleset .detail-columns {
+    gap: 0;
+  }
+
+  #eventDetail #ruleset .detail-columns > div:first-child {
+    display: none;
+  }
+
+  #eventDetail #ruleset .coming-soon-panel {
+    min-height: 0;
+    padding: 1rem;
+  }
+
+  #eventDetail #ruleset .coming-soon-panel > span,
+  #eventDetail #ruleset .coming-soon-panel > p {
+    display: none;
+  }
+
+  #eventDetail #ruleset .coming-soon-panel h3 {
+    margin-bottom: 0.65rem;
+    font-size: 1.35rem;
+  }
+
+  /* Registration: one open match skips the redundant match rail. The lineup
+     becomes four compact two-row entries instead of four desktop cards. */
+  body[data-page="register"] .wizard-sidebar {
+    display: none !important;
+  }
+
+  body[data-page="register"] .registration-page {
+    padding-block: 0;
+  }
+
+  body[data-page="register"] .registration-page__layout {
+    width: 100%;
+    gap: 0;
+  }
+
+  body[data-page="register"] .wizard-card {
+    border-inline: 0;
+    border-bottom: 0;
+  }
+
+  body[data-page="register"] .wizard-card__progress {
+    position: sticky;
+    z-index: 30;
+    top: var(--header-row);
+    background: var(--card);
+  }
+
+  body[data-page="register"] .match-picker-fieldset {
+    display: block;
+  }
+
+  body[data-page="register"].single-open-match .match-picker-fieldset {
+    display: none !important;
+  }
+
+  body[data-page="register"] .wizard-panel {
+    padding: 0.65rem var(--gutter) 1rem;
+  }
+
+  body[data-page="register"] .wizard-panel__heading {
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.5rem;
+  }
+
+  body[data-page="register"] .wizard-panel__heading h2 {
+    font-size: 1.35rem;
+  }
+
+  body[data-page="register"] [data-step-panel="2"] > .wizard-panel__heading p:last-child,
+  body[data-page="register"] [data-step-panel="3"] > .wizard-panel__heading p:last-child,
+  body[data-page="register"] #lineupFields > .lineup-heading,
+  body[data-page="register"] .payment-proof__intro,
+  body[data-page="register"] .upi-payment-card > small,
+  body[data-page="register"] .player-entry small[id$="UidHelp"] {
+    display: none !important;
+  }
+
+  body[data-page="register"] .team-name-field,
+  body[data-page="register"] .player-entry {
+    margin-bottom: 0.5rem;
+    padding: 0.55rem 0.65rem;
+  }
+
+  body[data-page="register"] .team-name-field {
+    background: color-mix(in oklab, var(--primary) 7%, var(--card));
+  }
+
+  body[data-page="register"] .player-entry legend {
+    font-size: 0.75rem;
+  }
+
+  body[data-page="register"] .form-grid--player {
+    grid-template-columns: minmax(0, 1fr) 5rem;
+    gap: 0.35rem 0.5rem;
+  }
+
+  body[data-page="register"] .form-grid--player .field:first-child {
+    grid-column: 1 / -1;
+  }
+
+  body[data-page="register"] .form-grid--player .field--age {
+    grid-column: auto;
+  }
+
+  body[data-page="register"] .form-grid--player label,
+  body[data-page="register"] .team-name-field label,
+  body[data-page="register"] .payment-form-grid label {
+    margin-bottom: 0.2rem;
+    font-size: 0.75rem;
+  }
+
+  body[data-page="register"] .form-grid--player input,
+  body[data-page="register"] .team-name-field input,
+  body[data-page="register"] .payment-form-grid input {
+    min-height: 2.65rem;
+    padding-block: 0.45rem;
+    font-size: 0.9375rem;
+  }
+
+  body[data-page="register"] .payment-proof {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+  }
+
+  body[data-page="register"] .payment-proof .lineup-heading {
+    margin-bottom: 0.5rem;
+  }
+
+  body[data-page="register"] .upi-payment-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.15rem 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+  }
+
+  body[data-page="register"] .upi-payment-card > span,
+  body[data-page="register"] .upi-payment-card > strong {
+    grid-column: 1;
+  }
+
+  body[data-page="register"] .upi-payment-card > .button-row {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  body[data-page="register"] .upi-payment-card .button {
+    min-height: 2.5rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  body[data-page="register"] .payment-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+  }
+
+  body[data-page="register"] .payment-form-grid .field {
+    margin: 0;
+  }
+
+  body[data-page="register"] .payment-form-grid .field:has(#paymentReference),
+  body[data-page="register"] .payment-screenshot-field {
+    grid-column: 1 / -1;
+  }
+
+  body[data-page="register"] .payment-form-grid .field > small:not(.file-state) {
+    display: none;
+  }
+
+  body[data-page="register"] .payment-screenshot-field {
+    padding: 0.6rem;
+  }
+
+  body[data-page="register"] .wizard-actions {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+  }
+
+  /* Roster: compact controls and cards; privacy detail remains on desktop and
+     the public rules page, not in the main phone task path. */
+  body[data-page="players"] .roster-section {
+    padding-block: 0.75rem 1rem;
+  }
+
+  body[data-page="players"] .roster-controls {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.65rem;
+  }
+
+  body[data-page="players"] .roster-controls__heading,
+  body[data-page="players"] .roster-event-field,
+  body[data-page="players"] .privacy-explainer {
+    display: none !important;
+  }
+
+  body[data-page="players"] .roster-match-switch {
+    display: flex;
+    gap: 0.5rem;
+    margin-right: -0.65rem;
+    overflow-x: auto;
+    padding-right: 0.65rem;
+    scrollbar-width: none;
+  }
+
+  body[data-page="players"] .roster-match-switch::-webkit-scrollbar {
+    display: none;
+  }
+
+  body[data-page="players"] .roster-match-pill {
+    min-width: 8.5rem;
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    background: var(--field);
+    color: var(--foreground);
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+  }
+
+  body[data-page="players"] .roster-match-pill[aria-pressed="true"] {
+    border-color: var(--primary);
+    background: var(--accent);
+    box-shadow: inset 0 -3px 0 var(--primary);
+  }
+
+  body[data-page="players"] .roster-match-pill strong,
+  body[data-page="players"] .roster-match-pill small {
+    display: block;
+  }
+
+  body[data-page="players"] .roster-match-pill strong {
+    overflow: hidden;
+    font-size: 0.8125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body[data-page="players"] .roster-match-pill small {
+    color: var(--muted-foreground);
+    font-size: 0.625rem;
+  }
+
+  body[data-page="players"] .roster-controls > .field {
+    margin: 0;
+  }
+
+  body[data-page="players"] .roster-controls .search-field {
+    grid-column: auto;
+  }
+
+  body[data-page="players"] .roster-meta {
+    min-height: 0;
+    margin-top: 0.5rem;
+  }
+
+  body[data-page="players"] .roster-card header,
+  body[data-page="players"] .roster-card ol {
+    padding: 0.7rem;
+  }
+
+  body[data-page="players"] .roster-card h2 {
+    font-size: 1.35rem;
+  }
+
+  body[data-page="players"] .roster-card li {
+    padding-block: 0.45rem;
+  }
+
+  /* Results and rules are secondary reading tasks on phone. */
+  body[data-page="booyah"] .booyah-section {
+    padding-block: 1rem;
+  }
+
+  body[data-page="booyah"] .booyah-proof {
+    display: none;
+  }
+
+  body[data-page="rules"] .rules-page-section {
+    padding-block: 0.75rem 1rem;
+  }
+
+  body[data-page="rules"] .rules-sidebar {
+    position: static;
+    margin: 0 -0.875rem 0.75rem;
+    overflow-x: auto;
+    padding-inline: 0.875rem;
+    scrollbar-width: none;
+  }
+
+  body[data-page="rules"] .rules-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  body[data-page="rules"] .rules-sidebar > div:first-child > .kicker,
+  body[data-page="rules"] .rules-sidebar__actions,
+  body[data-page="rules"] .rules-help {
+    display: none;
+  }
+
+  body[data-page="rules"] .rules-sidebar nav {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  body[data-page="rules"] .rules-sidebar nav a {
+    min-width: max-content;
+    min-height: 2.5rem;
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  body[data-page="rules"] .rules-content__intro {
+    display: none;
+  }
+}
+
+@media (max-width: 22rem) {
+  body[data-page="register"] .payment-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="register"] .payment-form-grid .field {
+    grid-column: auto;
+  }
+
+  #eventDetail .event-hero__copy .button-row {
+    grid-template-columns: 1fr;
+  }
+
+  #eventDetail .event-hero__copy .button--primary {
+    grid-column: auto;
+  }
+}
+
+/* The desktop tournament board has only three formats. A compact command row
+   and one three-column lineup avoids a long two-row catalog. */
+@media (min-width: 43.75rem) {
+  body[data-page="tournaments"] .catalog-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  body[data-page="tournaments"] .catalog-controls {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(16rem, 1.1fr) minmax(22rem, 1.4fr) minmax(11rem, 0.6fr);
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  body[data-page="tournaments"] .catalog-controls__heading,
+  body[data-page="tournaments"] .control-note {
+    display: none;
+  }
+
+  body[data-page="tournaments"] .catalog-controls .search-field,
+  body[data-page="tournaments"] .catalog-controls .segment-field,
+  body[data-page="tournaments"] .catalog-controls > .field:not(.search-field) {
+    grid-area: auto;
+    margin: 0;
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog .event-card__art {
+    aspect-ratio: 16 / 7;
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog .event-card__body {
+    padding: var(--space-3);
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog .event-card h3 {
+    font-size: 1.4rem;
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog .event-card__tagline {
+    min-height: 3rem;
+    font-size: 0.875rem;
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog .event-card__facts {
+    gap: var(--space-2);
+  }
+
+  body[data-page="tournaments"] .event-grid--catalog .event-card__actions .button {
+    padding-inline: 0.7rem;
+  }
+}
